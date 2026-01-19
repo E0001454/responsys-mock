@@ -5,7 +5,8 @@ import { RouterLink } from 'vue-router'
 <template>
   <aside class="sidebar">
     <div class="logo">
-      <h2>Admin ABC Responsys</h2>
+      <h2 class="">Admin ABC Responsys</h2>
+      
     </div>
     <nav>
       <p class="p-label">Configuraciones</p>
@@ -14,28 +15,28 @@ import { RouterLink } from 'vue-router'
           <RouterLink to="/mapeo" active-class="active">Mapeos</RouterLink>
         </li>
         <li>
-          <RouterLink to="/campana" active-class="active">Columnas</RouterLink>
+          <RouterLink to="/" active-class="active">Columnas</RouterLink>
         </li>
         <li>
-          <RouterLink to="/actividades" active-class="active">Actividades</RouterLink>
+          <RouterLink to="/" active-class="active">Actividades</RouterLink>
         </li>
       </ul>
       <p class="p-label">Monitoreo</p>
       <ul>
         <li>
-          <RouterLink to="/tareas" active-class="active">Tareas</RouterLink>
+          <RouterLink to="/" active-class="active">Tareas</RouterLink>
         </li>
       </ul>
       <p class="p-label">Reportes</p>
       <ul>
         <li>
-          <RouterLink to="/reportes/BI" active-class="active">BI</RouterLink>
+          <RouterLink to="/" active-class="active">BI</RouterLink>
         </li>
         <li>
-          <RouterLink to="/reportes/BI" active-class="active">ABC</RouterLink>
+          <RouterLink to="/" active-class="active">ABC</RouterLink>
         </li>
         <li>
-          <RouterLink to="/reportes/BI" active-class="active">Responsys</RouterLink>
+          <RouterLink to="/" active-class="active">Responsys</RouterLink>
         </li>
       </ul>
 

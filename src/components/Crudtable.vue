@@ -5,14 +5,12 @@ const props = defineProps({
   titulo: String,
   columnas: Array,
   datos: Array,
-  // Nueva prop para configurar tipos de input (select, text, etc.)
   camposConfig: {
     type: Object,
     default: () => ({})
   }
 })
 
-// --- Lógica del Modal ---
 const showModal = ref(false)
 const isEditMode = ref(false)
 const formData = ref({})
@@ -119,7 +117,7 @@ const capitalize = (s) => s && s[0].toUpperCase() + s.slice(1)
 </template>
 
 <style scoped>
-/* (MISMOS ESTILOS QUE ANTES, SIN CAMBIOS) */
+
 .crud-container {
   background: white;
   padding: 20px;
@@ -161,7 +159,6 @@ th { background-color: #f8f9fa; font-weight: bold; }
 .btn-edit { color: #f39c12; }
 .btn-delete { color: #e74c3c; }
 
-/* MODAL */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -204,14 +201,13 @@ th { background-color: #f8f9fa; font-weight: bold; }
   font-weight: 600;
   color: #34495e;
 }
-/* El select usará el mismo estilo que el input */
 .form-control {
   width: 100%;
   padding: 8px;
   border: 1px solid #bdc3c7;
   border-radius: 4px;
   box-sizing: border-box;
-  background-color: white; /* Asegurar fondo blanco en select */
+  background-color: white;
 }
 .modal-footer {
   display: flex;
