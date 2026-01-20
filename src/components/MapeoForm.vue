@@ -61,55 +61,61 @@ function getFieldType(config: FieldsConfig[keyof FieldsConfig]) {
 </script>
 
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>{{ title }}</h3>
-        <button
-          class="close-btn"
-          @click="$emit('close')"
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
+      
+      <div class="px-6 py-4 bg-[#00357F] flex justify-between items-center shrink-0">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          {{ title }}
+        </h3>
+        <button 
+          @click="$emit('close')" 
           :disabled="isLoading"
+          class="text-white/70 hover:text-white transition-colors text-2xl leading-none focus:outline-none cursor-pointer"
         >
-          ×
+          &times;
         </button>
       </div>
 
-      <div class="modal-body">
-        <form @submit.prevent="handleSave">
+      <div class="p-6 overflow-y-auto custom-scrollbar">
+        <form @submit.prevent="handleSave" class="space-y-5">
           <div
             v-for="(fieldConfig, fieldName) in fieldsConfig"
             :key="fieldName"
-            class="form-group"
           >
-            <label :for="`field-${fieldName}`" class="form-label">
+            <label :for="`field-${fieldName}`" class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">
               {{ capitalize(fieldName) }}
-              <span v-if="fieldConfig.required" class="required">*</span>
+              <span v-if="fieldConfig.required" class="text-red-500 ml-1">*</span>
             </label>
 
-            <select
-              v-if="getFieldType(fieldConfig) === 'select'"
-              :id="`field-${fieldName}`"
-              v-model="formData[fieldName]"
-              class="form-control"
-              :required="fieldConfig.required"
-            >
-              <option value="">
-                {{ fieldConfig.placeholder || 'Seleccione una opción' }}
-              </option>
-              <option
-                v-for="opt in fieldConfig.options"
-                :key="typeof opt === 'string' ? opt : opt.value"
-                :value="typeof opt === 'string' ? opt : opt.value"
+            <div v-if="getFieldType(fieldConfig) === 'select'" class="relative">
+              <select
+                :id="`field-${fieldName}`"
+                v-model="formData[fieldName]"
+                class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 text-sm focus:ring-2 focus:ring-[#00357F] focus:border-[#00357F] transition-shadow appearance-none cursor-pointer outline-none"
+                :required="fieldConfig.required"
               >
-                {{ typeof opt === 'string' ? opt : opt.label }}
-              </option>
-            </select>
+                <option value="" disabled class="text-gray-400">
+                  {{ fieldConfig.placeholder || 'Seleccione una opción' }}
+                </option>
+                <option
+                  v-for="opt in fieldConfig.options"
+                  :key="typeof opt === 'string' ? opt : opt.value"
+                  :value="typeof opt === 'string' ? opt : opt.value"
+                >
+                  {{ typeof opt === 'string' ? opt : opt.label }}
+                </option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
 
             <textarea
               v-else-if="getFieldType(fieldConfig) === 'textarea'"
               :id="`field-${fieldName}`"
               v-model="formData[fieldName]"
-              class="form-control textarea"
+              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 text-sm focus:ring-2 focus:ring-[#00357F] focus:border-[#00357F] transition-shadow outline-none placeholder-gray-400 resize-none"
               :placeholder="fieldConfig.placeholder"
               :required="fieldConfig.required"
               :rows="fieldConfig.rows || 3"
@@ -117,21 +123,25 @@ function getFieldType(config: FieldsConfig[keyof FieldsConfig]) {
 
             <div
               v-else-if="getFieldType(fieldConfig) === 'toggle'"
-              class="toggle-switch"
+              class="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200"
             >
-              <input
-                :id="`field-${fieldName}`"
-                v-model="formData[fieldName]"
-                type="checkbox"
-                class="toggle-checkbox"
-                :true-value="1"
-                :false-value="0"
-              />
-              <label :for="`field-${fieldName}`" class="toggle-label">
-                <span class="toggle-inner">
-                  {{ formData[fieldName] === 1 ? 'Activo' : 'Inactivo' }}
-                </span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  :id="`field-${fieldName}`"
+                  v-model="formData[fieldName]"
+                  type="checkbox"
+                  class="sr-only peer"
+                  :true-value="1"
+                  :false-value="0"
+                />
+                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#00357F]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00357F]"></div>
               </label>
+              <span 
+                class="text-sm font-bold transition-colors"
+                :class="formData[fieldName] === 1 ? 'text-[#00357F]' : 'text-gray-400'"
+              >
+                {{ formData[fieldName] === 1 ? 'Activado' : 'Desactivado' }}
+              </span>
             </div>
 
             <input
@@ -139,16 +149,16 @@ function getFieldType(config: FieldsConfig[keyof FieldsConfig]) {
               :id="`field-${fieldName}`"
               v-model="formData[fieldName]"
               :type="getFieldType(fieldConfig)"
-              class="form-control"
+              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 text-sm focus:ring-2 focus:ring-[#00357F] focus:border-[#00357F] transition-shadow outline-none placeholder-gray-400"
               :placeholder="fieldConfig.placeholder"
               :required="fieldConfig.required"
             />
           </div>
 
-          <div class="modal-footer">
+          <div class="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-2">
             <button
               type="button"
-              class="btn-cancel"
+              class="px-5 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
               @click="$emit('close')"
               :disabled="isLoading"
             >
@@ -156,206 +166,32 @@ function getFieldType(config: FieldsConfig[keyof FieldsConfig]) {
             </button>
             <button
               type="submit"
-              class="btn-save"
+              class="px-5 py-2.5 text-sm font-bold text-[#00357F] bg-[#FFD100] hover:bg-yellow-400 rounded-lg shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
               :disabled="isLoading"
             >
+              <svg v-if="isLoading" class="animate-spin h-4 w-4 text-[#00357F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
               {{ isLoading ? 'Guardando...' : 'Guardar' }}
             </button>
           </div>
         </form>
       </div>
+
     </div>
   </div>
 </template>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
-
-.modal-content {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  max-width: 500px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.3rem;
-  color: #333;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #999;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.close-btn:hover {
-  color: #333;
-}
-
-.close-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.modal-body {
-  padding: 20px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-  color: #333;
-  font-size: 0.9rem;
-}
-
-.required {
-  color: #e74c3c;
-  margin-left: 3px;
-}
-
-.form-control {
-  width: 100%;
-  padding: 10px 0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-family: inherit;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
-}
-
-.form-control:disabled {
-  background-color: #f5f5f5;
-  cursor: not-allowed;
-}
-
-.textarea {
-  resize: vertical;
-  min-height: 60px;
-}
-
-/* Toggle Switch */
-.toggle-switch {
-  display: flex;
-  align-items: center;
-}
-
-.toggle-checkbox {
-  display: none;
-}
-
-.toggle-label {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-}
-
-.toggle-inner {
-  display: inline-block;
-  width: 50px;
-  height: 26px;
-  background: #ddd;
-  border-radius: 13px;
-  position: relative;
-  transition: all 0.3s;
-  padding: 0 5px;
-  line-height: 26px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #666;
-}
-
-.toggle-checkbox:checked + .toggle-label .toggle-inner {
-  background: #27ae60;
-  color: white;
-}
-
-.modal-footer {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  padding: 20px;
-  border-top: 1px solid #eee;
-}
-
-.btn-cancel,
-.btn-save {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s;
-}
-
-.btn-cancel {
-  background: #ecf0f1;
-  color: #333;
-}
-
-.btn-cancel:hover {
-  background: #bdc3c7;
-}
-
-.btn-cancel:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-save {
-  background: #27ae60;
-  color: white;
-}
-
-.btn-save:hover {
-  background: #229954;
-}
-
-.btn-save:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
 }
 </style>

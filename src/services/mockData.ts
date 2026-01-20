@@ -16,8 +16,26 @@ const mockMapeosLineas: Record<number, MapeoData[]> = {
     {
       id: 1,
       id_linea: 0,
-      nombre: 'Mapeo Línea 1',
-      descripcion: 'Primer mapeo',
+      nombre: 'Mapeo Línea Afore',
+      descripcion: 'Mapeo principal de Afore',
+      status: 1
+    }
+  ],
+  1: [
+    {
+      id: 2,
+      id_linea: 1,
+      nombre: 'Mapeo Línea Sofom',
+      descripcion: 'Mapeo principal de sofom',
+      status: 1
+    }
+  ],
+  2: [
+    {
+      id: 3,
+      id_linea: 2,
+      nombre: 'Mapeo Línea Seguros',
+      descripcion: 'Mapeo principal de Seguros',
       status: 1
     }
   ]
@@ -26,11 +44,21 @@ const mockMapeosLineas: Record<number, MapeoData[]> = {
 const mockMapeosCampanas: Record<string, MapeoData[]> = {
   '0_0': [
     {
-      id: 2,
+      id: 10,
       id_linea: 0,
       id_campana: 0,
-      nombre: 'Mapeo Campaña 1',
-      descripcion: 'Mapeo campaña',
+      nombre: 'Mapeo Campaña 0',
+      descripcion: 'Mapeo específico de campaña',
+      status: 1
+    }
+  ],
+  '0_1': [
+    {
+      id: 11,
+      id_linea: 0,
+      id_campana: 1,
+      nombre: 'Mapeo Campaña 0',
+      descripcion: 'Mapeo específico de campaña',
       status: 1
     }
   ]
@@ -39,6 +67,14 @@ const mockMapeosCampanas: Record<string, MapeoData[]> = {
 let mapeoIdCounter = 3
 
 export const mockApi = {
+  async getAllMapeos(): Promise<MapeoData[]> {
+    await delay()
+    logRequest('GET', '/lineas/campanas/mapeos')
+    const lineas = Object.values(mockMapeosLineas).flat()
+    const campanas = Object.values(mockMapeosCampanas).flat()
+    return [...lineas, ...campanas]
+  },
+
   async getMapeosByLinea(lineaId: string | number): Promise<MapeoData[]> {
     await delay()
     logRequest('GET', `/lineas/${lineaId}/mapeos`)
@@ -54,19 +90,19 @@ export const mockApi = {
     return mockMapeosCampanas[`${lineaId}_${campanaId}`] ?? []
   },
 
-    async createMapeoLinea(
+  async createMapeoLinea(
     lineaId: string | number,
     payload: any
-    ): Promise<MapeoData> {
+  ): Promise<MapeoData> {
     await delay()
     logRequest('POST', `/lineas/${lineaId}/mapeos`, payload)
 
     const m: MapeoData = {
-        id: mapeoIdCounter++,
-        id_linea: Number(lineaId),
-        nombre: payload.mapeo.nombre,
-        descripcion: payload.mapeo.descripcion,
-        status: 1
+      id: mapeoIdCounter++,
+      id_linea: Number(lineaId),
+      nombre: payload.mapeo.nombre,
+      descripcion: payload.mapeo.descripcion,
+      status: 1
     }
 
     const lineaKey = Number(lineaId)
@@ -74,8 +110,7 @@ export const mockApi = {
     mockMapeosLineas[lineaKey].push(m)
 
     return m
-    },
-
+  },
 
   async createMapeoCampana(
     lineaId: string | number,
@@ -103,6 +138,77 @@ export const mockApi = {
     mockMapeosCampanas[key] ??= []
     mockMapeosCampanas[key].push(m)
     return m
+  },
+
+  async updateMapeoLinea(payload: any): Promise<MapeoData> {
+    await delay()
+    logRequest('PUT', '/linea/mapeos', payload)
+
+    const { id, id_linea, nombre, descripcion } = payload.mapeos
+
+    const list = mockMapeosLineas[id_linea]
+    if (!list) throw new Error('Línea no encontrada')
+
+    const m = list.find(x => x.id === id)
+    if (!m) throw new Error('Mapeo no encontrado')
+
+    m.nombre = nombre
+    m.descripcion = descripcion
+
+    return m
+  },
+
+  async updateMapeoCampana(payload: any): Promise<MapeoData> {
+    await delay()
+    logRequest('PUT', '/linea/campana/mapeos', payload)
+
+    const { id, id_linea, id_campana, nombre, descripcion } = payload.mapeos
+    const key = `${id_linea}_${id_campana}`
+
+    const list = mockMapeosCampanas[key]
+    if (!list) throw new Error('Campaña no encontrada')
+
+    const m = list.find(x => x.id === id)
+    if (!m) throw new Error('Mapeo no encontrado')
+
+    m.nombre = nombre
+    m.descripcion = descripcion
+
+    return m
+  },
+
+  async deleteMapeoLinea(
+    lineaId: string | number,
+    mapeoId: string | number
+  ): Promise<void> {
+    await delay()
+    logRequest('DELETE', `/lineas/${lineaId}/mapeos/${mapeoId}`)
+
+    const key = Number(lineaId)
+    if (mockMapeosLineas[key]) {
+      mockMapeosLineas[key] = mockMapeosLineas[key].filter(
+        m => m.id !== Number(mapeoId)
+      )
+    }
+  },
+
+  async deleteMapeoCampana(
+    lineaId: string | number,
+    campanaId: string | number,
+    mapeoId: string | number
+  ): Promise<void> {
+    await delay()
+    logRequest(
+      'DELETE',
+      `/lineas/${lineaId}/campanas/${campanaId}/mapeos/${mapeoId}`
+    )
+
+    const key = `${lineaId}_${campanaId}`
+    if (mockMapeosCampanas[key]) {
+      mockMapeosCampanas[key] = mockMapeosCampanas[key].filter(
+        m => m.id !== Number(mapeoId)
+      )
+    }
   },
 
   async patchActivarMapeoLinea(payload: any): Promise<MapeoData> {
@@ -171,44 +277,18 @@ export const mockApi = {
     }
 
     throw new Error('Mapeo no encontrado')
-    },
-
-    async updateMapeoLinea(payload: any): Promise<MapeoData> {
-    await delay()
-    logRequest('PUT', '/linea/mapeos', payload)
-
-    const { id, id_linea, nombre, descripcion } = payload.mapeos
-
-    const list = mockMapeosLineas[id_linea]
-    if (!list) throw new Error('Línea no encontrada')
-
-    const m = list.find(x => x.id === id)
-    if (!m) throw new Error('Mapeo no encontrado')
-
-    m.nombre = nombre
-    m.descripcion = descripcion
-
-    return m
-    },
-
-    async updateMapeoCampana(payload: any): Promise<MapeoData> {
-    await delay()
-    logRequest('PUT', '/linea/campana/mapeos', payload)
-
-    const { id, id_linea, id_campana, nombre, descripcion } = payload.mapeos
-    const key = `${id_linea}_${id_campana}`
-
-    const list = mockMapeosCampanas[key]
-    if (!list) throw new Error('Campaña no encontrada')
-
-    const m = list.find(x => x.id === id)
-    if (!m) throw new Error('Mapeo no encontrado')
-
-    m.nombre = nombre
-    m.descripcion = descripcion
-
-    return m
-    }
-
-
+  },
+  
+  async getLineas() {
+    return []
+  },
+  async getLineaById() {
+    return {} as any
+  },
+  async getCampanasByLinea() {
+    return []
+  },
+  async getCampanaById() {
+    return {} as any
+  }
 }

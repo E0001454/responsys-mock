@@ -44,191 +44,90 @@ const capitalize = (s) => s && s[0].toUpperCase() + s.slice(1)
 </script>
 
 <template>
-  <div class="crud-container">
-    <header class="crud-header">
-      <h1>{{ titulo }}</h1>
-      <button class="btn-add" @click="openAddModal">+ Nuevo Registro</button>
-    </header>
+  <div class="p-6 bg-slate-50 min-h-screen font-sans">
+    <div class="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
+      
+      <header class="flex flex-col md:flex-row justify-between items-center p-6 border-b border-gray-100 gap-4">
+        <h1 class="text-2xl font-extrabold text-[#00357F] tracking-tight relative">
+          {{ titulo }}
+          <span class="absolute -bottom-2 left-0 w-12 h-1 bg-[#FFD100] rounded-full"></span>
+        </h1>
+        <button 
+          @click="openAddModal" 
+          class="flex items-center gap-2 bg-[#FFD100] hover:bg-yellow-400 text-[#00357F] font-bold py-2.5 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          Nuevo Registro
+        </button>
+      </header>
 
-    <table class="crud-table">
-      <thead>
-        <tr>
-          <th v-for="(col, index) in columnas" :key="index">{{ col }}</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(item, index) in datos" :key="index">
-          <td v-for="(value, key) in item" :key="key">
-            {{ value }}
-          </td>
-          <td class="actions">
-            <button class="btn-edit" @click="openEditModal(item)">✎</button>
-            <button class="btn-delete">🗑</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div v-if="showModal" class="modal-overlay">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>{{ isEditMode ? 'Editar' : 'Nuevo' }}</h3>
-          <button class="close-btn" @click="showModal = false">×</button>
-        </div>
-        
-        <div class="modal-body">
-          <form @submit.prevent="handleSave">
-            <div v-for="(value, key) in formData" :key="key" class="form-group">
-              <label>{{ capitalize(key) }}:</label>
-
-              <select 
-                v-if="camposConfig[key]?.type === 'select'" 
-                v-model="formData[key]" 
-                class="form-control"
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-[#00357F]">
+            <tr>
+              <th 
+                v-for="(col, index) in columnas" 
+                :key="index"
+                class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"
               >
-                <option value="" disabled>Seleccione una opción</option>
-                <option 
-                  v-for="opt in camposConfig[key].options" 
-                  :key="opt" 
-                  :value="opt"
-                >
-                  {{ opt }}
-                </option>
-              </select>
-
-              <input 
-                v-else
-                v-model="formData[key]" 
-                type="text" 
-                class="form-control"
+                {{ col }}
+              </th>
+              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-100">
+            <tr v-for="(item, index) in datos" :key="index" class="hover:bg-blue-50/50 transition-colors duration-150">
+             <td 
+                v-for="(value, key) in item" 
+                :key="key"
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-700"
               >
-            </div>
-            
-            <div class="modal-footer">
-              <button type="button" class="btn-cancel" @click="showModal = false">Cancelar</button>
-              <button type="submit" class="btn-save">Guardar</button>
-            </div>
-          </form>
-        </div>
+                <template v-if="key === 'status'">
+                  <div class="flex items-center gap-2">
+                    <span 
+                      class="h-2.5 w-2.5 rounded-full"
+                      :class="value === 1 ? 'bg-blue-500' : 'bg-red-500'"
+                    ></span>
+                    
+                    <span class="font-medium text-gray-700">
+                      {{ value === 1 ? 'Activado' : 'Desactivado' }}
+                    </span>
+                  </div>
+                </template>
+                
+                <template v-else>
+                  {{ value }}
+                </template>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div class="flex items-center justify-end gap-2">
+                  <button 
+                    @click="openEditModal(item)" 
+                    class="p-2 text-[#00357F] bg-blue-100/50 rounded-lg hover:bg-[#FFD100] hover:text-[#00357F] transition-colors shadow-sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                  <button 
+                    class="p-2 text-red-600 bg-red-100/50 rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
+
+    
   </div>
 </template>
-
-<style scoped>
-
-.crud-container {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  position: relative;
-}
-.crud-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-.btn-add {
-  background: #27ae60;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.crud-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-th, td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-th { background-color: #f8f9fa; font-weight: bold; }
-.actions button {
-  margin-right: 5px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 1.2rem;
-}
-.btn-edit { color: #f39c12; }
-.btn-delete { color: #e74c3c; }
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-.modal-content {
-  background: white;
-  padding: 25px;
-  border-radius: 10px;
-  width: 400px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-}
-.modal-header h3 { margin: 0; color: #2c3e50; }
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #7f8c8d;
-}
-.form-group { margin-bottom: 15px; }
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 600;
-  color: #34495e;
-}
-.form-control {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #bdc3c7;
-  border-radius: 4px;
-  box-sizing: border-box;
-  background-color: white;
-}
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-.btn-cancel {
-  background: #95a5a6;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.btn-save {
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-</style>

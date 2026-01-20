@@ -10,6 +10,7 @@ interface ApiClient {
 
   getMapeosByLinea(lineaId: string | number): Promise<MapeoData[]>
   getMapeosByCampana(lineaId: string | number, campanaId: string | number): Promise<MapeoData[]>
+  getAllMapeos(): Promise<MapeoData[]>
 
   createMapeoLinea(lineaId: string | number, payload: any): Promise<MapeoData>
   createMapeoCampana(lineaId: string | number, campanaId: string | number, payload: any): Promise<MapeoData>
@@ -51,6 +52,10 @@ export const mapeoService = {
       return apiClient.getMapeosByCampana(lineaId, campanaId)
     }
     return apiClient.getMapeosByLinea(lineaId)
+  },
+
+  getAllMapeos() {
+    return apiClient.getAllMapeos()
   },
 
   createMapeo(lineaId: string | number, payload: any, campanaId?: string | number) {
