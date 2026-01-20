@@ -1,10 +1,11 @@
 export interface MapeoData {
-  id: string | number
-  id_linea: number
-  id_campana?: number
+  idABCConfigMapeoLinea: number
+  idABCCatLineaNegocio: number
+  idABCUsuario: number
   nombre: string
   descripcion: string
-  status: 0 | 1
+  bolActivo: 0 | 1
+  bolDictaminacion: boolean
 }
 
 export interface CreateMapeoPayload {
@@ -12,7 +13,7 @@ export interface CreateMapeoPayload {
     nombre: string
     descripcion: string
   }
-  idUsuario: number
+  idABCUsuario: number
 }
 
 export interface UpdateMapeoPayload {
@@ -23,14 +24,14 @@ export interface UpdateMapeoPayload {
     nombre: string
     descripcion: string
   }
-  idUsuario: number
+  didABCUsuario: number
 }
 
 export interface PatchMapeoPayload {
   mapeo: {
     id: string | number
   }
-  idUsuario: number
+  didABCUsuario: number
 }
 
 export interface FieldConfig {

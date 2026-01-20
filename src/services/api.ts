@@ -47,8 +47,8 @@ export const http = {
 
 export const api = {
   // Lineas
-  getLineas: () => http.get('/lineas'),
-  getLineaById: (id: string | number) => http.get(`/lineas/${id}`),
+  getLineas: () => http.get('/lineas/0/mapeos'),
+  getLineaById: (id: string | number) => http.get(`/lineas/${id}/mapeos`),
 
   // Campanas
   getCampanasByLinea: (lineaId: string | number) =>
@@ -57,7 +57,7 @@ export const api = {
     http.get(`/lineas/${lineaId}/campanas/${campanaId}`),
 
   // Mapeos
-  getAllMapeos: () => http.get('/lineas/campanas/mapeos'),
+  getAllMapeos: () => http.get('/lineas/0/mapeos'),
   getMapeosByLinea: (lineaId: string | number) =>
     http.get(`/lineas/${lineaId}/mapeos`),
   getMapeosByCampana: (lineaId: string | number, campanaId: string | number) =>

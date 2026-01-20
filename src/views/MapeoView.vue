@@ -52,24 +52,20 @@ async function fetchAllMapeos() {
 
 const filteredMapeos = computed(() => {
   return allMapeos.value.filter(item => {
-    const isCampanaItem = item.id_campana !== undefined && item.id_campana !== null
+    const isCampanaItem = item.idABCConfigMapeoLinea !== undefined && item.idABCConfigMapeoLinea !== null
     
     if (activeTab.value === 'linea' && isCampanaItem) return false
     if (activeTab.value === 'campana' && !isCampanaItem) return false
-
-    const matchLinea = item.id_linea !== undefined 
-      ? selectedFilters.lineas.includes(item.id_linea) 
-      : true
     
-    const matchCampana = activeTab.value === 'campana' && item.id_campana !== undefined
-      ? selectedFilters.campanas.includes(item.id_campana)
+    const matchCampana = activeTab.value === 'campana' && item.idABCConfigMapeoLinea !== undefined
+      ? selectedFilters.campanas.includes(item.idABCConfigMapeoLinea)
       : true
 
-    const matchStatus = item.status !== undefined
-      ? selectedFilters.status.includes(item.status)
+    const matchStatus = item.bolActivo !== undefined
+      ? selectedFilters.status.includes(item.bolActivo)
       : true
 
-    return matchLinea && matchCampana && matchStatus
+    return matchCampana && matchStatus
   })
 })
 
@@ -114,20 +110,20 @@ async function handleSave(formData: any) {
             nombre: formData.nombre,
             descripcion: formData.descripcion
           },
-          idUsuario: 1
+          idABCUsuario: 1
         },
         campanaId
       )
     } else if (selectedItem.value) {
       await mapeoService.updateMapeo({
         mapeos: {
-          id: selectedItem.value.id!,
-          id_linea: selectedItem.value.id_linea,
-          id_campana: selectedItem.value.id_campana,
+          
+          idABCCatLineaNegocio: selectedItem.value.idABCCatLineaNegocio,
+          idABCConfigMapeoLinea: selectedItem.value.idABCConfigMapeoLinea,
           nombre: formData.nombre,
           descripcion: formData.descripcion
         },
-        idUsuario: 1
+        idABCUsuario: 1
       })
     }
     showModal.value = false
@@ -144,9 +140,9 @@ async function handleDelete(item: MapeoData) {
   isLoading.value = true
   try {
     await mapeoService.deleteMapeo(
-      item.id_linea!,
-      item.id!,
-      item.id_campana
+      item.idABCCatLineaNegocio!,
+    
+      item.idABCConfigMapeoLinea
     )
     await fetchAllMapeos()
   } catch (e: any) {
@@ -160,16 +156,16 @@ async function toggleStatus(item: MapeoData) {
   isLoading.value = true
   try {
     if (activeTab.value === 'linea') {
-      if (item.status === 1) {
-        await mapeoService.patchDesactivarMapeoLinea(Number(item.id), 1)
+      if (item.bolActivo === 1) {
+        await mapeoService.patchDesactivarMapeoLinea(Number(item.idABCConfigMapeoLinea), 1)
       } else {
-        await mapeoService.patchActivarMapeoLinea(Number(item.id), 1)
+        await mapeoService.patchActivarMapeoLinea(Number(item.idABCConfigMapeoLinea), 1)
       }
     } else {
-      if (item.status === 1) {
-        await mapeoService.patchDesactivarMapeoCampana(Number(item.id), 1)
+      if (item.bolActivo === 1) {
+        await mapeoService.patchDesactivarMapeoCampana(Number(item.idABCConfigMapeoLinea), 1)
       } else {
-        await mapeoService.patchActivarMapeoCampana(Number(item.id), 1)
+        await mapeoService.patchActivarMapeoCampana(Number(item.idABCConfigMapeoLinea), 1)
       }
     }
     await fetchAllMapeos()
@@ -288,15 +284,15 @@ onMounted(fetchAllMapeos)
                 </td>
               </tr>
 
-              <tr v-else v-for="m in filteredMapeos" :key="m.id" class="hover:bg-blue-50/50 transition-colors">
-                <td class="px-6 py-4 text-sm text-gray-500">#{{ m.id }}</td>
+              <tr v-else v-for="m in filteredMapeos" :key="m.idABCConfigMapeoLinea" class="hover:bg-blue-50/50 transition-colors">
+                <td class="px-6 py-4 text-sm text-gray-500">#{{ m.idABCConfigMapeoLinea }}</td>
                 
                 <td class="px-6 py-4 text-sm text-gray-700 font-medium">
-                  {{ getLineaLabel(m.id_linea) }}
+                  {{ getLineaLabel(m.idABCCatLineaNegocio) }}
                 </td>
 
                 <td v-if="activeTab === 'campana'" class="px-6 py-4 text-sm text-gray-700">
-                  {{ getCampanaLabel(m.id_campana) }}
+                  {{ getCampanaLabel(m.idABCConfigMapeoLinea) }}
                 </td>
 
                 <td class="px-6 py-4 text-sm font-bold text-[#00357F]">{{ m.nombre }}</td>
@@ -306,16 +302,16 @@ onMounted(fetchAllMapeos)
                     <label class="inline-flex items-center gap-2 cursor-pointer group">
                       <input 
                         type="checkbox" 
-                        :checked="m.status === 1" 
+                        :checked="m.bolActivo === 1" 
                         @change="toggleStatus(m)" 
                         class="sr-only peer"
                       >
                       <span 
                         class="h-2.5 w-2.5 rounded-full transition-colors duration-200"
-                        :class="m.status === 1 ? 'bg-blue-500' : 'bg-red-500'"
+                        :class="m.bolActivo === 1 ? 'bg-blue-500' : 'bg-red-500'"
                       ></span>
                       <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900 select-none">
-                        {{ m.status === 1 ? 'Activado' : 'Desactivado' }}
+                        {{ m.bolActivo === 1 ? 'Activado' : 'Desactivado' }}
                       </span>
                     </label>
                 </td>
