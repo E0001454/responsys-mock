@@ -1,6 +1,7 @@
 export interface MapeoData {
   idABCConfigMapeoLinea: number
   idABCCatLineaNegocio: number
+  idABCConfigMapeoCampana?: number
   idABCUsuario: number
   nombre: string
   descripcion: string
@@ -18,20 +19,18 @@ export interface CreateMapeoPayload {
 
 export interface UpdateMapeoPayload {
   mapeos: {
-    id: string | number
-    id_linea: number
-    id_campana?: number
+    id: number
     nombre: string
     descripcion: string
   }
-  didABCUsuario: number
+  idABCUsuario: number
 }
 
 export interface PatchMapeoPayload {
   mapeo: {
     id: string | number
   }
-  didABCUsuario: number
+  idABCUsuario: number
 }
 
 export interface FieldConfig {

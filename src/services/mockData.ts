@@ -14,29 +14,35 @@ function logRequest(method: string, endpoint: string, payload?: any) {
 const mockMapeosLineas: Record<number, MapeoData[]> = {
   0: [
     {
-      id: 1,
-      id_linea: 0,
+      idABCConfigMapeoLinea: 1,
+      idABCCatLineaNegocio: 0,
+      idABCUsuario: 1,
       nombre: 'Mapeo Línea Afore',
       descripcion: 'Mapeo principal de Afore',
-      status: 1
+      bolActivo: 1,
+      bolDictaminacion: false
     }
   ],
   1: [
     {
-      id: 2,
-      id_linea: 1,
+      idABCConfigMapeoLinea: 2,
+      idABCCatLineaNegocio: 1,
+      idABCUsuario: 1,
       nombre: 'Mapeo Línea Sofom',
       descripcion: 'Mapeo principal de sofom',
-      status: 1
+      bolActivo: 1,
+      bolDictaminacion: false
     }
   ],
   2: [
     {
-      id: 3,
-      id_linea: 2,
+      idABCConfigMapeoLinea: 3,
+      idABCCatLineaNegocio: 2,
+      idABCUsuario: 1,
       nombre: 'Mapeo Línea Seguros',
       descripcion: 'Mapeo principal de Seguros',
-      status: 1
+      bolActivo: 1,
+      bolDictaminacion: false
     }
   ]
 }
@@ -44,22 +50,26 @@ const mockMapeosLineas: Record<number, MapeoData[]> = {
 const mockMapeosCampanas: Record<string, MapeoData[]> = {
   '0_0': [
     {
-      id: 10,
-      id_linea: 0,
-      id_campana: 0,
+      idABCConfigMapeoLinea: 10,
+      idABCConfigMapeoCampana: 0,
+      idABCCatLineaNegocio: 0,
+      idABCUsuario: 1,
       nombre: 'Mapeo Campaña 0',
       descripcion: 'Mapeo específico de campaña',
-      status: 1
+      bolActivo: 1,
+      bolDictaminacion: false
     }
   ],
   '0_1': [
     {
-      id: 11,
-      id_linea: 0,
-      id_campana: 1,
-      nombre: 'Mapeo Campaña 0',
+      idABCConfigMapeoLinea: 11,
+      idABCConfigMapeoCampana: 1,
+      idABCCatLineaNegocio: 0,
+      idABCUsuario: 1,
+      nombre: 'Mapeo Campaña 1',
       descripcion: 'Mapeo específico de campaña',
-      status: 1
+      bolActivo: 1,
+      bolDictaminacion: false
     }
   ]
 }
@@ -69,7 +79,7 @@ let mapeoIdCounter = 3
 export const mockApi = {
   async getAllMapeos(): Promise<MapeoData[]> {
     await delay()
-    logRequest('GET', '/lineas/campanas/mapeos')
+    logRequest('GET', '/lineas/0/mapeos')
     const lineas = Object.values(mockMapeosLineas).flat()
     const campanas = Object.values(mockMapeosCampanas).flat()
     return [...lineas, ...campanas]
@@ -98,11 +108,13 @@ export const mockApi = {
     logRequest('POST', `/lineas/${lineaId}/mapeos`, payload)
 
     const m: MapeoData = {
-      id: mapeoIdCounter++,
-      id_linea: Number(lineaId),
+      idABCConfigMapeoLinea: mapeoIdCounter++,
+      idABCCatLineaNegocio: Number(lineaId),
+      idABCUsuario: payload.idABCUsuario ?? 1,
       nombre: payload.mapeo.nombre,
       descripcion: payload.mapeo.descripcion,
-      status: 1
+      bolActivo: 1,
+      bolDictaminacion: false
     }
 
     const lineaKey = Number(lineaId)
@@ -127,12 +139,14 @@ export const mockApi = {
     const key = `${lineaId}_${campanaId}`
 
     const m: MapeoData = {
-      id: mapeoIdCounter++,
-      id_linea: Number(lineaId),
-      id_campana: Number(campanaId),
+      idABCConfigMapeoLinea: mapeoIdCounter++,
+      idABCConfigMapeoCampana: Number(campanaId),
+      idABCCatLineaNegocio: Number(lineaId),
+      idABCUsuario: payload.idABCUsuario ?? 1,
       nombre: payload.mapeo.nombre,
       descripcion: payload.mapeo.descripcion,
-      status: 1
+      bolActivo: 1,
+      bolDictaminacion: false
     }
 
     mockMapeosCampanas[key] ??= []
@@ -144,12 +158,14 @@ export const mockApi = {
     await delay()
     logRequest('PUT', '/linea/mapeos', payload)
 
-    const { id, id_linea, nombre, descripcion } = payload.mapeos
+    const { idABCConfigMapeoLinea, idABCCatLineaNegocio, id, id_linea, nombre, descripcion } = payload.mapeos
+    const lineaKey = Number(idABCCatLineaNegocio ?? id_linea)
 
-    const list = mockMapeosLineas[id_linea]
+    const list = mockMapeosLineas[lineaKey]
     if (!list) throw new Error('Línea no encontrada')
 
-    const m = list.find(x => x.id === id)
+    const mapeoId = Number(idABCConfigMapeoLinea ?? id)
+    const m = list.find(x => x.idABCConfigMapeoLinea === mapeoId)
     if (!m) throw new Error('Mapeo no encontrado')
 
     m.nombre = nombre
@@ -162,13 +178,16 @@ export const mockApi = {
     await delay()
     logRequest('PUT', '/linea/campana/mapeos', payload)
 
-    const { id, id_linea, id_campana, nombre, descripcion } = payload.mapeos
-    const key = `${id_linea}_${id_campana}`
+    const { id, idABCConfigMapeoLinea, idABCCatLineaNegocio, idABCConfigMapeoCampana, id_linea, id_campana, nombre, descripcion } = payload.mapeos
+    const lineaKey = Number(idABCCatLineaNegocio ?? id_linea)
+    const campanaKey = Number(idABCConfigMapeoCampana ?? id_campana)
+    const key = `${lineaKey}_${campanaKey}`
 
     const list = mockMapeosCampanas[key]
     if (!list) throw new Error('Campaña no encontrada')
 
-    const m = list.find(x => x.id === id)
+    const mapeoId = Number(idABCConfigMapeoLinea ?? id)
+    const m = list.find(x => x.idABCConfigMapeoLinea === mapeoId)
     if (!m) throw new Error('Mapeo no encontrado')
 
     m.nombre = nombre
@@ -187,7 +206,7 @@ export const mockApi = {
     const key = Number(lineaId)
     if (mockMapeosLineas[key]) {
       mockMapeosLineas[key] = mockMapeosLineas[key].filter(
-        m => m.id !== Number(mapeoId)
+        m => m.idABCConfigMapeoLinea !== Number(mapeoId)
       )
     }
   },
@@ -206,7 +225,7 @@ export const mockApi = {
     const key = `${lineaId}_${campanaId}`
     if (mockMapeosCampanas[key]) {
       mockMapeosCampanas[key] = mockMapeosCampanas[key].filter(
-        m => m.id !== Number(mapeoId)
+        m => m.idABCConfigMapeoLinea !== Number(mapeoId)
       )
     }
   },
@@ -218,9 +237,9 @@ export const mockApi = {
     const id = payload.mapeo.id
 
     for (const list of Object.values(mockMapeosLineas)) {
-      const m = list.find(x => x.id === id)
+      const m = list.find(x => x.idABCConfigMapeoLinea === id)
       if (m) {
-        m.status = m.status === 1 ? 0 : 1
+        m.bolActivo = m.bolActivo === 1 ? 0 : 1
         return m
       }
     }
@@ -235,9 +254,9 @@ export const mockApi = {
     const id = payload.mapeo.id
 
     for (const list of Object.values(mockMapeosLineas)) {
-      const m = list.find(x => x.id === id)
+      const m = list.find(x => x.idABCConfigMapeoLinea === id)
       if (m) {
-        m.status = 0
+        m.bolActivo = 0
         return m
       }
     }
@@ -252,9 +271,9 @@ export const mockApi = {
     const id = payload.mapeo.id
 
     for (const list of Object.values(mockMapeosCampanas)) {
-      const m = list.find(x => x.id === id)
+      const m = list.find(x => x.idABCConfigMapeoLinea === id)
       if (m) {
-        m.status = m.status === 1 ? 0 : 1
+        m.bolActivo = m.bolActivo === 1 ? 0 : 1
         return m
       }
     }
@@ -269,9 +288,9 @@ export const mockApi = {
     const id = payload.mapeo.id
 
     for (const list of Object.values(mockMapeosCampanas)) {
-      const m = list.find(x => x.id === id)
+      const m = list.find(x => x.idABCConfigMapeoLinea === id)
       if (m) {
-        m.status = 0
+        m.bolActivo = 0
         return m
       }
     }

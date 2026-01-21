@@ -30,6 +30,35 @@ interface ApiClient {
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 const apiClient = (USE_MOCK ? mockApi : api) as ApiClient
 
+function normalizeMapeo(item: any): MapeoData {
+  const base: MapeoData = {
+    idABCConfigMapeoLinea: Number(
+      item?.idABCConfigMapeoLinea ?? item?.id ?? item?.id_mapeo ?? 0
+    ),
+    idABCCatLineaNegocio: Number(
+      item?.idABCCatLineaNegocio ?? item?.id_linea ?? item?.idLinea ?? 0
+    ),
+    idABCUsuario: Number(item?.idABCUsuario ?? item?.id_usuario ?? 1),
+    nombre: item?.nombre ?? '',
+    descripcion: item?.descripcion ?? '',
+    bolActivo: (item?.bolActivo ?? item?.status ?? 0) as 0 | 1,
+    bolDictaminacion: Boolean(item?.bolDictaminacion ?? item?.dictaminacion ?? false)
+  }
+
+  if (item?.idABCConfigMapeoCampana !== undefined && item?.idABCConfigMapeoCampana !== null) {
+    base.idABCConfigMapeoCampana = Number(item.idABCConfigMapeoCampana)
+  } else if (item?.id_campana !== undefined && item?.id_campana !== null) {
+    base.idABCConfigMapeoCampana = Number(item.id_campana)
+  }
+
+  return base
+}
+
+function normalizeMapeos(data: any): MapeoData[] {
+  const list = Array.isArray(data) ? data : data?.data ?? []
+  return list.map(normalizeMapeo)
+}
+
 export const mapeoService = {
   getLineas() {
     return apiClient.getLineas()
@@ -49,27 +78,51 @@ export const mapeoService = {
 
   getMapeos(lineaId: string | number, campanaId?: string | number) {
     if (campanaId !== undefined) {
-      return apiClient.getMapeosByCampana(lineaId, campanaId)
+      return apiClient.getMapeosByCampana(lineaId, campanaId).then(normalizeMapeos)
     }
-    return apiClient.getMapeosByLinea(lineaId)
+    return apiClient.getMapeosByLinea(lineaId).then(normalizeMapeos)
   },
 
   getAllMapeos() {
-    return apiClient.getAllMapeos()
+    return apiClient.getAllMapeos().then(res => {
+      console.log('[mapeoService] getAllMapeos raw:', res)
+      return normalizeMapeos(res)
+    })
   },
 
   createMapeo(lineaId: string | number, payload: any, campanaId?: string | number) {
-    if (campanaId !== undefined) {
-      return apiClient.createMapeoCampana(lineaId, campanaId, payload)
+    const normalized = {
+      ...payload,
+      idABCUsuario: payload.idABCUsuario ?? payload.idUsuario ?? 1,
+      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? payload.idUsuario ?? 1,
+      mapeo: payload.mapeo ?? payload.mapeos ?? {}
     }
-    return apiClient.createMapeoLinea(lineaId, payload)
+
+    if (campanaId !== undefined) {
+      return apiClient.createMapeoCampana(lineaId, campanaId, normalized)
+    }
+    return apiClient.createMapeoLinea(lineaId, normalized)
   },
 
   updateMapeo(payload: any) {
-    if (payload.mapeos.id_campana !== undefined) {
-      return apiClient.updateMapeoCampana(payload)
+    const mapeoData = payload.mapeos ?? payload.mapeo ?? {}
+
+    const normalized = {
+      ...payload,
+      mapeos: mapeoData,
+      mapeo: mapeoData,
+      idABCUsuario: payload.idABCUsuario ?? payload.idUsuario ?? 1,
+      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
-    return apiClient.updateMapeoLinea(payload)
+
+    const isCampana =
+      mapeoData.id_campana !== undefined || mapeoData.idABCConfigMapeoCampana !== undefined
+
+    if (isCampana) {
+      return apiClient.updateMapeoCampana(normalized)
+    }
+
+    return apiClient.updateMapeoLinea(normalized)
   },
 
   deleteMapeo(lineaId: string | number, mapeoId: string | number, campanaId?: string | number) {
