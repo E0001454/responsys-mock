@@ -1,36 +1,35 @@
 import { api } from './api'
 import { mockApi } from './mockData'
-import type { Linea, Campana, MapeoData } from '../types/mapeo'
+import type { MapeoData } from '../types/mapeo'
+import type { MapeoCampanaData } from '../types/mapeo'
 
 interface ApiClient {
-  getLineas(): Promise<Linea[]>
-  getLineaById(id: string | number): Promise<Linea>
-  getCampanasByLinea(lineaId: string | number): Promise<Campana[]>
-  getCampanaById(lineaId: string | number, campanaId: string | number): Promise<Campana>
-
   getMapeosByLinea(lineaId: string | number): Promise<MapeoData[]>
-  getMapeosByCampana(lineaId: string | number, campanaId: string | number): Promise<MapeoData[]>
   getAllMapeos(): Promise<MapeoData[]>
+  getMapeosCampana(): Promise<MapeoCampanaData[]>
 
   createMapeoLinea(lineaId: string | number, payload: any): Promise<MapeoData>
-  createMapeoCampana(lineaId: string | number, campanaId: string | number, payload: any): Promise<MapeoData>
-
+  createMapeoCampana(
+    lineaId: string | number,
+    campanaId: string | number,
+    payload: any
+  ): Promise<MapeoCampanaData>
   updateMapeoLinea(payload: any): Promise<MapeoData>
-  updateMapeoCampana(payload: any): Promise<MapeoData>
-
+  updateMapeoCampana(payload: any): Promise<MapeoCampanaData>
   deleteMapeoLinea(lineaId: string | number, mapeoId: string | number): Promise<void>
-  deleteMapeoCampana(lineaId: string | number, campanaId: string | number, mapeoId: string | number): Promise<void>
-
   patchActivarMapeoLinea(payload: any): Promise<MapeoData>
   patchDesactivarMapeoLinea(payload: any): Promise<MapeoData>
-  patchActivarMapeoCampana(payload: any): Promise<MapeoData>
-  patchDesactivarMapeoCampana(payload: any): Promise<MapeoData>
+  patchActivarMapeoCampana(payload: any): Promise<MapeoCampanaData>
+  patchDesactivarMapeoCampana(payload: any): Promise<MapeoCampanaData>
 }
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 const apiClient = (USE_MOCK ? mockApi : api) as ApiClient
 
 function normalizeMapeo(item: any): MapeoData {
+  const rawActivo = item?.bolActivo ?? item?.status ?? false
+  const rawDictaminacion = item?.bolDictaminacion
+
   const base: MapeoData = {
     idABCConfigMapeoLinea: Number(
       item?.idABCConfigMapeoLinea ?? item?.id ?? item?.id_mapeo ?? 0
@@ -41,16 +40,24 @@ function normalizeMapeo(item: any): MapeoData {
     idABCUsuario: Number(item?.idABCUsuario ?? item?.id_usuario ?? 1),
     nombre: item?.nombre ?? '',
     descripcion: item?.descripcion ?? '',
-    bolActivo: (item?.bolActivo ?? item?.status ?? 0) as 0 | 1,
-    bolDictaminacion: Boolean(item?.bolDictaminacion ?? item?.dictaminacion ?? false)
+    bolActivo: typeof rawActivo === 'boolean' ? rawActivo : Number(rawActivo) === 1,
+    bolDictaminacion:
+      rawDictaminacion === null || rawDictaminacion === undefined
+        ? null
+        : Boolean(rawDictaminacion),
+    fecCreacion: item?.fecCreacion ?? item?.fec_creacion ?? '',
+    idABCUsuarioUltModificacion: Number(
+      item?.idABCUsuarioUltModificacion ?? item?.id_usuario_ult_modificacion ?? 0
+    ),
+    fecUltModificacion: item?.fecUltModificacion ?? item?.fec_ult_modificacion ?? ''
   }
 
-  if (item?.idABCConfigMapeoCampana !== undefined && item?.idABCConfigMapeoCampana !== null) {
-    base.idABCConfigMapeoCampana = Number(item.idABCConfigMapeoCampana)
-  } else if (item?.id_campana !== undefined && item?.id_campana !== null) {
-    base.idABCConfigMapeoCampana = Number(item.id_campana)
-  }
+  return base
+}
 
+function normalizeMapeoCampana(item: any): MapeoCampanaData {
+  const base = normalizeMapeo(item) as MapeoCampanaData
+  base.idABCCatCampana = Number(item?.idABCCatCampana ?? item?.id_campana ?? 0)
   return base
 }
 
@@ -60,26 +67,7 @@ function normalizeMapeos(data: any): MapeoData[] {
 }
 
 export const mapeoService = {
-  getLineas() {
-    return apiClient.getLineas()
-  },
-
-  getLineaById(id: string | number) {
-    return apiClient.getLineaById(id)
-  },
-
-  getCampanasByLinea(lineaId: string | number) {
-    return apiClient.getCampanasByLinea(lineaId)
-  },
-
-  getCampanaById(lineaId: string | number, campanaId: string | number) {
-    return apiClient.getCampanaById(lineaId, campanaId)
-  },
-
-  getMapeos(lineaId: string | number, campanaId?: string | number) {
-    if (campanaId !== undefined) {
-      return apiClient.getMapeosByCampana(lineaId, campanaId).then(normalizeMapeos)
-    }
+  getMapeos(lineaId: string | number) {
     return apiClient.getMapeosByLinea(lineaId).then(normalizeMapeos)
   },
 
@@ -90,45 +78,51 @@ export const mapeoService = {
     })
   },
 
-  createMapeo(lineaId: string | number, payload: any, campanaId?: string | number) {
-    const normalized = {
-      ...payload,
-      idABCUsuario: payload.idABCUsuario ?? payload.idUsuario ?? 1,
-      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? payload.idUsuario ?? 1,
-      mapeo: payload.mapeo ?? payload.mapeos ?? {}
-    }
+  getMapeosCampana() {
+    return apiClient.getMapeosCampana().then(res => {
+      console.log('[mapeoService] getMapeosCampana raw:', res)
+      return res.map(normalizeMapeoCampana)
+    })
+  },
 
-    if (campanaId !== undefined) {
-      return apiClient.createMapeoCampana(lineaId, campanaId, normalized)
+  createMapeo(lineaId: string | number, payload: any) {
+    const normalized = {
+      mapeo: payload.mapeo ?? payload.mapeos ?? {},
+      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
+    console.log('[mapeoService] createMapeoLinea payload:', normalized)
     return apiClient.createMapeoLinea(lineaId, normalized)
   },
 
-  updateMapeo(payload: any) {
-    const mapeoData = payload.mapeos ?? payload.mapeo ?? {}
-
+  createMapeoCampana(lineaId: string | number, campanaId: string | number, payload: any) {
     const normalized = {
-      ...payload,
-      mapeos: mapeoData,
-      mapeo: mapeoData,
-      idABCUsuario: payload.idABCUsuario ?? payload.idUsuario ?? 1,
+      mapeo: payload.mapeo ?? payload.mapeos ?? {},
       idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
+    console.log('[mapeoService] createMapeoCampana payload:', { lineaId, campanaId, ...normalized })
+    return apiClient.createMapeoCampana(lineaId, campanaId, normalized)
+  },
 
-    const isCampana =
-      mapeoData.id_campana !== undefined || mapeoData.idABCConfigMapeoCampana !== undefined
-
-    if (isCampana) {
-      return apiClient.updateMapeoCampana(normalized)
+  updateMapeo(payload: any) {
+    const mapeoData = payload.mapeo ?? payload.mapeos ?? {}
+    const normalized = {
+      mapeo: mapeoData,
+      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
-
     return apiClient.updateMapeoLinea(normalized)
   },
 
-  deleteMapeo(lineaId: string | number, mapeoId: string | number, campanaId?: string | number) {
-    if (campanaId !== undefined) {
-      return apiClient.deleteMapeoCampana(lineaId, campanaId, mapeoId)
+  updateMapeoCampana(payload: any) {
+    const mapeoData = payload.mapeo ?? payload.mapeos ?? {}
+    const normalized = {
+      mapeo: mapeoData,
+      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
+    console.log('[mapeoService] updateMapeoCampana payload:', normalized)
+    return apiClient.updateMapeoCampana(normalized)
+  },
+
+  deleteMapeo(lineaId: string | number, mapeoId: string | number) {
     return apiClient.deleteMapeoLinea(lineaId, mapeoId)
   },
 
@@ -147,16 +141,14 @@ export const mapeoService = {
   },
 
   patchActivarMapeoCampana(mapeoId: number, idUsuario: number) {
-    return apiClient.patchActivarMapeoCampana({
-      mapeo: { id: mapeoId },
-      idUsuario
-    })
+    const payload = { mapeo: { id: mapeoId }, idUsuario }
+    console.log('[mapeoService] patchActivarMapeoCampana payload:', payload)
+    return apiClient.patchActivarMapeoCampana(payload)
   },
 
   patchDesactivarMapeoCampana(mapeoId: number, idUsuario: number) {
-    return apiClient.patchDesactivarMapeoCampana({
-      mapeo: { id: mapeoId },
-      idUsuario
-    })
+    const payload = { mapeo: { id: mapeoId }, idUsuario }
+    console.log('[mapeoService] patchDesactivarMapeoCampana payload:', payload)
+    return apiClient.patchDesactivarMapeoCampana(payload)
   }
 }

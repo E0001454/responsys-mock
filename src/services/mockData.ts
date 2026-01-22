@@ -1,4 +1,5 @@
-import type { MapeoData } from '../types/mapeo'
+import type { MapeoData, MapeoCampanaData } from '../types/mapeo'
+import type { ColumnaData, ColumnaCampanaData } from '../types/columna'
 
 export function delay(ms: number = 500): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -12,64 +13,46 @@ function logRequest(method: string, endpoint: string, payload?: any) {
 }
 
 const mockMapeosLineas: Record<number, MapeoData[]> = {
-  0: [
-    {
-      idABCConfigMapeoLinea: 1,
-      idABCCatLineaNegocio: 0,
-      idABCUsuario: 1,
-      nombre: 'Mapeo Línea Afore',
-      descripcion: 'Mapeo principal de Afore',
-      bolActivo: 1,
-      bolDictaminacion: false
-    }
-  ],
   1: [
     {
-      idABCConfigMapeoLinea: 2,
+      idABCConfigMapeoLinea: 1,
       idABCCatLineaNegocio: 1,
       idABCUsuario: 1,
-      nombre: 'Mapeo Línea Sofom',
-      descripcion: 'Mapeo principal de sofom',
-      bolActivo: 1,
-      bolDictaminacion: false
+      nombre: 'Mapeo Seguro 1',
+      descripcion: 'Mapeo principal de Seguro 1',
+      bolActivo: true,
+      bolDictaminacion: null,
+      fecCreacion: '2026-01-01T00:00:00Z',
+      idABCUsuarioUltModificacion: 1,
+      fecUltModificacion: '2026-01-01T00:00:00Z'
     }
   ],
   2: [
     {
-      idABCConfigMapeoLinea: 3,
+      idABCConfigMapeoLinea: 2,
       idABCCatLineaNegocio: 2,
       idABCUsuario: 1,
-      nombre: 'Mapeo Línea Seguros',
-      descripcion: 'Mapeo principal de Seguros',
-      bolActivo: 1,
-      bolDictaminacion: false
-    }
-  ]
-}
-
-const mockMapeosCampanas: Record<string, MapeoData[]> = {
-  '0_0': [
-    {
-      idABCConfigMapeoLinea: 10,
-      idABCConfigMapeoCampana: 0,
-      idABCCatLineaNegocio: 0,
-      idABCUsuario: 1,
-      nombre: 'Mapeo Campaña 0',
-      descripcion: 'Mapeo específico de campaña',
-      bolActivo: 1,
-      bolDictaminacion: false
+      nombre: 'Mapeo Seguro 2',
+      descripcion: 'Mapeo principal de Seguro 2',
+      bolActivo: true,
+      bolDictaminacion: null,
+      fecCreacion: '2026-01-01T00:00:00Z',
+      idABCUsuarioUltModificacion: 1,
+      fecUltModificacion: '2026-01-01T00:00:00Z'
     }
   ],
-  '0_1': [
+  3: [
     {
-      idABCConfigMapeoLinea: 11,
-      idABCConfigMapeoCampana: 1,
-      idABCCatLineaNegocio: 0,
+      idABCConfigMapeoLinea: 3,
+      idABCCatLineaNegocio: 3,
       idABCUsuario: 1,
-      nombre: 'Mapeo Campaña 1',
-      descripcion: 'Mapeo específico de campaña',
-      bolActivo: 1,
-      bolDictaminacion: false
+      nombre: 'Mapeo Seguro 3',
+      descripcion: 'Mapeo principal de Seguro 3',
+      bolActivo: true,
+      bolDictaminacion: null,
+      fecCreacion: '2026-01-01T00:00:00Z',
+      idABCUsuarioUltModificacion: 1,
+      fecUltModificacion: '2026-01-01T00:00:00Z'
     }
   ]
 }
@@ -80,9 +63,7 @@ export const mockApi = {
   async getAllMapeos(): Promise<MapeoData[]> {
     await delay()
     logRequest('GET', '/lineas/0/mapeos')
-    const lineas = Object.values(mockMapeosLineas).flat()
-    const campanas = Object.values(mockMapeosCampanas).flat()
-    return [...lineas, ...campanas]
+    return Object.values(mockMapeosLineas).flat()
   },
 
   async getMapeosByLinea(lineaId: string | number): Promise<MapeoData[]> {
@@ -91,13 +72,10 @@ export const mockApi = {
     return mockMapeosLineas[Number(lineaId)] ?? []
   },
 
-  async getMapeosByCampana(
-    lineaId: string | number,
-    campanaId: string | number
-  ): Promise<MapeoData[]> {
+  async getMapeosCampana(): Promise<MapeoCampanaData[]> {
     await delay()
-    logRequest('GET', `/lineas/${lineaId}/campanas/${campanaId}/mapeos`)
-    return mockMapeosCampanas[`${lineaId}_${campanaId}`] ?? []
+    logRequest('GET', '/lineas/0/campana/0/mapeos', { mapeo: { id: null } })
+    return mockMapeosCampanas
   },
 
   async createMapeoLinea(
@@ -110,11 +88,14 @@ export const mockApi = {
     const m: MapeoData = {
       idABCConfigMapeoLinea: mapeoIdCounter++,
       idABCCatLineaNegocio: Number(lineaId),
-      idABCUsuario: payload.idABCUsuario ?? 1,
+      idABCUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1,
       nombre: payload.mapeo.nombre,
       descripcion: payload.mapeo.descripcion,
-      bolActivo: 1,
-      bolDictaminacion: false
+      bolActivo: true,
+      bolDictaminacion: null,
+      fecCreacion: new Date().toISOString(),
+      idABCUsuarioUltModificacion: payload.idUsuario ?? payload.idABCUsuario ?? 1,
+      fecUltModificacion: new Date().toISOString()
     }
 
     const lineaKey = Number(lineaId)
@@ -128,70 +109,78 @@ export const mockApi = {
     lineaId: string | number,
     campanaId: string | number,
     payload: any
-  ): Promise<MapeoData> {
+  ): Promise<MapeoCampanaData> {
     await delay()
-    logRequest(
-      'POST',
-      `/lineas/${lineaId}/campanas/${campanaId}/mapeos`,
-      payload
-    )
+    logRequest('POST', `/lineas/${lineaId}/campana/${campanaId}/mapeos`, payload)
 
-    const key = `${lineaId}_${campanaId}`
-
-    const m: MapeoData = {
+    const m: MapeoCampanaData = {
       idABCConfigMapeoLinea: mapeoIdCounter++,
-      idABCConfigMapeoCampana: Number(campanaId),
       idABCCatLineaNegocio: Number(lineaId),
-      idABCUsuario: payload.idABCUsuario ?? 1,
+      idABCCatCampana: Number(campanaId),
+      idABCUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1,
       nombre: payload.mapeo.nombre,
       descripcion: payload.mapeo.descripcion,
-      bolActivo: 1,
-      bolDictaminacion: false
+      bolActivo: true,
+      bolDictaminacion: null,
+      fecCreacion: new Date().toISOString(),
+      idABCUsuarioUltModificacion: payload.idUsuario ?? payload.idABCUsuario ?? 1,
+      fecUltModificacion: new Date().toISOString()
     }
 
-    mockMapeosCampanas[key] ??= []
-    mockMapeosCampanas[key].push(m)
+    mockMapeosCampanas.push(m)
     return m
   },
 
   async updateMapeoLinea(payload: any): Promise<MapeoData> {
     await delay()
-    logRequest('PUT', '/linea/mapeos', payload)
+    logRequest('PUT', '/lineas/mapeos', payload)
 
-    const { idABCConfigMapeoLinea, idABCCatLineaNegocio, id, id_linea, nombre, descripcion } = payload.mapeos
-    const lineaKey = Number(idABCCatLineaNegocio ?? id_linea)
-
-    const list = mockMapeosLineas[lineaKey]
-    if (!list) throw new Error('Línea no encontrada')
-
+    const data = payload.mapeo ?? payload.mapeos ?? {}
+    const { idABCConfigMapeoLinea, idABCCatLineaNegocio, id, id_linea, nombre, descripcion } = data
     const mapeoId = Number(idABCConfigMapeoLinea ?? id)
-    const m = list.find(x => x.idABCConfigMapeoLinea === mapeoId)
+
+    let targetList: MapeoData[] | undefined
+    if (idABCCatLineaNegocio ?? id_linea) {
+      const lineaKey = Number(idABCCatLineaNegocio ?? id_linea)
+      targetList = mockMapeosLineas[lineaKey]
+      if (!targetList) throw new Error('Línea no encontrada')
+    } else {
+      for (const list of Object.values(mockMapeosLineas)) {
+        const found = list.find(x => x.idABCConfigMapeoLinea === mapeoId)
+        if (found) {
+          targetList = list
+          break
+        }
+      }
+    }
+
+    if (!targetList) throw new Error('Línea no encontrada')
+    const m = targetList.find(x => x.idABCConfigMapeoLinea === mapeoId)
     if (!m) throw new Error('Mapeo no encontrado')
 
-    m.nombre = nombre
-    m.descripcion = descripcion
+    m.nombre = nombre ?? m.nombre
+    m.descripcion = descripcion ?? m.descripcion
+    m.idABCUsuarioUltModificacion = payload.idUsuario ?? payload.idABCUsuario ?? 1
+    m.fecUltModificacion = new Date().toISOString()
 
     return m
   },
 
-  async updateMapeoCampana(payload: any): Promise<MapeoData> {
+  async updateMapeoCampana(payload: any): Promise<MapeoCampanaData> {
     await delay()
-    logRequest('PUT', '/linea/campana/mapeos', payload)
+    logRequest('PUT', '/lineas/campanas/mapeos', payload)
 
-    const { id, idABCConfigMapeoLinea, idABCCatLineaNegocio, idABCConfigMapeoCampana, id_linea, id_campana, nombre, descripcion } = payload.mapeos
-    const lineaKey = Number(idABCCatLineaNegocio ?? id_linea)
-    const campanaKey = Number(idABCConfigMapeoCampana ?? id_campana)
-    const key = `${lineaKey}_${campanaKey}`
-
-    const list = mockMapeosCampanas[key]
-    if (!list) throw new Error('Campaña no encontrada')
-
+    const data = payload.mapeo ?? payload.mapeos ?? {}
+    const { idABCConfigMapeoLinea, id, nombre, descripcion } = data
     const mapeoId = Number(idABCConfigMapeoLinea ?? id)
-    const m = list.find(x => x.idABCConfigMapeoLinea === mapeoId)
+
+    const m = mockMapeosCampanas.find(x => x.idABCConfigMapeoLinea === mapeoId)
     if (!m) throw new Error('Mapeo no encontrado')
 
-    m.nombre = nombre
-    m.descripcion = descripcion
+    m.nombre = nombre ?? m.nombre
+    m.descripcion = descripcion ?? m.descripcion
+    m.idABCUsuarioUltModificacion = payload.idUsuario ?? payload.idABCUsuario ?? 1
+    m.fecUltModificacion = new Date().toISOString()
 
     return m
   },
@@ -211,35 +200,16 @@ export const mockApi = {
     }
   },
 
-  async deleteMapeoCampana(
-    lineaId: string | number,
-    campanaId: string | number,
-    mapeoId: string | number
-  ): Promise<void> {
-    await delay()
-    logRequest(
-      'DELETE',
-      `/lineas/${lineaId}/campanas/${campanaId}/mapeos/${mapeoId}`
-    )
-
-    const key = `${lineaId}_${campanaId}`
-    if (mockMapeosCampanas[key]) {
-      mockMapeosCampanas[key] = mockMapeosCampanas[key].filter(
-        m => m.idABCConfigMapeoLinea !== Number(mapeoId)
-      )
-    }
-  },
-
   async patchActivarMapeoLinea(payload: any): Promise<MapeoData> {
     await delay()
-    logRequest('PATCH', '/linea/mapeos/activar', payload)
+    logRequest('PATCH', '/lineas/mapeos/activar', payload)
 
     const id = payload.mapeo.id
 
     for (const list of Object.values(mockMapeosLineas)) {
       const m = list.find(x => x.idABCConfigMapeoLinea === id)
       if (m) {
-        m.bolActivo = m.bolActivo === 1 ? 0 : 1
+        m.bolActivo = !m.bolActivo
         return m
       }
     }
@@ -249,14 +219,14 @@ export const mockApi = {
 
   async patchDesactivarMapeoLinea(payload: any): Promise<MapeoData> {
     await delay()
-    logRequest('PATCH', '/linea/mapeos/desactivar', payload)
+    logRequest('PATCH', '/lineas/mapeos/desactivar', payload)
 
     const id = payload.mapeo.id
 
     for (const list of Object.values(mockMapeosLineas)) {
       const m = list.find(x => x.idABCConfigMapeoLinea === id)
       if (m) {
-        m.bolActivo = 0
+        m.bolActivo = false
         return m
       }
     }
@@ -264,50 +234,146 @@ export const mockApi = {
     throw new Error('Mapeo no encontrado')
   },
 
-  async patchActivarMapeoCampana(payload: any): Promise<MapeoData> {
+  async patchActivarMapeoCampana(payload: any): Promise<MapeoCampanaData> {
     await delay()
-    logRequest('PATCH', '/linea/campana/mapeos/activar', payload)
+    logRequest('PATCH', '/lineas/campanas/mapeos/activar', payload)
 
     const id = payload.mapeo.id
+    const m = mockMapeosCampanas.find(x => x.idABCConfigMapeoLinea === id)
+    if (!m) throw new Error('Mapeo no encontrado')
 
-    for (const list of Object.values(mockMapeosCampanas)) {
-      const m = list.find(x => x.idABCConfigMapeoLinea === id)
-      if (m) {
-        m.bolActivo = m.bolActivo === 1 ? 0 : 1
-        return m
-      }
-    }
-
-    throw new Error('Mapeo no encontrado')
+    m.bolActivo = !m.bolActivo
+    return m
   },
 
-  async patchDesactivarMapeoCampana(payload: any): Promise<MapeoData> {
+  async patchDesactivarMapeoCampana(payload: any): Promise<MapeoCampanaData> {
     await delay()
-    logRequest('PATCH', '/linea/campana/mapeos/desactivar', payload)
+    logRequest('PATCH', '/lineas/campanas/mapeos/desactivar', payload)
 
     const id = payload.mapeo.id
+    const m = mockMapeosCampanas.find(x => x.idABCConfigMapeoLinea === id)
+    if (!m) throw new Error('Mapeo no encontrado')
 
-    for (const list of Object.values(mockMapeosCampanas)) {
-      const m = list.find(x => x.idABCConfigMapeoLinea === id)
-      if (m) {
-        m.bolActivo = 0
-        return m
-      }
-    }
-
-    throw new Error('Mapeo no encontrado')
+    m.bolActivo = false
+    return m
   },
+
   
-  async getLineas() {
-    return []
+}
+
+const mockColumnasByMapeo: Record<number, ColumnaData[]> = {
+  1: [
+    {
+      idABCConfigMapeoLinea: 1,
+      idABCCatLineaNegocio: 1,
+      idABCUsuario: 1,
+      nombre: 'Columna A',
+      bolActivo: true,
+      bolCargar: true,
+      bolModificar: false,
+      bolEnviar: true,
+      regex: '^[A-Z]+$\n',
+      bolDictaminacion: null,
+      fecCreacion: '2026-01-01T00:00:00Z',
+      idABCUsuarioUltModificacion: 1,
+      fecUltModificacion: '2026-01-01T00:00:00Z'
+    },
+    {
+      idABCConfigMapeoLinea: 1,
+      idABCCatLineaNegocio: 2,
+      idABCUsuario: 1,
+      nombre: 'Columna B',
+      bolActivo: false,
+      bolCargar: true,
+      bolModificar: true,
+      bolEnviar: false,
+      regex: '^[0-9]+$\n',
+      bolDictaminacion: null,
+      fecCreacion: '2026-01-02T00:00:00Z',
+      idABCUsuarioUltModificacion: 1,
+      fecUltModificacion: '2026-01-02T00:00:00Z'
+    }
+  ]
+}
+
+const mockColumnasCampana: ColumnaCampanaData[] = [
+  {
+    idABCConfigMapeoLinea: 101,
+    idABCCatLineaNegocio: 1,
+    idABCCatCampana: 1,
+    idABCUsuario: 1,
+    nombre: 'Columna Campaña A',
+    bolActivo: true,
+    bolCargar: true,
+    bolModificar: false,
+    bolEnviar: true,
+    regex: '^[A-Z]+$',
+    bolDictaminacion: null,
+    fecCreacion: '2026-01-03T00:00:00Z',
+    idABCUsuarioUltModificacion: 1,
+    fecUltModificacion: '2026-01-03T00:00:00Z'
   },
-  async getLineaById() {
-    return {} as any
+  {
+    idABCConfigMapeoLinea: 102,
+    idABCCatLineaNegocio: 2,
+    idABCCatCampana: 2,
+    idABCUsuario: 1,
+    nombre: 'Columna Campaña B',
+    bolActivo: false,
+    bolCargar: false,
+    bolModificar: true,
+    bolEnviar: false,
+    regex: '^[0-9]+$',
+    bolDictaminacion: null,
+    fecCreacion: '2026-01-04T00:00:00Z',
+    idABCUsuarioUltModificacion: 1,
+    fecUltModificacion: '2026-01-04T00:00:00Z'
+  }
+]
+
+export const mockColumnasApi = {
+  async getColumnasByMapeo(mapeoId: string | number): Promise<ColumnaData[]> {
+    await delay()
+    logRequest('GET', `/lineas/mapeos/${mapeoId}/columnas`)
+    return mockColumnasByMapeo[Number(mapeoId)] ?? []
   },
-  async getCampanasByLinea() {
-    return []
-  },
-  async getCampanaById() {
-    return {} as any
+
+  async getColumnasCampana(): Promise<ColumnaCampanaData[]> {
+    await delay()
+    logRequest('GET', '/lineas/0/campanas/0/mapeos/columnas', {
+      mapeo: { id: null },
+      columna: { id: null },
+      idUsuario: 1
+    })
+    return mockColumnasCampana
   }
 }
+
+const mockMapeosCampanas: MapeoCampanaData[] = [
+  {
+    idABCConfigMapeoLinea: 101,
+    idABCCatLineaNegocio: 1,
+    idABCCatCampana: 1,
+    idABCUsuario: 1,
+    nombre: 'Mapeo Campaña 1-1',
+    descripcion: 'Mapeo de campaña para línea 1',
+    bolActivo: true,
+    bolDictaminacion: null,
+    fecCreacion: '2026-01-01T00:00:00Z',
+    idABCUsuarioUltModificacion: 1,
+    fecUltModificacion: '2026-01-01T00:00:00Z'
+  },
+  {
+    idABCConfigMapeoLinea: 102,
+    idABCCatLineaNegocio: 2,
+    idABCCatCampana: 2,
+    idABCUsuario: 1,
+    nombre: 'Mapeo Campaña 2-2',
+    descripcion: 'Mapeo de campaña para línea 2',
+    bolActivo: false,
+    bolDictaminacion: null,
+    fecCreacion: '2026-01-02T00:00:00Z',
+    idABCUsuarioUltModificacion: 1,
+    fecUltModificacion: '2026-01-02T00:00:00Z'
+  }
+]

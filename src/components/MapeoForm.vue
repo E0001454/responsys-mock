@@ -7,6 +7,7 @@ interface Props {
   fieldsConfig: FieldsConfig
   initialData?: Record<string, any>
   isLoading?: boolean
+  isEditing?: boolean
 }
 
 interface Emits {
@@ -15,7 +16,8 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isLoading: false
+  isLoading: false,
+  isEditing: false
 })
 
 const emit = defineEmits<Emits>()
@@ -58,6 +60,14 @@ function capitalize(str: string) {
 function getFieldType(config: FieldsConfig[keyof FieldsConfig]) {
   return config?.type || 'text'
 }
+
+function isFieldLocked(fieldName: string) {
+  return props.isEditing && (
+    fieldName === 'idABCCatLineaNegocio' ||
+    fieldName === 'idABCCatCampana' ||
+    fieldName === 'nombre'
+  )
+}
 </script>
 
 <template>
@@ -84,7 +94,7 @@ function getFieldType(config: FieldsConfig[keyof FieldsConfig]) {
             :key="fieldName"
           >
             <label :for="`field-${fieldName}`" class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">
-              {{ capitalize(fieldName) }}
+              {{ fieldConfig.label || capitalize(fieldName) }}
               <span v-if="fieldConfig.required" class="text-red-500 ml-1">*</span>
             </label>
 
@@ -92,8 +102,10 @@ function getFieldType(config: FieldsConfig[keyof FieldsConfig]) {
               <select
                 :id="`field-${fieldName}`"
                 v-model="formData[fieldName]"
-                class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 text-sm focus:ring-2 focus:ring-[#00357F] focus:border-[#00357F] transition-shadow appearance-none cursor-pointer outline-none"
+                class="w-full pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg text-gray-700 text-sm focus:ring-2 focus:ring-[#00357F] focus:border-[#00357F] transition-shadow appearance-none outline-none"
+                :class="isFieldLocked(fieldName) ? 'bg-gray-100 cursor-not-allowed opacity-70' : 'bg-gray-50 cursor-pointer'"
                 :required="fieldConfig.required"
+                :disabled="isFieldLocked(fieldName)"
               >
                 <option value="" disabled class="text-gray-400">
                   {{ fieldConfig.placeholder || 'Seleccione una opción' }}
@@ -149,9 +161,11 @@ function getFieldType(config: FieldsConfig[keyof FieldsConfig]) {
               :id="`field-${fieldName}`"
               v-model="formData[fieldName]"
               :type="getFieldType(fieldConfig)"
-              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 text-sm focus:ring-2 focus:ring-[#00357F] focus:border-[#00357F] transition-shadow outline-none placeholder-gray-400"
+              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 text-sm focus:ring-2 focus:ring-[#00357F] focus:border-[#00357F] transition-shadow outline-none placeholder-gray-400"
+              :class="isFieldLocked(fieldName) ? 'bg-gray-100 cursor-not-allowed opacity-70' : 'bg-gray-50'"
               :placeholder="fieldConfig.placeholder"
               :required="fieldConfig.required"
+              :disabled="isFieldLocked(fieldName)"
             />
           </div>
 

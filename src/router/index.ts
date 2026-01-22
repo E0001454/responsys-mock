@@ -1,13 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 
-// Importación de las vistas
 import MapeoView from '../views/MapeoView.vue'
-import CampanaView from '../views/CampanaView.vue'
-import TareasView from '../views/TareasView.vue'
-import ReportesView from '../views/ReportesView.vue'
+import ColumnasView from '../views/ColumnasView.vue'
 
-// Definición de rutas con tipado
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -19,19 +15,9 @@ const routes: Array<RouteRecordRaw> = [
     component: MapeoView
   },
   {
-    path: '/campana',
-    name: 'campana',
-    component: CampanaView
-  },
-  {
-    path: '/tareas',
-    name: 'tareas',
-    component: TareasView
-  },
-  {
-    path: '/reportes',
-    name: 'reportes',
-    component: ReportesView
+    path: '/columnas',
+    name: 'columnas',
+    component: ColumnasView
   }
 ]
 

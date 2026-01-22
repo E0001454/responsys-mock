@@ -1,12 +1,28 @@
 export interface MapeoData {
   idABCConfigMapeoLinea: number
   idABCCatLineaNegocio: number
-  idABCConfigMapeoCampana?: number
   idABCUsuario: number
   nombre: string
   descripcion: string
-  bolActivo: 0 | 1
-  bolDictaminacion: boolean
+  bolActivo: boolean
+  bolDictaminacion: boolean | null
+  fecCreacion: string
+  idABCUsuarioUltModificacion: number
+  fecUltModificacion: string
+}
+
+export interface MapeoCampanaData {
+  idABCConfigMapeoLinea: number
+  idABCCatLineaNegocio: number
+  idABCCatCampana: number
+  idABCUsuario: number
+  nombre: string
+  descripcion: string
+  bolActivo: boolean
+  bolDictaminacion: boolean | null
+  fecCreacion: string
+  idABCUsuarioUltModificacion: number
+  fecUltModificacion: string
 }
 
 export interface CreateMapeoPayload {
@@ -18,17 +34,17 @@ export interface CreateMapeoPayload {
 }
 
 export interface UpdateMapeoPayload {
-  mapeos: {
+  mapeo: {
     id: number
     nombre: string
     descripcion: string
   }
-  idABCUsuario: number
+  idUsuario: number
 }
 
 export interface PatchMapeoPayload {
   mapeo: {
-    id: string | number
+    idABCConfigMapeoLinea: string | number
   }
   idABCUsuario: number
 }
@@ -39,21 +55,7 @@ export interface FieldConfig {
   required?: boolean
   placeholder?: string
   rows?: number
+  label?: string
 }
 
 export type FieldsConfig = Record<string, FieldConfig>
-
-export interface Linea {
-  id: string | number
-  nombre: string
-  descripcion: string
-  status: 0 | 1
-}
-
-export interface Campana {
-  id: string | number
-  id_linea: number
-  nombre: string
-  descripcion: string
-  status: 0 | 1
-}
