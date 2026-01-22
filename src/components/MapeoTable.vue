@@ -46,7 +46,7 @@ const emit = defineEmits<Emits>()
     <div class="overflow-x-auto flex-1" style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="border-b border-slate-200 bg-slate-50/50 text-xs uppercase text-slate-500 font-semibold tracking-wider">
+          <tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
             <th class="px-4 py-3 w-16">ID</th>
             
             <th class="px-4 py-3 relative w-48">
@@ -152,7 +152,7 @@ const emit = defineEmits<Emits>()
                 </div>
               </div>
             </th>
-            <th class="px-4 py-3 text-left">Información</th>
+            <!-- <th class="px-4 py-3 text-left">Información</th> -->
             
             <th class="px-4 py-3 relative w-36">
               <button 
@@ -221,13 +221,13 @@ const emit = defineEmits<Emits>()
             <td colspan="100%" class="px-4 py-12">
               <div class="flex flex-col items-center justify-center text-slate-400">
                 <Search class="w-8 h-8 mb-2 opacity-50"/>
-                <span class="text-sm">No hay registros que coincidan con los filtros.</span>
+                <span class="text-sm">No hay registros.</span>
               </div>
             </td>
           </tr>
 
           <template v-else v-for="m in props.filteredMapeos" :key="m.idABCConfigMapeoLinea">
-            <tr class="hover:bg-blue-50/30 group transition-colors text-sm">
+            <tr class="hover:bg-blue-50/30 transition-colors text-sm">
               <td class="px-4 py-2.5 font-mono text-xs text-slate-400">#{{ m.idABCConfigMapeoLinea }}</td>
               
               <td class="px-4 py-2.5">
@@ -242,16 +242,9 @@ const emit = defineEmits<Emits>()
                 {{ props.isCampanaRow(m) ? m.idABCCatCampana : '-' }}
               </td>
 
-              <td class="px-4 py-2.5">
-                <button
-                  type="button"
-                  class="flex items-center gap-1.5 text-xs font-medium text-[#00357F] hover:underline cursor-pointer"
-                  @click="emit('toggleDetails', m.idABCConfigMapeoLinea)"
-                >
-                  <component :is="props.isDetailsOpen(m.idABCConfigMapeoLinea) ? ChevronUp : ChevronDown" class="w-3 h-3" />
-                  {{ props.isDetailsOpen(m.idABCConfigMapeoLinea) ? 'Ocultar' : 'Ver más' }}
-                </button>
-              </td>
+              <!-- <td class="px-4 py-2.5">
+                <span class="text-sm text-slate-500">{{ props.isDetailsOpen(m.idABCConfigMapeoLinea) ? 'Abierto' : 'Cerrado' }}</span>
+              </td> -->
               
               <td class="px-4 py-2.5">
                 <label 
@@ -281,13 +274,25 @@ const emit = defineEmits<Emits>()
                 </label>
               </td>
               <td class="px-4 py-2.5 text-right">
-                <button 
-                  @click="emit('edit', m)" 
-                  class="p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
-                  title="Editar registro"
-                >
-                  <Edit3 class="w-4 h-4" />
-                </button>
+                <div class="inline-flex items-center justify-end gap-2">
+                  <button
+                    @click="emit('toggleDetails', m.idABCConfigMapeoLinea)"
+                    class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors cursor-pointer group"
+                    aria-label="Ver detalles"
+                  >
+                    <component :is="props.isDetailsOpen(m.idABCConfigMapeoLinea) ? ChevronUp : ChevronDown" class="w-4 h-4" />
+                    <span class="absolute whitespace-nowrap -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">Ver detalles</span>
+                  </button>
+
+                  <button
+                    @click="emit('edit', m)"
+                    class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors cursor-pointer group"
+                    aria-label="Editar registro"
+                  >
+                    <Edit3 class="w-4 h-4" />
+                    <span class="absolute whitespace-nowrap -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">Modificar</span>
+                  </button>
+                </div>
               </td>
             </tr>
             

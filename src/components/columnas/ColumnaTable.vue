@@ -289,8 +289,8 @@ const emit = defineEmits<Emits>()
 							</div>
 						</th>
 
-						<th class="px-4 py-3 text-left">Detalle</th>
-						<th class="px-4 py-3 text-right w-20">Editar</th>
+						<!-- <th class="px-4 py-3 text-left">Detalle</th> -->
+						<th class="px-4 py-3 text-right w-20">Acciones</th>
 					</tr>
 				</thead>
 
@@ -314,7 +314,7 @@ const emit = defineEmits<Emits>()
 					</tr>
 
 					<template v-else v-for="c in props.filteredColumnas" :key="`${c.idABCConfigMapeoLinea}-${c.nombre}`">
-						<tr class="hover:bg-blue-50/30 group transition-colors text-sm">
+						<tr class="hover:bg-blue-50/30 transition-colors text-sm">
 							<td class="px-4 py-2.5">
 								<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
 									{{ props.getLineaLabel(c.idABCCatLineaNegocio) }}
@@ -360,24 +360,29 @@ const emit = defineEmits<Emits>()
 								</label>
 							</td>
 
-							<td class="px-4 py-2.5 text-left">
-								<button
-									type="button"
-									class="flex items-center gap-1.5 text-xs font-medium text-[#00357F] hover:underline"
-									@click="emit('toggleDetails', `${c.idABCConfigMapeoLinea}-${c.nombre}`)"
-								>
-									<component :is="props.isDetailsOpen(`${c.idABCConfigMapeoLinea}-${c.nombre}`) ? ChevronUp : ChevronDown" class="w-3 h-3" />
-									{{ props.isDetailsOpen(`${c.idABCConfigMapeoLinea}-${c.nombre}`) ? 'Ocultar' : 'Ver más' }}
-								</button>
-							</td>
+							<!-- <td class="px-4 py-2.5">
+								<span class="text-sm text-slate-500">{{ props.isDetailsOpen(`${c.idABCConfigMapeoLinea}-${c.nombre}`) ? 'Abierto' : 'Cerrado' }}</span>
+							</td> -->
 							<td class="px-4 py-2.5 text-right">
-								<button
-									@click="emit('edit', c)"
-									class="p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors"
-									title="Modificar"
-								>
-									<Edit3 class="w-4 h-4" />
-								</button>
+								<div class="inline-flex items-center justify-end gap-2">
+									<button
+										@click="emit('toggleDetails', `${c.idABCConfigMapeoLinea}-${c.nombre}`)"
+										class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors cursor-pointer group"
+										aria-label="Ver detalles"
+									>
+										<component :is="props.isDetailsOpen(`${c.idABCConfigMapeoLinea}-${c.nombre}`) ? ChevronUp : ChevronDown" class="w-4 h-4" />
+										<span class="absolute whitespace-nowrap -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">Ver detalles</span>
+									</button>
+
+									<button
+										@click="emit('edit', c)"
+										class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors cursor-pointer group"
+										aria-label="Modificar"
+									>
+										<Edit3 class="w-4 h-4" />
+										<span class="absolute whitespace-nowrap -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">Modificar</span>
+									</button>
+								</div>
 							</td>
 						</tr>
 						<tr v-show="props.isDetailsOpen(`${c.idABCConfigMapeoLinea}-${c.nombre}`)" class="bg-slate-50/80 shadow-inner">

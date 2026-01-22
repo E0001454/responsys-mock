@@ -79,6 +79,7 @@ export const mapeoService = {
   },
 
   getMapeosCampana() {
+    console.log('[mapeoService] calling getMapeosCampana on apiClient')
     return apiClient.getMapeosCampana().then(res => {
       console.log('[mapeoService] getMapeosCampana raw:', res)
       return res.map(normalizeMapeoCampana)

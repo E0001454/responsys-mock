@@ -61,7 +61,7 @@ const logoUrl = 'src/assets/img/logo.webp'
               active-class="!bg-[#FFD100] !text-[#00357F] font-bold shadow-md"
             >
               <Activity class="w-4 h-4" />
-              <span>Actividades</span>
+              <span>Tareas</span>
             </RouterLink>
           </li>
         </ul>
@@ -100,7 +100,7 @@ const logoUrl = 'src/assets/img/logo.webp'
               active-class="!bg-[#FFD100] !text-[#00357F] font-bold shadow-md"
             >
               <PieChart class="w-4 h-4" />
-              <span>Business Intel</span>
+              <span>BI</span>
             </RouterLink>
           </li>
           <li>
@@ -110,7 +110,7 @@ const logoUrl = 'src/assets/img/logo.webp'
               active-class="!bg-[#FFD100] !text-[#00357F] font-bold shadow-md"
             >
               <FileText class="w-4 h-4" />
-              <span>ABC Report</span>
+              <span>ABC</span>
             </RouterLink>
           </li>
           <li>

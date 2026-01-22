@@ -5,6 +5,14 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
+  // Log outgoing requests to help debug GET-with-body situations
+  try {
+    const method = (options.method || 'GET').toUpperCase()
+    console.log('[API Request]', method, url)
+    if (options.body) console.log('[API Request] BODY:', options.body)
+  } catch (e) {
+    /* ignore logging errors */
+  }
   const headers = {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true',
@@ -52,7 +60,7 @@ export const api = {
   getMapeosByLinea: (lineaId: string | number) =>
     http.get(`/lineas/${lineaId}/mapeos`),
   getMapeosCampana: () =>
-    request('/lineas/0/campana/0/mapeos', {
+    request('/lineas/0/campanas/0/mapeos', {
       method: 'GET',
       body: JSON.stringify({
         mapeo: { id: null }
@@ -73,7 +81,7 @@ export const api = {
     lineaId: string | number,
     campanaId: string | number,
     payload: any
-  ) => http.post(`/lineas/${lineaId}/campana/${campanaId}/mapeos`, payload),
+  ) => http.post(`/lineas/${lineaId}/campanas/${campanaId}/mapeos`, payload),
   updateMapeoLinea: (payload: any) => http.put('/lineas/mapeos', payload),
   updateMapeoCampana: (payload: any) => http.put('/lineas/campanas/mapeos', payload),
   deleteMapeoLinea: (lineaId: string | number, mapeoId: string | number) =>
