@@ -1,3 +1,9 @@
+import type {
+  CreateColumnaLineaPayload,
+  PatchColumnaLineaPayload,
+  UpdateColumnaLineaPayload
+} from '../types/columna'
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
 async function request<T>(
@@ -55,43 +61,48 @@ export const http = {
 }
 
 export const api = {
-  // Mapeos por linea
+  // Mapeo línea
   getAllMapeos: () => http.get('/lineas/0/mapeos'),
   getMapeosByLinea: (lineaId: string | number) =>
     http.get(`/lineas/${lineaId}/mapeos`),
-  getMapeosCampana: () =>
-    request('/lineas/0/campanas/0/mapeos', {
-      method: 'GET',
-      body: JSON.stringify({
-        mapeo: { id: null }
-      })
-    }),
-  getColumnasCampana: () =>
-    request('/lineas/0/campanas/0/mapeos/columnas', {
-      method: 'GET',
-      body: JSON.stringify({
-        mapeo: { id: null },
-        columna: { id: null },
-        idUsuario: 1
-      })
-    }),
   createMapeoLinea: (lineaId: string | number, payload: any) =>
     http.post(`/lineas/${lineaId}/mapeos`, payload),
-  createMapeoCampana: (
-    lineaId: string | number,
-    campanaId: string | number,
-    payload: any
-  ) => http.post(`/lineas/${lineaId}/campanas/${campanaId}/mapeos`, payload),
   updateMapeoLinea: (payload: any) => http.put('/lineas/mapeos', payload),
-  updateMapeoCampana: (payload: any) => http.put('/lineas/campanas/mapeos', payload),
   deleteMapeoLinea: (lineaId: string | number, mapeoId: string | number) =>
     http.delete(`/lineas/${lineaId}/mapeos/${mapeoId}`),
   patchActivarMapeoLinea: (payload: any) =>
     http.patch('/lineas/mapeos/activar', payload),
   patchDesactivarMapeoLinea: (payload: any) =>
     http.patch('/lineas/mapeos/desactivar', payload),
+
+  // Mapeo campaña
+  getMapeosCampana: () => http.get('/lineas/0/campanas/0/mapeos'),
+  createMapeoCampana: (
+    lineaId: string | number,
+    campanaId: string | number,
+    payload: any
+  ) => http.post(`/lineas/${lineaId}/campanas/${campanaId}/mapeos`, payload),
+  updateMapeoCampana: (payload: any) => http.put('/lineas/campanas/mapeos', payload),
   patchActivarMapeoCampana: (payload: any) =>
     http.patch('/lineas/campanas/mapeos/activar', payload),
   patchDesactivarMapeoCampana: (payload: any) =>
-    http.patch('/lineas/campanas/mapeos/desactivar', payload)
+    http.patch('/lineas/campanas/mapeos/desactivar', payload),
+
+  // Columna mapeo (línea)
+  getColumnasByMapeo: (mapeoId: string | number) =>
+    http.get(`/lineas/mapeos/${mapeoId}/columnas`),
+  getColumnasLinea: () => http.get('/lineas/mapeos/0/columnas'),
+  createColumnaLinea: (
+    mapeoId: string | number,
+    payload: CreateColumnaLineaPayload
+  ) => http.post(`/lineas/mapeos/${mapeoId}/columnas`, payload),
+  updateColumnaLinea: (payload: UpdateColumnaLineaPayload) =>
+    http.put('/lineas/mapeos/columnas', payload),
+  patchActivarColumnaLinea: (payload: PatchColumnaLineaPayload) =>
+    http.patch('/lineas/mapeos/columnas/activar', payload),
+  patchDesactivarColumnaLinea: (payload: PatchColumnaLineaPayload) =>
+    http.patch('/lineas/mapeos/columnas/desactivar', payload),
+
+  // Columna mapeo campaña
+  getColumnasCampana: () => http.get('/campanas/mapeos/0/columnas')
 }

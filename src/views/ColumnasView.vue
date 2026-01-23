@@ -65,6 +65,8 @@ async function fetchColumnas() {
 
 const getLineaLabel = (id?: number) => lineasDisponibles.find(x => x.value === id)?.label || 'N/A'
 
+const getColumnaNombre = (item: ColumnaRow) => `Columna ${item.idABCCatColumna}`
+
 const mapeosDisponibles = computed(() => {
 	const ids = new Set<number>()
 	columnas.value.forEach(c => ids.add(c.idABCConfigMapeoLinea))
@@ -76,7 +78,7 @@ const mapeosDisponibles = computed(() => {
 
 const nombresDisponibles = computed(() => {
 	const names = new Set<string>()
-	columnas.value.forEach(c => names.add(c.nombre))
+	columnas.value.forEach(c => names.add(getColumnaNombre(c)))
 	return Array.from(names).sort().map(n => ({
 		label: n,
 		value: n
@@ -85,14 +87,17 @@ const nombresDisponibles = computed(() => {
 
 const filteredColumnas = computed(() => {
 	return columnas.value.filter(item => {
+		const lineaId = 'idABCCatLineaNegocio' in item ? (item as any).idABCCatLineaNegocio : undefined
 		const matchLinea = selectedFilters.lineas.length
-			? selectedFilters.lineas.includes(item.idABCCatLineaNegocio)
+			? lineaId === undefined || lineaId === null
+				? true
+				: selectedFilters.lineas.includes(lineaId)
 			: true
 		const matchMapeo = selectedFilters.mapeos.length
 			? selectedFilters.mapeos.includes(item.idABCConfigMapeoLinea)
 			: true
 		const matchNombre = selectedFilters.nombres.length
-			? selectedFilters.nombres.includes(item.nombre)
+			? selectedFilters.nombres.includes(getColumnaNombre(item))
 			: true
 		const matchStatus = selectedFilters.status.length
 			? selectedFilters.status.includes(item.bolActivo)

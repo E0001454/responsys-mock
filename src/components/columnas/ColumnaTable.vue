@@ -238,9 +238,9 @@ const emit = defineEmits<Emits>()
 							</div>
 						</th>
 
-						<th class="px-4 py-3 text-center w-24">Cargar</th>
-						<th class="px-4 py-3 text-center w-24">Modificar</th>
-						<th class="px-4 py-3 text-center w-24">Enviar</th>
+						<th class="px-4 py-3 text-center w-24">Carga</th>
+						<th class="px-4 py-3 text-center w-24">Validación</th>
+						<th class="px-4 py-3 text-center w-24">Envío</th>
 
 						<th class="px-4 py-3 relative w-36">
 							<button
@@ -313,27 +313,27 @@ const emit = defineEmits<Emits>()
 						</td>
 					</tr>
 
-					<template v-else v-for="c in props.filteredColumnas" :key="`${c.idABCConfigMapeoLinea}-${c.nombre}`">
+					<template v-else v-for="c in props.filteredColumnas" :key="`${c.idABCConfigMapeoLinea}-${c.idABCCatColumna}`">
 						<tr class="hover:bg-blue-50/30 transition-colors text-sm">
 							<td class="px-4 py-2.5">
 								<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
-									{{ props.getLineaLabel(c.idABCCatLineaNegocio) }}
+									{{ props.getLineaLabel(undefined) }}
 								</span>
 							</td>
 							<td class="px-4 py-2.5 text-slate-600">Mapeo #{{ c.idABCConfigMapeoLinea }}</td>
 							<td v-if="props.activeTab === 'campana'" class="px-4 py-2.5 text-slate-600">
 								{{ 'idABCCatCampana' in c ? c.idABCCatCampana : '-' }}
 							</td>
-							<td class="px-4 py-2.5 font-semibold text-slate-700">{{ c.nombre }}</td>
+							<td class="px-4 py-2.5 font-semibold text-slate-700">Columna {{ c.idABCCatColumna }}</td>
 
 							<td class="px-4 py-2.5 text-center">
-								<input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-[#00357F]" :checked="c.bolCargar" disabled>
+								<input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-[#00357F]" :checked="c.bolCarga" disabled>
 							</td>
 							<td class="px-4 py-2.5 text-center">
-								<input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-[#00357F]" :checked="c.bolModificar" disabled>
+								<input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-[#00357F]" :checked="c.bolValidacion" disabled>
 							</td>
 							<td class="px-4 py-2.5 text-center">
-								<input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-[#00357F]" :checked="c.bolEnviar" disabled>
+								<input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-[#00357F]" :checked="c.bolEnvio" disabled>
 							</td>
 
 							<td class="px-4 py-2.5">
@@ -366,11 +366,11 @@ const emit = defineEmits<Emits>()
 							<td class="px-4 py-2.5 text-right">
 								<div class="inline-flex items-center justify-end gap-2">
 									<button
-										@click="emit('toggleDetails', `${c.idABCConfigMapeoLinea}-${c.nombre}`)"
+										@click="emit('toggleDetails', `${c.idABCConfigMapeoLinea}-${c.idABCCatColumna}`)"
 										class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors cursor-pointer group"
 										aria-label="Ver detalles"
 									>
-										<component :is="props.isDetailsOpen(`${c.idABCConfigMapeoLinea}-${c.nombre}`) ? ChevronUp : ChevronDown" class="w-4 h-4" />
+										<component :is="props.isDetailsOpen(`${c.idABCConfigMapeoLinea}-${c.idABCCatColumna}`) ? ChevronUp : ChevronDown" class="w-4 h-4" />
 										<span class="absolute whitespace-nowrap -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">Ver detalles</span>
 									</button>
 
@@ -385,7 +385,7 @@ const emit = defineEmits<Emits>()
 								</div>
 							</td>
 						</tr>
-						<tr v-show="props.isDetailsOpen(`${c.idABCConfigMapeoLinea}-${c.nombre}`)" class="bg-slate-50/80 shadow-inner">
+						<tr v-show="props.isDetailsOpen(`${c.idABCConfigMapeoLinea}-${c.idABCCatColumna}`)" class="bg-slate-50/80 shadow-inner">
 							<td colspan="100%" class="px-4 py-3">
 								<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-600 pl-12 border-l-2 border-[#FFD100]">
 									<div class="col-span-2">

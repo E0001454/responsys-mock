@@ -1,5 +1,11 @@
 import type { MapeoData, MapeoCampanaData } from '../types/mapeo'
-import type { ColumnaData, ColumnaCampanaData } from '../types/columna'
+import type {
+  ColumnaData,
+  ColumnaCampanaData,
+  CreateColumnaLineaPayload,
+  UpdateColumnaLineaPayload,
+  PatchColumnaLineaPayload
+} from '../types/columna'
 
 export function delay(ms: number = 500): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -265,30 +271,24 @@ const mockColumnasByMapeo: Record<number, ColumnaData[]> = {
   1: [
     {
       idABCConfigMapeoLinea: 1,
-      idABCCatLineaNegocio: 1,
-      idABCUsuario: 1,
-      nombre: 'Columna A',
       bolActivo: true,
-      bolCargar: true,
-      bolModificar: false,
-      bolEnviar: true,
+      idABCCatColumna: 1,
+      bolCarga: true,
+      bolValidacion: false,
+      bolEnvio: true,
       regex: '^[A-Z]+$\n',
-      bolDictaminacion: null,
       fecCreacion: '2026-01-01T00:00:00Z',
       idABCUsuarioUltModificacion: 1,
       fecUltModificacion: '2026-01-01T00:00:00Z'
     },
     {
       idABCConfigMapeoLinea: 1,
-      idABCCatLineaNegocio: 2,
-      idABCUsuario: 1,
-      nombre: 'Columna B',
       bolActivo: false,
-      bolCargar: true,
-      bolModificar: true,
-      bolEnviar: false,
+      idABCCatColumna: 2,
+      bolCarga: true,
+      bolValidacion: true,
+      bolEnvio: false,
       regex: '^[0-9]+$\n',
-      bolDictaminacion: null,
       fecCreacion: '2026-01-02T00:00:00Z',
       idABCUsuarioUltModificacion: 1,
       fecUltModificacion: '2026-01-02T00:00:00Z'
@@ -299,32 +299,26 @@ const mockColumnasByMapeo: Record<number, ColumnaData[]> = {
 const mockColumnasCampana: ColumnaCampanaData[] = [
   {
     idABCConfigMapeoLinea: 101,
-    idABCCatLineaNegocio: 1,
     idABCCatCampana: 1,
-    idABCUsuario: 1,
-    nombre: 'Columna Campaña A',
     bolActivo: true,
-    bolCargar: true,
-    bolModificar: false,
-    bolEnviar: true,
+    idABCCatColumna: 1,
+    bolCarga: true,
+    bolValidacion: false,
+    bolEnvio: true,
     regex: '^[A-Z]+$',
-    bolDictaminacion: null,
     fecCreacion: '2026-01-03T00:00:00Z',
     idABCUsuarioUltModificacion: 1,
     fecUltModificacion: '2026-01-03T00:00:00Z'
   },
   {
     idABCConfigMapeoLinea: 102,
-    idABCCatLineaNegocio: 2,
     idABCCatCampana: 2,
-    idABCUsuario: 1,
-    nombre: 'Columna Campaña B',
     bolActivo: false,
-    bolCargar: false,
-    bolModificar: true,
-    bolEnviar: false,
+    idABCCatColumna: 2,
+    bolCarga: false,
+    bolValidacion: true,
+    bolEnvio: false,
     regex: '^[0-9]+$',
-    bolDictaminacion: null,
     fecCreacion: '2026-01-04T00:00:00Z',
     idABCUsuarioUltModificacion: 1,
     fecUltModificacion: '2026-01-04T00:00:00Z'
@@ -340,12 +334,46 @@ export const mockColumnasApi = {
 
   async getColumnasCampana(): Promise<ColumnaCampanaData[]> {
     await delay()
-    logRequest('GET', '/lineas/0/campanas/0/mapeos/columnas', {
-      mapeo: { id: null },
-      columna: { id: null },
-      idUsuario: 1
-    })
+    logRequest('GET', '/campanas/mapeos/0/columnas')
     return mockColumnasCampana
+  },
+
+  async createColumnaLinea(
+    mapeoId: string | number,
+    payload: CreateColumnaLineaPayload
+  ): Promise<any> {
+    await delay()
+    logRequest('POST', `/lineas/mapeos/${mapeoId}/columnas`, payload)
+    return {
+      idABCConfigMapeoLinea: Number(mapeoId),
+      idABCCatColumna: payload.idABCCatColumna,
+      bolActivo: true,
+      bolCarga: true,
+      bolValidacion: false,
+      bolEnvio: false,
+      regex: payload.regex,
+      fecCreacion: new Date().toISOString(),
+      idABCUsuarioUltModificacion: payload.idUsuario,
+      fecUltModificacion: new Date().toISOString()
+    }
+  },
+
+  async updateColumnaLinea(payload: UpdateColumnaLineaPayload): Promise<any> {
+    await delay()
+    logRequest('PUT', '/lineas/mapeos/columnas', payload)
+    return payload
+  },
+
+  async patchActivarColumnaLinea(payload: PatchColumnaLineaPayload): Promise<any> {
+    await delay()
+    logRequest('PATCH', '/lineas/mapeos/columnas/activar', payload)
+    return payload
+  },
+
+  async patchDesactivarColumnaLinea(payload: PatchColumnaLineaPayload): Promise<any> {
+    await delay()
+    logRequest('PATCH', '/lineas/mapeos/columnas/desactivar', payload)
+    return payload
   }
 }
 
