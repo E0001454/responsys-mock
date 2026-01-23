@@ -1,3 +1,4 @@
+// src/services/mapeoService.ts
 import { api } from './api'
 import { mockApi } from './mockData'
 import type { MapeoData } from '../types/mapeo'
@@ -57,6 +58,12 @@ function normalizeMapeo(item: any): MapeoData {
 
 function normalizeMapeoCampana(item: any): MapeoCampanaData {
   const base = normalizeMapeo(item) as MapeoCampanaData
+  const campanaMapeoId = Number(
+    item?.idABCConfigMapeoCampana ?? item?.id_mapeo_campana ?? item?.idCampanaMapeo ?? 0
+  )
+  if (campanaMapeoId) {
+    base.idABCConfigMapeoLinea = campanaMapeoId
+  }
   base.idABCCatCampana = Number(item?.idABCCatCampana ?? item?.id_campana ?? 0)
   return base
 }

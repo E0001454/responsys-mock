@@ -5,8 +5,8 @@ import {
   Columns, 
   Activity, 
   ClipboardCheck, 
-  PieChart, 
-  FileText, 
+  Database, 
+  ArrowRightLeft, 
   Mail,
   UserCircle,
   LogOut,
@@ -60,11 +60,11 @@ const logoUrl = 'src/assets/img/logo.webp'
               class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group text-blue-100 hover:text-white hover:bg-white/10"
               active-class="!bg-[#FFD100] !text-[#00357F] font-bold shadow-md"
             >
-              <Activity class="w-4 h-4" />
+              <ClipboardCheck class="w-4 h-4" />
               <span>Tareas</span>
             </RouterLink>
           </li>
-           <li>
+           <!-- <li>
             <RouterLink 
               to="/catalogos" 
               class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group text-blue-100 hover:text-white hover:bg-white/10"
@@ -73,7 +73,7 @@ const logoUrl = 'src/assets/img/logo.webp'
               <Activity class="w-4 h-4" />
               <span>Catalogos</span>
             </RouterLink>
-          </li>
+          </li> -->
         </ul>
       </div>
 
@@ -88,7 +88,7 @@ const logoUrl = 'src/assets/img/logo.webp'
               class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group text-blue-100 hover:text-white hover:bg-white/10"
               active-class="!bg-[#FFD100] !text-[#00357F] font-bold shadow-md"
             >
-              <ClipboardCheck class="w-4 h-4" />
+              <Activity class="w-4 h-4" />
               <span class="flex-1">Tareas</span>
               <span class="bg-blue-600/50 group-hover:bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full transition-colors">
                 3
@@ -109,7 +109,7 @@ const logoUrl = 'src/assets/img/logo.webp'
               class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group text-blue-100 hover:text-white hover:bg-white/10"
               active-class="!bg-[#FFD100] !text-[#00357F] font-bold shadow-md"
             >
-              <PieChart class="w-4 h-4" />
+              <Database class="w-4 h-4" />
               <span>BI</span>
             </RouterLink>
           </li>
@@ -119,7 +119,7 @@ const logoUrl = 'src/assets/img/logo.webp'
               class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group text-blue-100 hover:text-white hover:bg-white/10"
               active-class="!bg-[#FFD100] !text-[#00357F] font-bold shadow-md"
             >
-              <FileText class="w-4 h-4" />
+              <ArrowRightLeft class="w-4 h-4" />
               <span>ABC</span>
             </RouterLink>
           </li>

@@ -229,7 +229,9 @@ export const mockApi = {
 
   async updateMapeoCampana(payload: any): Promise<MapeoCampanaData> {
     await delay()
-    logRequest('PUT', '/lineas/campanas/mapeos', payload)
+    const mapeoIdFromPayload = payload?.mapeo?.id ?? payload?.mapeo?.idABCConfigMapeoLinea ?? payload?.mapeo?.idABCConfigMapeoCampana
+    const endpoint = mapeoIdFromPayload ? `/lineas/campanas/mapeos/${mapeoIdFromPayload}` : '/lineas/campanas/mapeos'
+    logRequest('PUT', endpoint, payload)
 
     const data = payload.mapeo ?? payload.mapeos ?? {}
     const { idABCConfigMapeoLinea, id, nombre, descripcion } = data
@@ -385,6 +387,12 @@ export const mockColumnasApi = {
     await delay()
     logRequest('GET', `/lineas/mapeos/${mapeoId}/columnas`)
     return mockColumnasByMapeo[Number(mapeoId)] ?? []
+  },
+
+  async getColumnasLinea(): Promise<ColumnaData[]> {
+    await delay()
+    logRequest('GET', '/lineas/mapeos/0/columnas')
+    return Object.values(mockColumnasByMapeo).flat()
   },
 
   async getColumnasCampana(): Promise<ColumnaCampanaData[]> {

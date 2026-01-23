@@ -1,5 +1,8 @@
+<!-- // src/views/ColumnasView.vue -->
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive, watch } from 'vue'
+import { catalogosService } from '../services/catalogosService'
+import { mapeoService } from '../services/mapeoService'
 import { columnaService } from '../services/columnaService'
 import type { ColumnaData, ColumnaCampanaData } from '../types/columna'
 import ColumnaTable from '@/components/columnas/ColumnaTable.vue'
@@ -14,14 +17,30 @@ const tabs = [
 type TabKey = typeof tabs[number]['key']
 const activeTab = ref<TabKey>('linea')
 
-const lineasDisponibles = [
-	{ label: 'Afore', value: 1 },
-	{ label: 'Sofom', value: 2 },
-	{ label: 'Pensiones', value: 3 }
-]
+interface Option {
+	label: string
+	value: number
+}
 
-type ColumnaRow = ColumnaData | ColumnaCampanaData
-const columnas = ref<ColumnaRow[]>([])
+const lineasDisponibles = ref<Option[]>([])
+const campanasCatalogo = ref<Option[]>([])
+const columnasCatalogo = ref<Option[]>([])
+const mapeosLineaDisponibles = ref<Option[]>([])
+const mapeosCampanaDisponibles = ref<Option[]>([])
+
+interface NormalizedColumna {
+	tipo: 'linea' | 'campana'
+	mapeoId: number
+	columnaId: number
+	bolActivo: boolean
+	bolCarga: boolean
+	bolValidacion: boolean
+	bolEnvio: boolean
+	regex: string
+	campanaId?: number
+}
+
+const columnas = ref<NormalizedColumna[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const openFilter = ref<string | null>(null)
@@ -37,32 +56,118 @@ const selectedFilters = reactive({
 	status: [] as boolean[]
 })
 
-const mapeoId = 1
+function mapCatalogosToOptions(items: { id: number; nombre: string; bolActivo: boolean }[]) {
+	return items
+		.filter(item => item.bolActivo !== false)
+		.map(item => ({ label: item.nombre, value: item.id }))
+}
+
+function toNumber(value: any, fallback = 0) {
+	const n = Number(value)
+	return Number.isFinite(n) ? n : fallback
+}
+
+async function fetchCatalogosBase() {
+	try {
+		const [lineas, campanas, columnas] = await Promise.all([
+			catalogosService.getCatalogos('LNN'),
+			catalogosService.getCatalogos('CMP'),
+			catalogosService.getCatalogos('CLM')
+		])
+		lineasDisponibles.value = mapCatalogosToOptions(lineas)
+		campanasCatalogo.value = mapCatalogosToOptions(campanas)
+		columnasCatalogo.value = mapCatalogosToOptions(columnas)
+
+	} catch (e: any) {
+		error.value = e.message
+	}
+}
+
+async function fetchMapeoCampanaCatalogMap() {
+	try {
+		const list = await mapeoService.getMapeosCampana()
+		const unique = new Map<number, string>()	
+		list.forEach(item => {
+			const id = Number(item.idABCConfigMapeoLinea)
+			const label = item.nombre || item.descripcion || `Mapeo ${id}`
+			if (id) unique.set(id, label)
+		})
+		mapeosCampanaDisponibles.value = Array.from(unique.entries()).map(([value, label]) => ({
+			label,
+			value
+		}))
+	} catch (e: any) {
+		console.warn('[fetchMapeoCampanaCatalogMap] error', e)
+	}
+}
+
+async function fetchMapeosLineaDisponibles() {
+	try {
+		const list = await mapeoService.getAllMapeos()
+		const unique = new Map<number, string>()
+		list.forEach(item => {
+			const id = Number(item.idABCConfigMapeoLinea)
+			const label = item.nombre || item.descripcion || `Mapeo ${id}`
+			if (id) unique.set(id, label)
+		})
+		mapeosLineaDisponibles.value = Array.from(unique.entries()).map(([value, label]) => ({
+			label,
+			value
+		}))
+	} catch (e: any) {
+		console.warn('[fetchMapeosLineaDisponibles] error', e)
+	}
+}
+
+function normalizeColumnas(
+	data: (ColumnaData | ColumnaCampanaData)[],
+	tipo: 'linea' | 'campana'
+): NormalizedColumna[] {
+	return data.map(item => ({
+		tipo,
+		mapeoId:
+			tipo === 'campana'
+				? toNumber(
+					(item as ColumnaCampanaData).idABCConfigMapeoCampana ??
+						(item as any).idABCConfigMapeoLinea ??
+						(item as any).id_mapeo_campana ??
+						(item as any).id_mapeo ??
+						(item as any).idCampanaMapeo
+				)
+				: toNumber(
+					(item as ColumnaData).idABCConfigMapeoLinea ??
+						(item as any).id_mapeo ??
+						(item as any).id
+				),
+		columnaId: toNumber(
+			(item as any).idABCCatColumna ??
+				(item as any).id_cat_columna ??
+				(item as any).idColumna ??
+				(item as any).id_columna
+		),
+		bolActivo: item.bolActivo,
+		bolCarga: item.bolCarga,
+		bolValidacion: item.bolValidacion,
+		bolEnvio: item.bolEnvio,
+		regex: item.regex,
+		campanaId:
+			tipo === 'campana'
+				? toNumber(
+					(item as ColumnaCampanaData).idABCCatCampana ??
+						(item as any).id_campana
+				)
+				: undefined
+	}))
+}
 
 async function fetchColumnas() {
 	isLoading.value = true
 	error.value = null
 	try {
-		const data = activeTab.value === 'linea'
-			? await columnaService.getColumnasByMapeo(mapeoId)
+		const raw = activeTab.value === 'linea'
+			? await columnaService.getColumnasLinea()
 			: await columnaService.getColumnasCampana()
-		columnas.value = data
-		// DEBUG: log response to verify endpoint data
-		console.log('[fetchColumnas] activeTab=', activeTab.value, 'received', Array.isArray(data) ? data.length : typeof data, data)
-
-		if (selectedFilters.lineas.length === 0) {
-			selectedFilters.lineas = lineasDisponibles.map(x => x.value)
-			selectedFilters.status = [true, false]
-		}
-		if (selectedFilters.mapeos.length === 0) {
-			selectedFilters.mapeos = mapeosDisponibles.value.map(x => Number(x.value))
-		}
-		if (activeTab.value === 'campana' && selectedFilters.campanas.length === 0) {
-			selectedFilters.campanas = campanasDisponibles.value.map(x => Number(x.value))
-		}
-		if (selectedFilters.nombres.length === 0) {
-			selectedFilters.nombres = nombresDisponibles.value.map(x => String(x.value))
-		}
+		columnas.value = normalizeColumnas(raw, activeTab.value)
 	} catch (e: any) {
 		error.value = e.message
 	} finally {
@@ -70,25 +175,16 @@ async function fetchColumnas() {
 	}
 }
 
-const getLineaLabel = (id?: number) => lineasDisponibles.find(x => x.value === id)?.label || 'N/A'
+const getColumnaLabel = (id?: number | string) =>
+	columnasCatalogo.value.find(x => Number(x.value) === Number(id))?.label || (id ? `Columna ${id}` : 'N/A')
 
-const getColumnaNombre = (item: ColumnaRow) => `Columna ${item.idABCCatColumna}`
-
-const getMapeoId = (item: ColumnaRow) =>
-	'idABCConfigMapeoCampana' in item ? item.idABCConfigMapeoCampana : item.idABCConfigMapeoLinea
-
-const mapeosDisponibles = computed(() => {
-	const ids = new Set<number>()
-	columnas.value.forEach(c => ids.add(getMapeoId(c)))
-	return Array.from(ids).sort((a, b) => a - b).map(id => ({
-		label: `Mapeo ${id}`,
-		value: id
-	}))
-})
+const mapeosDisponibles = computed(() =>
+	activeTab.value === 'campana' ? mapeosCampanaDisponibles.value : mapeosLineaDisponibles.value
+)
 
 const nombresDisponibles = computed(() => {
 	const names = new Set<string>()
-	columnas.value.forEach(c => names.add(getColumnaNombre(c)))
+	columnas.value.forEach(c => names.add(getColumnaLabel(c.columnaId)))
 	return Array.from(names).sort().map(n => ({
 		label: n,
 		value: n
@@ -96,31 +192,12 @@ const nombresDisponibles = computed(() => {
 })
 
 const filteredColumnas = computed(() => {
-	return columnas.value.filter(item => {
-		const lineaId = 'idABCCatLineaNegocio' in item ? (item as any).idABCCatLineaNegocio : undefined
-		const matchLinea = selectedFilters.lineas.length
-			? lineaId === undefined || lineaId === null
-				? true
-				: selectedFilters.lineas.includes(lineaId)
-			: true
-		const matchMapeo = selectedFilters.mapeos.length
-			? selectedFilters.mapeos.includes(getMapeoId(item))
-			: true
-		const matchNombre = selectedFilters.nombres.length
-			? selectedFilters.nombres.includes(getColumnaNombre(item))
-			: true
-		const matchStatus = selectedFilters.status.length
-			? selectedFilters.status.includes(item.bolActivo)
-			: true
-		const matchCampana = activeTab.value === 'campana'
-			? ('idABCCatCampana' in item
-				? (selectedFilters.campanas.length
-					? selectedFilters.campanas.includes(item.idABCCatCampana)
-					: true)
-				: false)
-			: true
-
-		return matchLinea && matchMapeo && matchNombre && matchStatus && matchCampana
+	return columnas.value.filter(c => {
+		if (selectedFilters.mapeos.length && !selectedFilters.mapeos.includes(c.mapeoId)) return false
+		if (selectedFilters.status.length && !selectedFilters.status.includes(c.bolActivo)) return false
+		if (selectedFilters.nombres.length && !selectedFilters.nombres.includes(getColumnaLabel(c.columnaId))) return false
+		if (c.tipo === 'campana' && selectedFilters.campanas.length && !selectedFilters.campanas.includes(c.campanaId!)) return false
+		return true
 	})
 })
 
@@ -149,18 +226,18 @@ const campanasDisponibles = computed(() => {
 	if (activeTab.value !== 'campana') return [] as { label: string; value: number }[]
 	const ids = new Set<number>()
 	columnas.value.forEach(c => {
-		if ('idABCCatCampana' in c) ids.add(c.idABCCatCampana)
+		if (c.campanaId) ids.add(c.campanaId)
 	})
 	return Array.from(ids).sort((a, b) => a - b).map(id => ({
-		label: `Campaña ${id}`,
+		label: campanasCatalogo.value.find(x => x.value === id)?.label || `Campaña ${id}`,
 		value: id
 	}))
 })
 
 const showDetailsModal = ref(false)
-const detailsItem = ref<ColumnaRow | null>(null)
+const detailsItem = ref<NormalizedColumna | null>(null)
 
-function openDetails(item: ColumnaRow) {
+function openDetails(item: NormalizedColumna) {
 	detailsItem.value = item
 	showDetailsModal.value = true
 }
@@ -169,13 +246,13 @@ const toggleFilterMenu = (column: string) => {
 	openFilter.value = openFilter.value === column ? null : column
 }
 
-function toggleStatus(item: ColumnaRow) {
+function toggleStatus(item: NormalizedColumna) {
 	return handleToggleStatus(item)
 }
 
 const showModal = ref(false)
 const modalMode = ref<'add' | 'edit'>('add')
-const selectedItem = ref<ColumnaRow | null>(null)
+const selectedItem = ref<NormalizedColumna | null>(null)
 
 function openAddModal() {
 	modalMode.value = 'add'
@@ -183,7 +260,7 @@ function openAddModal() {
 	showModal.value = true
 }
 
-function handleEdit(item: ColumnaRow) {
+function handleEdit(item: NormalizedColumna) {
 	modalMode.value = 'edit'
 	selectedItem.value = item
 	showModal.value = true
@@ -192,8 +269,7 @@ function handleEdit(item: ColumnaRow) {
 async function handleSave(formData: any) {
 	isLoading.value = true
 	try {
-		const selectedMapeo = Number(formData.mapeoId ?? selectedFilters.mapeos[0] ?? mapeoId)
-		const basePayload = {
+		const payloadBase = {
 			idABCCatColumna: Number(formData.idABCCatColumna),
 			bolCarga: Boolean(formData.bolCarga),
 			bolValidacion: Boolean(formData.bolValidacion),
@@ -202,30 +278,25 @@ async function handleSave(formData: any) {
 			idUsuario: 1
 		}
 
+		const mapeoIdFinal = Number(formData.mapeoId)
+		if (!mapeoIdFinal) throw new Error('Mapeo inválido')
+
 		if (modalMode.value === 'add') {
 			if (activeTab.value === 'campana') {
-				await columnaService.createColumnaCampana(selectedMapeo, {
-					idABCCatColumna: basePayload.idABCCatColumna,
-					idUsuario: basePayload.idUsuario,
-					regex: basePayload.regex
-				})
+				await columnaService.createColumnaCampana(mapeoIdFinal, payloadBase)
 			} else {
-				await columnaService.createColumnaLinea(selectedMapeo, {
-					idABCCatColumna: basePayload.idABCCatColumna,
-					idUsuario: basePayload.idUsuario,
-					regex: basePayload.regex
-				})
+				await columnaService.createColumnaLinea(mapeoIdFinal, payloadBase)
 			}
 		} else if (selectedItem.value) {
-			if (activeTab.value === 'campana') {
+			if (selectedItem.value.tipo === 'campana') {
 				await columnaService.updateColumnaCampana({
-					idABCConfigMapeoCampana: getMapeoId(selectedItem.value),
-					...basePayload
+					idABCConfigMapeoCampana: selectedItem.value.mapeoId,
+					...payloadBase
 				})
 			} else {
 				await columnaService.updateColumnaLinea({
-					idABCConfigMapeoLinea: getMapeoId(selectedItem.value),
-					...basePayload
+					idABCConfigMapeoLinea: selectedItem.value.mapeoId,
+					...payloadBase
 				})
 			}
 		}
@@ -239,38 +310,33 @@ async function handleSave(formData: any) {
 	}
 }
 
-async function handleToggleStatus(item: ColumnaRow) {
+async function handleToggleStatus(item: NormalizedColumna) {
 	isLoading.value = true
 	try {
-		const basePayload = {
-			idABCCatColumna: item.idABCCatColumna,
-			idUsuario: 1
+		const payload = {
+			idUsuario: 1,
+			idABCCatColumna: item.columnaId
 		}
-		if (activeTab.value === 'campana') {
-			const payload = {
-				idABCConfigMapeoCampana: getMapeoId(item),
-				...basePayload
-			}
-			if (item.bolActivo) {
-				await columnaService.patchDesactivarColumnaCampana(payload)
-			} else {
-				await columnaService.patchActivarColumnaCampana(payload)
-			}
+
+		if (item.tipo === 'campana') {
+			await columnaService[
+				item.bolActivo ? 'patchDesactivarColumnaCampana' : 'patchActivarColumnaCampana'
+			]({
+				idABCConfigMapeoCampana: item.mapeoId,
+				...payload
+			})
 		} else {
-			const payload = {
-				idABCConfigMapeoLinea: getMapeoId(item),
-				...basePayload
-			}
-			if (item.bolActivo) {
-				await columnaService.patchDesactivarColumnaLinea(payload)
-			} else {
-				await columnaService.patchActivarColumnaLinea(payload)
-			}
+			await columnaService[
+				item.bolActivo ? 'patchDesactivarColumnaLinea' : 'patchActivarColumnaLinea'
+			]({
+				idABCConfigMapeoLinea: item.mapeoId,
+				...payload
+			})
 		}
-		await fetchColumnas()
 	} catch (e: any) {
 		error.value = e.message
 	} finally {
+		await fetchColumnas()
 		isLoading.value = false
 	}
 }
@@ -284,10 +350,20 @@ function handleTabChange(tab: TabKey) {
 	selectedFilters.nombres = []
 	selectedFilters.status = []
 	currentPage.value = 1
+	if (activeTab.value === 'campana') {
+		fetchMapeoCampanaCatalogMap()
+	} else {
+		fetchMapeosLineaDisponibles()
+	}
 	fetchColumnas()
 }
 
-onMounted(fetchColumnas)
+onMounted(() => {
+	fetchCatalogosBase()
+	fetchMapeoCampanaCatalogMap()
+	fetchMapeosLineaDisponibles()
+	fetchColumnas()
+})
 
 watch(filteredColumnas, () => {
 	if (currentPage.value > totalPages.value) {
@@ -345,7 +421,7 @@ watch(filteredColumnas, () => {
 				:can-prev-page="canPrevPage"
 				:can-next-page="canNextPage"
 				:is-loading="isLoading"
-				:get-linea-label="getLineaLabel"
+				:get-columna-label="getColumnaLabel"
 				@toggle-filter="toggleFilterMenu"
 				@view-details="openDetails"
 				@select-all-lineas="selectedFilters.lineas = lineasDisponibles.map(x => x.value)"
@@ -367,6 +443,7 @@ watch(filteredColumnas, () => {
 		:mode="modalMode"
 		:active-tab="activeTab"
 		:mapeos-disponibles="mapeosDisponibles"
+		:columnas-disponibles="columnasCatalogo"
 		:initial-data="selectedItem"
 		:is-loading="isLoading"
 		@save="handleSave"
