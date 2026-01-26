@@ -1,3 +1,4 @@
+// src/services/api.ts
 import type {
   CreateColumnaLineaPayload,
   PatchColumnaLineaPayload,
@@ -13,12 +14,7 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
-  try {
-    const method = (options.method || 'GET').toUpperCase()
-    console.log('[API Request]', method, url)
-    if (options.body) console.log('[API Request] BODY:', options.body)
-  } catch (e) {
-  }
+
   const headers = {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true',
@@ -34,8 +30,10 @@ async function request<T>(
     throw new Error(`API Error: ${response.status} ${response.statusText}`)
   }
 
-  return response.json()
+  const text = await response.text()
+  return text ? JSON.parse(text) : (undefined as T)
 }
+
 
 export const http = {
   get: <T>(endpoint: string) => request<T>(endpoint),
@@ -117,7 +115,6 @@ export const api = {
   getColumnasCampana: () => http.get('/campanas/mapeos/0/columnas'),
   getColumnasCampanaByMapeo: (mapeoId: string | number) =>
     http.get(`/campanas/mapeos/${mapeoId}/columnas`),
-  // Public endpoint for campaign columnas without mapeo id in path
   createColumnaCampanaGlobal: (payload: any) => http.post('/campanas/mapeos/0/columnas', payload),
   createColumnaCampana: (
     mapeoId: string | number,
