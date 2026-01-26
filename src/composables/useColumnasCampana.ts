@@ -1,4 +1,3 @@
-// src/composables/useColumnasCampana.ts
 import { ref } from 'vue'
 import { columnaService } from '@/services/columnaService'
 import { adaptColumnaCampana } from '@/adapters/columnaCampana.adapter'

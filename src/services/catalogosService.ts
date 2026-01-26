@@ -1,5 +1,3 @@
-// src/services/catalogosService.ts
-
 import { api } from './api'
 import { mockCatalogosApi } from './mockData'
 import type { CatalogoCodigo, CatalogoItem } from '../types/catalogos'
@@ -27,8 +25,9 @@ function normalizeCatalogo(item: any): CatalogoItem {
 export const catalogosService = {
   getCatalogos(codigo: CatalogoCodigo | string) {
     return apiClient.getCatalogos(codigo).then(list => {
-      const data = Array.isArray(list) ? list : (list as any)?.data ?? []
-      return data.map(normalizeCatalogo)
+        let data: any[] = Array.isArray(list) ? list : (list as any)?.data ?? []
+        if (data.length === 1 && Array.isArray(data[0])) data = data[0]
+        return data.map(normalizeCatalogo)
     })
   }
 }

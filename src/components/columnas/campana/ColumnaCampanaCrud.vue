@@ -1,4 +1,3 @@
-<!-- // src/components/columnas/campana/ColumnaCampanaCrud.vue -->
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, reactive, watch } from 'vue'
 import { useColumnasCampana } from '@/composables/useColumnasCampana'
@@ -18,7 +17,9 @@ interface Option {
 }
 
 const columnasCatalogo = ref<Option[]>([])
-const { mapeos, fetchAll: fetchMapeos } = useMapeosCampana()
+const lineasCatalogo = ref<Option[]>([])
+const campanasCatalogo = ref<Option[]>([])
+const { mapeos, rawMapeos, fetchAll: fetchMapeos } = useMapeosCampana()
 const { items, loading, error, fetchAll, toggle } = useColumnasCampana()
 
 const openFilter = ref<string | null>(null)
@@ -133,9 +134,18 @@ onMounted(() => {
 	fetchAll()
 	fetchCatalogos()
 	fetchMapeos()
+	fetchCatalogosLineasYCampanas()
 	updatePageSize()
 	window.addEventListener('resize', updatePageSize)
 })
+
+async function fetchCatalogosLineasYCampanas() {
+  const listL: CatalogoItem[] = await catalogosService.getCatalogos('LNN')
+  lineasCatalogo.value = listL.filter(c => c.bolActivo).map(c => ({ label: c.nombre, value: c.id }))
+
+  const listC: CatalogoItem[] = await catalogosService.getCatalogos('CMP')
+  campanasCatalogo.value = listC.filter(c => c.bolActivo).map(c => ({ label: c.nombre, value: c.id }))
+}
 
 onUnmounted(() => {
 	window.removeEventListener('resize', updatePageSize)
@@ -170,6 +180,9 @@ defineExpose({ openAdd })
 				<ColumnaCampanaTable
 					:columnas="paginated"
 					:mapeos="mapeos"
+					:mapeos-raw="rawMapeos"
+					:lineas-catalogo="lineasCatalogo"
+					:campanas-catalogo="campanasCatalogo"
 					:columnas-catalogo="columnasCatalogo"
 					:selected-filters="selectedFilters"
 					:open-filter="openFilter"

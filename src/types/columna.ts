@@ -1,4 +1,3 @@
-// src/types/columna.ts
 export interface ColumnaLineaKey {
   idABCConfigMapeoLinea: number
   idABCCatColumna: number

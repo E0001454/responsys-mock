@@ -123,7 +123,7 @@ const thSmallClass = 'px-4 py-3'
               />
             </th>
 
-            <th :class="thClass + ' text-left'">Nombre</th>
+            <th :class="thClass + ' text-left'">Nombre de ingesta</th>
             <!-- <th class="px-4 py-3 text-left">Información</th> -->
             
             <th :class="thSmallClass + ' relative'">

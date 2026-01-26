@@ -1,4 +1,3 @@
-// src/models/columnaLinea.model.ts
 export interface ColumnaLineaModel {
 	tipo: 'linea'
 	mapeoId: number

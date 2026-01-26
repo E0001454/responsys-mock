@@ -1,4 +1,3 @@
-// src/models/columnaCampana.model.ts
 export interface ColumnaCampanaModel {
   mapeoId: number
   columnaId: number

@@ -1,4 +1,3 @@
-// src/services/mapeoService.ts
 import { api } from './api'
 import { mockApi } from './mockData'
 import type { MapeoData } from '../types/mapeo'
@@ -91,7 +90,11 @@ export const mapeoService = {
       mapeo: payload.mapeo ?? payload.mapeos ?? {},
       idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
-    return apiClient.createMapeoLinea(lineaId, normalized)
+    return apiClient.createMapeoLinea(lineaId, normalized).then(res => {
+      // Log bitácora: POST on mapeos (mapéo -> objeto 2)
+      api.postBitacoraByContext('POST', `/lineas/${lineaId}/mapeos`, normalized, `Crear mapeo línea ${lineaId}`, normalized.idUsuario).catch(() => {})
+      return res
+    })
   },
 
   createMapeoCampana(lineaId: string | number, campanaId: string | number, payload: any) {
@@ -99,7 +102,10 @@ export const mapeoService = {
       mapeo: payload.mapeo ?? payload.mapeos ?? {},
       idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
-    return apiClient.createMapeoCampana(lineaId, campanaId, normalized)
+    return apiClient.createMapeoCampana(lineaId, campanaId, normalized).then(res => {
+      api.postBitacoraByContext('POST', `/lineas/${lineaId}/campanas/${campanaId}/mapeos`, normalized, `Crear mapeo campaña ${campanaId} de línea ${lineaId}`, normalized.idUsuario).catch(() => {})
+      return res
+    })
   },
 
   updateMapeo(payload: any) {
@@ -108,7 +114,10 @@ export const mapeoService = {
       mapeo: mapeoData,
       idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
-    return apiClient.updateMapeoLinea(normalized)
+    return apiClient.updateMapeoLinea(normalized).then(res => {
+      api.postBitacoraByContext('PUT', '/lineas/mapeos', normalized, `Actualizar mapeo`, normalized.idUsuario).catch(() => {})
+      return res
+    })
   },
 
   updateMapeoCampana(payload: any) {
@@ -117,7 +126,10 @@ export const mapeoService = {
       mapeo: mapeoData,
       idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
-    return apiClient.updateMapeoCampana(normalized)
+    return apiClient.updateMapeoCampana(normalized).then(res => {
+      api.postBitacoraByContext('PUT', '/lineas/campanas/mapeos', normalized, `Actualizar mapeo campaña`, normalized.idUsuario).catch(() => {})
+      return res
+    })
   },
 
   deleteMapeo(lineaId: string | number, mapeoId: string | number) {
@@ -125,26 +137,34 @@ export const mapeoService = {
   },
 
   patchActivarMapeoLinea(mapeoId: number, idUsuario: number) {
-    return apiClient.patchActivarMapeoLinea({
-      mapeo: { id: mapeoId },
-      idUsuario
+    const payload = { mapeo: { id: mapeoId }, idUsuario }
+    return apiClient.patchActivarMapeoLinea(payload).then(res => {
+      api.postBitacoraByContext('PATCH', '/lineas/mapeos/activar', payload, `Activar mapeo ${mapeoId}`, idUsuario).catch(() => {})
+      return res
     })
   },
 
   patchDesactivarMapeoLinea(mapeoId: number, idUsuario: number) {
-    return apiClient.patchDesactivarMapeoLinea({
-      mapeo: { id: mapeoId },
-      idUsuario
+    const payload = { mapeo: { id: mapeoId }, idUsuario }
+    return apiClient.patchDesactivarMapeoLinea(payload).then(res => {
+      api.postBitacoraByContext('PATCH', '/lineas/mapeos/desactivar', payload, `Desactivar mapeo ${mapeoId}`, idUsuario).catch(() => {})
+      return res
     })
   },
 
   patchActivarMapeoCampana(mapeoId: number, idUsuario: number) {
     const payload = { mapeo: { id: mapeoId }, idUsuario }
-    return apiClient.patchActivarMapeoCampana(payload)
+    return apiClient.patchActivarMapeoCampana(payload).then(res => {
+      api.postBitacoraByContext('PATCH', '/lineas/campanas/mapeos/activar', payload, `Activar mapeo campaña ${mapeoId}`, idUsuario).catch(() => {})
+      return res
+    })
   },
 
   patchDesactivarMapeoCampana(mapeoId: number, idUsuario: number) {
     const payload = { mapeo: { id: mapeoId }, idUsuario }
-    return apiClient.patchDesactivarMapeoCampana(payload)
+    return apiClient.patchDesactivarMapeoCampana(payload).then(res => {
+      api.postBitacoraByContext('PATCH', '/lineas/campanas/mapeos/desactivar', payload, `Desactivar mapeo campaña ${mapeoId}`, idUsuario).catch(() => {})
+      return res
+    })
   }
 }

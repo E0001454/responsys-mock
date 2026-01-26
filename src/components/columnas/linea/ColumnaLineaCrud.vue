@@ -1,4 +1,3 @@
-<!-- // src/components/columnas/ColumnaLineaCrud.vue -->
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, reactive, watch } from 'vue'
 import { useColumnasLinea } from '@/composables/useColumnasLinea'
@@ -18,16 +17,28 @@ import { useMapeosLinea } from '@/composables/useMapeosLinea'
 
 const {
 	mapeos,
+	rawMapeos,
 	fetchAll: fetchMapeos
 } = useMapeosLinea()
 
 const columnasCatalogo = ref<Option[]>([])
+const lineasCatalogo = ref<Option[]>([])
 
 import type { CatalogoItem } from '@/types/catalogos'
 
 async function fetchCatalogosColumnas() {
 	const list: CatalogoItem[] = await catalogosService.getCatalogos('CLM')
 	columnasCatalogo.value = list
+		.filter((c: CatalogoItem) => c.bolActivo)
+		.map((c: CatalogoItem) => ({
+			label: c.nombre,
+			value: c.id
+		}))
+}
+
+async function fetchCatalogosLineas() {
+	const list: CatalogoItem[] = await catalogosService.getCatalogos('LNN')
+	lineasCatalogo.value = list
 		.filter((c: CatalogoItem) => c.bolActivo)
 		.map((c: CatalogoItem) => ({
 			label: c.nombre,
@@ -102,6 +113,7 @@ onMounted(() => {
 	fetchAll()
 	fetchCatalogosColumnas()
 	fetchMapeos()
+	fetchCatalogosLineas()
 	updatePageSize()
 	window.addEventListener('resize', updatePageSize)
 })
@@ -140,6 +152,8 @@ defineExpose({ openAdd })
 			:columnas="paginated"
 			:mapeos="mapeos"
 			:columnas-catalogo="columnasCatalogo"
+			:lineas-catalogo="lineasCatalogo"
+			:mapeos-raw="rawMapeos"
 			:selected-filters="selectedFilters"
 			:open-filter="openFilter"
 			:total-columnas="filtered.length"

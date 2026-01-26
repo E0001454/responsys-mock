@@ -1,4 +1,3 @@
-<!-- // src/components/columnas/campana/ColumnaCampanaModal.vue -->
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import SearchableSelect from '@/components/forms/SearchableSelect.vue'
@@ -158,7 +157,7 @@ function save() {
 						</div>
 					</div>
 
-					<div class="space-y-3 pt-2">
+					<div v-if="isEditing" class="space-y-3 pt-2">
 						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Configuración</label>
 						<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
 							<label class="flex items-center p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
