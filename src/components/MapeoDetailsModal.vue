@@ -5,6 +5,7 @@ interface Props {
   show: boolean
   item?: MapeoData | MapeoCampanaData | null
   getLineaLabel: (id?: number) => string
+  getCampanaLabel?: (id?: number) => string
 }
 
 interface Emits {
@@ -13,6 +14,10 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+function isCampanaItem(item?: MapeoData | MapeoCampanaData | null): item is MapeoCampanaData {
+  return !!item && Object.prototype.hasOwnProperty.call(item, 'idABCCatCampana')
+}
 
 function formatTimestamp(value?: string) {
   if (!value) return ''
@@ -58,6 +63,14 @@ function formatTimestamp(value?: string) {
             <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Línea</span>
               <p class="mt-1 font-semibold text-slate-700">{{ getLineaLabel(item.idABCCatLineaNegocio) }}</p>
+            </div>
+            <div v-if="isCampanaItem(item)" class="bg-slate-50 rounded-lg p-3 border border-slate-200">
+              <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Campaña</span>
+              <p class="mt-1 font-semibold text-slate-700">
+                {{ (typeof getCampanaLabel === 'function')
+                  ? getCampanaLabel(item.idABCCatCampana)
+                  : (item.idABCCatCampana ?? 'N/A') }}
+              </p>
             </div>
             <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Estatus</span>

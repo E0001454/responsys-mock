@@ -105,6 +105,7 @@ function nextPage() {
 }
 
 const getLineaLabel = (id?: number) => lineasDisponibles.value.find(x => x.value === id)?.label || 'N/A'
+const getCampanaLabel = (id?: number) => campanasCatalogo.value.find(x => x.value === id)?.label || 'N/A'
 const isCampanaRow = (item: MapeoRow): item is MapeoCampanaData =>
   Object.prototype.hasOwnProperty.call(item, 'idABCCatCampana')
 const campanasDisponibles = computed(() => {
@@ -348,6 +349,7 @@ function updatePageSize() {
       :show="showDetailsModal"
       :item="detailsItem"
       :get-linea-label="getLineaLabel"
+      :get-campana-label="getCampanaLabel"
       @close="showDetailsModal = false"
     />
   </div>

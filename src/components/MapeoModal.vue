@@ -45,6 +45,24 @@ watch(
   }
 )
 
+function emptyFormData(): FormData {
+  return {
+    idABCCatLineaNegocio: '',
+    idABCCatCampana: '',
+    nombre: '',
+    descripcion: ''
+  }
+}
+
+watch(
+  () => [props.show, props.mode],
+  ([show, mode]) => {
+    if (show && mode === 'add') {
+      formData.value = emptyFormData()
+    }
+  }
+)
+
 function initializeFormData(): FormData {
   if (props.initialData) {
     return {
