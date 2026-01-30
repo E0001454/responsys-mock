@@ -5,8 +5,8 @@ export interface CatalogoItem {
 	bolActivo: boolean
 	codigo: string
 	nombre: string
-	fecCreacion: string
-	fecUltModificacion: string
+	fechaCreacion: string
+	fechaUltimaModificacion: string
 }
 
 export type CatalogosResponse = CatalogoItem[]

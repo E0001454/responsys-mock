@@ -2,7 +2,6 @@
 import { RouterLink } from 'vue-router'
 import { 
   LayoutGrid, 
-  Columns, 
   Activity, 
   ClipboardCheck, 
   Database, 
@@ -16,7 +15,7 @@ const logoUrl = 'src/assets/img/logo.webp'
 </script>
 
 <template>
-  <aside class="h-screen w-64 bg-[#00357F] text-white flex flex-col border-r border-blue-900 shadow-xl font-sans z-50">
+  <aside class="h-screen w-64 bg-[#00357F] text-white flex flex-col border-r border-blue-900 shadow-xl font-sans z-20">
     
     <div class="h-20 flex items-center justify-center px-6 border-b border-white/10 bg-[#002a66]">
       <img 
@@ -44,16 +43,7 @@ const logoUrl = 'src/assets/img/logo.webp'
               <span>Mapeos</span>
             </RouterLink>
           </li>
-          <li>
-            <RouterLink 
-              to="/columnas" 
-              class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group text-blue-100 hover:text-white hover:bg-white/10"
-              active-class="!bg-[#FFD100] !text-[#00357F] font-bold shadow-md"
-            >
-              <Columns class="w-4 h-4" />
-              <span>Columnas</span>
-            </RouterLink>
-          </li>
+
           <li>
             <RouterLink 
               to="/" 
@@ -65,14 +55,14 @@ const logoUrl = 'src/assets/img/logo.webp'
             </RouterLink>
           </li>
            <li>
-            <!-- <RouterLink 
+            <RouterLink 
               to="/catalogos" 
               class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group text-blue-100 hover:text-white hover:bg-white/10"
               active-class="!bg-[#FFD100] !text-[#00357F] font-bold shadow-md"
             >
               <Activity class="w-4 h-4" />
               <span>Catalogos</span>
-            </RouterLink> -->
+            </RouterLink>
           </li>
         </ul>
       </div>

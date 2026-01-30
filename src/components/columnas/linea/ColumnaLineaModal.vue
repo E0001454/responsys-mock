@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import { columnaService } from '@/services/columnaService'
 import SearchableSelect from '@/components/forms/SearchableSelect.vue'
-import type { ColumnaLineaModel } from '@/models/columnaLinea.model'
+import type { ColumnaLineaModel, ColumnaValor } from '@/models/columnaLinea.model'
 
 interface Option {
 	label: string
@@ -17,20 +17,38 @@ const props = defineProps<{
 	mapeos: Option[]
 	columnas: Option[]
 	existingItems: ColumnaLineaModel[]
+	selectedMapeoId?: number | string | null
 }>()
 
 const emit = defineEmits(['close', 'saved'])
 
-const form = ref({
+const form = ref<any>({
 	idABCConfigMapeoLinea: 0,
 	idABCCatColumna: 0,
-	bolCarga: false,
-	bolValidacion: false,
-	bolEnvio: false,
-	regex: ''
+	regex: '',
+	obligatorio: false,
+	valor: {
+		tipoId: null,
+		cadena: {
+			tipoId: null,
+			minimo: null,
+			maximo: null
+		},
+		numero: {
+			tipoId: null,
+			enteros: null,
+			decimales: null
+		}
+	}
 })
 
 const isEditing = computed(() => props.mode === 'edit')
+
+const mapeoNombre = computed(() => {
+	const id = props.selectedMapeoId ?? form.value.idABCConfigMapeoLinea ?? null
+	const found = props.mapeos.find(m => m.value == id)
+	return found ? found.label : `Mapeo ${id ?? ''}`
+})
 
 const availableColumnas = computed(() => {
 	const selectedMapeo = form.value.idABCConfigMapeoLinea
@@ -50,14 +68,26 @@ const availableColumnas = computed(() => {
 
 function resetForm() {
 	form.value = {
-		idABCConfigMapeoLinea: 0,
+		idABCConfigMapeoLinea: props.selectedMapeoId ?? 0,
 		idABCCatColumna: 0,
-		bolCarga: false,
-		bolValidacion: false,
-		bolEnvio: false,
-		regex: ''
+		regex: '',
+		obligatorio: false,
+		valor: {
+			tipoId: null,
+			cadena: { tipoId: null, minimo: null, maximo: null },
+			numero: { tipoId: null, enteros: null, decimales: null }
+		}
 	}
 }
+
+watch(
+	() => props.selectedMapeoId,
+	(v) => {
+		if (v !== undefined && v !== null && !isEditing.value) {
+			form.value.idABCConfigMapeoLinea = v
+		}
+	}
+)
 
 watch(
 	[
@@ -80,13 +110,25 @@ watch(
 		}
 
 		if (mode === 'edit' && initialData) {
-			form.value = {
-				idABCConfigMapeoLinea: initialData.mapeoId,
-				idABCCatColumna: initialData.columnaId,
-				bolCarga: initialData.bolCarga,
-				bolValidacion: initialData.bolValidacion,
-				bolEnvio: initialData.bolEnvio,
-				regex: initialData.regex
+			form.value.idABCConfigMapeoLinea = initialData.mapeoId
+			form.value.idABCCatColumna = initialData.columnaId
+			form.value.regex = initialData.regex ?? ''
+			form.value.obligatorio = initialData.obligatorio ?? false
+			const v = initialData.valor ?? initialData.columna?.valor ?? null
+			if (v) {
+				form.value.valor.tipoId = v.tipo?.id ?? null
+				form.value.valor.cadena.tipoId = v.cadena?.tipo?.id ?? null
+				form.value.valor.cadena.minimo = v.cadena?.minimo ?? null
+				form.value.valor.cadena.maximo = v.cadena?.maximo ?? null
+				form.value.valor.numero.tipoId = v.numero?.tipo?.id ?? null
+				form.value.valor.numero.enteros = v.numero?.enteros ?? null
+				form.value.valor.numero.decimales = v.numero?.decimales ?? null
+			} else {
+				form.value.valor = {
+					tipoId: null,
+					cadena: { tipoId: null, minimo: null, maximo: null },
+					numero: { tipoId: null, enteros: null, decimales: null }
+				}
 			}
 		}
 	},
@@ -107,25 +149,32 @@ watch(
 )
 
 async function save() {
-	if (props.mode === 'add') {
-		await columnaService.createColumnaLinea(
-			form.value.idABCConfigMapeoLinea,
-			{
-				idABCCatColumna: form.value.idABCCatColumna,
-				regex: form.value.regex,
-				idUsuario: 1
+	const payload = {
+		idUsuario: 1,
+		columna: {
+			tipo: { id: form.value.idABCCatColumna ?? form.value.valor.tipoId ?? null },
+			obligatorio: form.value.obligatorio ?? null,
+			regex: form.value.regex || null,
+			valor: {
+				tipo: { id: form.value.valor.tipoId ?? null },
+				cadena: {
+					tipo: { id: form.value.valor.cadena.tipoId ?? null },
+					minimo: form.value.valor.cadena.minimo ?? null,
+					maximo: form.value.valor.cadena.maximo ?? null
+				},
+				numero: {
+					tipo: { id: form.value.valor.numero.tipoId ?? null },
+					enteros: form.value.valor.numero.enteros ?? null,
+					decimales: form.value.valor.numero.decimales ?? null
+				}
 			}
-		)
+		}
+	}
+
+	if (props.mode === 'add') {
+		await columnaService.createColumnaLinea(form.value.idABCConfigMapeoLinea, payload)
 	} else {
-		await columnaService.updateColumnaLinea({
-			idABCConfigMapeoLinea: form.value.idABCConfigMapeoLinea,
-			idABCCatColumna: form.value.idABCCatColumna,
-			bolCarga: form.value.bolCarga,
-			bolValidacion: form.value.bolValidacion,
-			bolEnvio: form.value.bolEnvio,
-			regex: form.value.regex,
-			idUsuario: 1
-		})
+		await columnaService.updateColumnaLinea(payload)
 	}
 
 	emit('saved')
@@ -139,7 +188,7 @@ async function save() {
 		<div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
 			<div class="px-6 py-4 bg-[#00357F] flex justify-between items-center shrink-0">
 				<h3 class="text-lg font-bold text-white flex items-center gap-2">
-					{{ mode === 'add' ? 'Nueva columna' : 'Editar columna' }}
+					Configurar columna en {{ mapeoNombre }}
 				</h3>
 				<button
 					@click="$emit('close')"
@@ -152,19 +201,7 @@ async function save() {
 
 			<div class="p-6 overflow-y-auto custom-scrollbar">
 				<form @submit.prevent="save" class="space-y-5">
-					<div>
-						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">
-							Mapeo <span class="text-red-500 ml-1">*</span>
-						</label>
-						<div class="relative">
-							<SearchableSelect
-								v-model="form.idABCConfigMapeoLinea"
-								:options="mapeos"
-								:disabled="isEditing"
-								placeholder="Seleccione una opción"
-							/>
-						</div>
-					</div>
+
 
 					<div>
 						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">
@@ -180,35 +217,58 @@ async function save() {
 						</div>
 					</div>
 
-					<div v-if="isEditing" class="space-y-3 pt-2">
-						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Configuración</label>
-						<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-							<label class="flex items-center p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
-								<input
-									type="checkbox"
-									v-model="form.bolCarga"
-									class="h-4 w-4 rounded border-gray-300 text-[#00357F] focus:ring-[#00357F]/25"
-								/>
-								<span class="ml-2 text-sm text-gray-700 font-medium">Carga</span>
-							</label>
-							<label class="flex items-center p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
-								<input
-									type="checkbox"
-									v-model="form.bolValidacion"
-									class="h-4 w-4 rounded border-gray-300 text-[#00357F] focus:ring-[#00357F]/25"
-								/>
-								<span class="ml-2 text-sm text-gray-700 font-medium">Validación</span>
-							</label>
-							<label class="flex items-center p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
-								<input
-									type="checkbox"
-									v-model="form.bolEnvio"
-									class="h-4 w-4 rounded border-gray-300 text-[#00357F] focus:ring-[#00357F]/25"
-								/>
-								<span class="ml-2 text-sm text-gray-700 font-medium">Envío</span>
+					<div>
+						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Obligatorio</label>
+						<div class="flex items-center gap-3">
+							<label class="inline-flex items-center gap-2">
+								<input type="checkbox" v-model="form.obligatorio" class="h-4 w-4 accent-[#00357F]" />
+								<span class="text-sm text-slate-600">Marcado si es obligatorio</span>
 							</label>
 						</div>
 					</div>
+
+					<div>
+						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Tipo valor</label>
+						<SearchableSelect v-model="form.valor.tipoId" :options="columnas" placeholder="Seleccione tipo de valor" />
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Tipo cadena</label>
+							<SearchableSelect v-model="form.valor.cadena.tipoId" :options="columnas" placeholder="Tipo cadena" />
+						</div>
+
+						<div>
+							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Tipo numérico</label>
+							<SearchableSelect v-model="form.valor.numero.tipoId" :options="columnas" placeholder="Tipo numérico" />
+						</div>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Mínimo (cadena)</label>
+							<input type="number" v-model.number="form.valor.cadena.minimo" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+						</div>
+
+						<div>
+							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Máximo (cadena)</label>
+							<input type="number" v-model.number="form.valor.cadena.maximo" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+						</div>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Enteros (número)</label>
+							<input type="number" v-model.number="form.valor.numero.enteros" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+						</div>
+
+						<div>
+							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Decimales (número)</label>
+							<input type="number" v-model.number="form.valor.numero.decimales" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+						</div>
+					</div>
+
+                    
 
 					<div>
 						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Regex</label>

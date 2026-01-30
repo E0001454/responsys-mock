@@ -3,7 +3,8 @@ import type {
   PatchColumnaLineaPayload,
   UpdateColumnaLineaPayload,
   PatchColumnaCampanaPayload,
-  UpdateColumnaCampanaPayload
+  UpdateColumnaCampanaPayload,
+  CreateColumnaCampanaPayload
 } from '../types/columna'
 import type { BitacoraPayload } from '../types/bitacora'
 
@@ -63,7 +64,7 @@ export const api = {
   getCatalogos: (codigo: string) => http.get(`/catalogos?codigo=${encodeURIComponent(codigo)}`),
 
   // Mapeo línea
-  getAllMapeos: () => http.get('/lineas/0/mapeos'),
+  getAllMapeos: () => http.get('/lineas/mapeos'),
   getMapeosByLinea: (lineaId: string | number) =>
     http.get(`/lineas/${lineaId}/mapeos`),
   createMapeoLinea: (lineaId: string | number, payload: any) =>
@@ -77,7 +78,7 @@ export const api = {
     http.patch('/lineas/mapeos/desactivar', payload),
 
   // Mapeo campaña
-  getMapeosCampana: () => http.get('/lineas/0/campanas/0/mapeos'),
+  getMapeosCampana: () => http.get('/lineas/campanas/mapeos'),
   createMapeoCampana: (
     lineaId: string | number,
     campanaId: string | number,
@@ -118,7 +119,7 @@ export const api = {
   createColumnaCampanaGlobal: (payload: any) => http.post('/campanas/mapeos/0/columnas', payload),
   createColumnaCampana: (
     mapeoId: string | number,
-    payload: CreateColumnaLineaPayload
+    payload: CreateColumnaCampanaPayload
   ) => http.post(`/campanas/mapeos/${mapeoId}/columnas`, payload),
   updateColumnaCampana: (payload: UpdateColumnaCampanaPayload) =>
     http.put('/campanas/mapeos/columnas', payload),

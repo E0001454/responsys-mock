@@ -17,8 +17,8 @@ function normalizeCatalogo(item: any): CatalogoItem {
       : Number(item?.bolActivo ?? item?.status ?? 0) === 1,
     codigo: String(item?.codigo ?? ''),
     nombre: String(item?.nombre ?? ''),
-    fecCreacion: String(item?.fecCreacion ?? item?.fec_creacion ?? ''),
-    fecUltModificacion: String(item?.fecUltModificacion ?? item?.fec_ult_modificacion ?? '')
+    fechaCreacion: String(item?.fechaCreacion ?? item?.fec_creacion ?? ''),
+    fechaUltimaModificacion: String(item?.fechaUltimaModificacion ?? item?.fec_ult_modificacion ?? '')
   }
 }
 

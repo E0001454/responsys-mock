@@ -13,7 +13,7 @@ import { RouterView } from 'vue-router'
       <section class="flex-1 overflow-y-auto relative custom-scrollbar">
         <div class="absolute top-0 left-0 w-full h-4 bg-gradient-to-b from-slate-50 to-transparent z-0"></div>
         
-        <div class="relative z-10">
+        <div class="relative z-30">
           <RouterView />
         </div>
       </section>

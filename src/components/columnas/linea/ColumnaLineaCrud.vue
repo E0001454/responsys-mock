@@ -15,6 +15,10 @@ interface Option {
 
 import { useMapeosLinea } from '@/composables/useMapeosLinea'
 
+const props = defineProps<{
+	mapeoId?: number | string | null
+}>()
+
 const {
 	mapeos,
 	rawMapeos,
@@ -110,6 +114,9 @@ function toggleFilterMenu(column: string) {
 }
 
 onMounted(() => {
+	if (props.mapeoId !== undefined && props.mapeoId !== null) {
+		selectedFilters.mapeos = [Number(props.mapeoId)]
+	}
 	fetchAll()
 	fetchCatalogosColumnas()
 	fetchMapeos()
@@ -135,6 +142,10 @@ watch(
 	},
 	{ deep: true }
 )
+
+watch(() => props.mapeoId, (v) => {
+	selectedFilters.mapeos = v !== undefined && v !== null ? [Number(v)] : []
+})
 
 function updatePageSize() {
 	const available = window.innerHeight * 0.87 - 240
@@ -163,6 +174,7 @@ defineExpose({ openAdd })
 			@toggle="toggle"
 			@edit="openEdit"
 			@details="openDetails"
+			@add="openAdd"
 			@toggle-filter="toggleFilterMenu"
 			@select-all-mapeos="selectedFilters.mapeos = mapeos.map(x => x.value)"
 			@select-all-columnas="selectedFilters.columnas = columnasCatalogo.map(x => x.value)"
@@ -182,6 +194,7 @@ defineExpose({ openAdd })
 			:is-loading="loading"
 			:columnas="columnasCatalogo"
 			:mapeos="mapeos"
+			:selected-mapeo-id="selected?.mapeoId ?? mapeoId ?? null"
 			:existing-items="items"
 			@close="showModal = false"
 			@saved="fetchAll"

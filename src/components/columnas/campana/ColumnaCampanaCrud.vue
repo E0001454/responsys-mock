@@ -72,9 +72,6 @@ async function fetchCatalogos() {
 async function handleSave(payload: {
 	idABCConfigMapeoCampana: number
 	idABCCatColumna: number
-	bolCarga: boolean
-	bolValidacion: boolean
-	bolEnvio: boolean
 	regex: string
 }) {
 	loading.value = true
@@ -83,20 +80,22 @@ async function handleSave(payload: {
 			await columnaService.createColumnaCampana(
 				payload.idABCConfigMapeoCampana,
 				{
-					idABCCatColumna: payload.idABCCatColumna,
 					idUsuario: 1,
-					regex: payload.regex
+					columna: {
+						idABCConfigMapeoCampana: payload.idABCConfigMapeoCampana,
+						idABCCatColumna: payload.idABCCatColumna,
+						regex: payload.regex
+					}
 				}
 			)
 		} else {
 			await columnaService.updateColumnaCampana({
-				idABCConfigMapeoCampana: payload.idABCConfigMapeoCampana,
-				idABCCatColumna: payload.idABCCatColumna,
-				bolCarga: payload.bolCarga,
-				bolValidacion: payload.bolValidacion,
-				bolEnvio: payload.bolEnvio,
-				regex: payload.regex,
-				idUsuario: 1
+				idUsuario: 1,
+				columna: {
+					idABCConfigMapeoCampana: payload.idABCConfigMapeoCampana,
+					idABCCatColumna: payload.idABCCatColumna,
+					regex: payload.regex
+				}
 			})
 		}
 

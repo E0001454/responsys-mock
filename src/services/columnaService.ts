@@ -1,9 +1,10 @@
 import { api } from './api'
 import { mockColumnasApi } from './mockData'
 import type {
-  ColumnaData,
+  ColumnaGetResponse as ColumnaData,
   ColumnaCampanaData,
   CreateColumnaLineaPayload,
+  CreateColumnaCampanaPayload,
   UpdateColumnaLineaPayload,
   PatchColumnaLineaPayload,
   UpdateColumnaCampanaPayload,
@@ -24,7 +25,7 @@ interface ApiClient {
   patchDesactivarColumnaLinea(payload: PatchColumnaLineaPayload): Promise<any>
   createColumnaCampana(
     mapeoId: string | number,
-    payload: CreateColumnaLineaPayload
+    payload: CreateColumnaCampanaPayload
   ): Promise<any>
   createColumnaCampanaGlobal(payload: any): Promise<any>
   updateColumnaCampana(payload: UpdateColumnaCampanaPayload): Promise<any>
@@ -48,7 +49,7 @@ const apiClient = (USE_MOCK ? mockColumnasApi : {
     api.patchActivarColumnaLinea(payload),
   patchDesactivarColumnaLinea: (payload: PatchColumnaLineaPayload) =>
     api.patchDesactivarColumnaLinea(payload),
-  createColumnaCampana: (mapeoId: string | number, payload: CreateColumnaLineaPayload) =>
+  createColumnaCampana: (mapeoId: string | number, payload: CreateColumnaCampanaPayload) =>
     api.createColumnaCampana(mapeoId, payload),
   createColumnaCampanaGlobal: (payload: any) => api.createColumnaCampanaGlobal(payload),
   updateColumnaCampana: (payload: UpdateColumnaCampanaPayload) =>
@@ -98,7 +99,7 @@ export const columnaService = {
     return apiClient.patchDesactivarColumnaLinea(payload)
   },
 
-  createColumnaCampana(mapeoId: string | number, payload: CreateColumnaLineaPayload) {
+  createColumnaCampana(mapeoId: string | number, payload: CreateColumnaCampanaPayload) {
     return apiClient.createColumnaCampana(mapeoId, payload).then(res => {
       api.postBitacoraByContext('POST', `/campanas/mapeos/${mapeoId}/columnas`, payload, `Crear columna en mapeo campaña ${mapeoId}`, payload.idUsuario ?? (payload as any).idABCUsuario ?? 1).catch(() => {})
       return res

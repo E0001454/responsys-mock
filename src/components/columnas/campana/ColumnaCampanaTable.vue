@@ -102,20 +102,15 @@ const statusOptions = [
 		<div class="overflow-y-auto overflow-x-hidden flex-1" style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;">
 			<table class="w-full text-left border-collapse table-fixed">
 				<colgroup>
+					<col class="w-[40%]" />
 					<col class="w-[12%]" />
-					<col class="w-[12%]" />
-					<col class="w-[20%]" />
-					<col class="w-[12%]" />
-					<col class="w-[8%]" />
-					<col class="w-[8%]" />
-					<col class="w-[14%]" />
-					<col class="w-[12%]" />
+					<col class="w-[48%]" />
 				</colgroup>
 				<thead>
 					<tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
-						<th class="px-4 py-3 w-[12%] relative">Línea</th>
-						<th class="px-4 py-3 w-[12%] relative">Campaña</th>
-						<th class="px-4 py-3 w-[20%] relative">
+						<th class="px-4 py-3 relative">Línea</th>
+						<th class="px-4 py-3 relative">Campaña</th>
+						<th class="px-4 py-3 relative">
 							<FilterDropdown
 								label="Mapeo"
 								header-label="Filtrar por mapeo"
@@ -139,7 +134,7 @@ const statusOptions = [
 								@select-all="emit('selectAllColumnas')"
 							/>
 						</th>
-						<th class="px-4 py-3 w-[10%] relative text-center">
+						<th class="px-4 py-3 relative text-center">
 							<FilterDropdown
 								label="Activo"
 								header-label="Estado"
@@ -152,10 +147,7 @@ const statusOptions = [
 								@toggle="emit('toggleFilter', 'status')"
 							/>
 						</th>
-						<th class="px-4 py-3 w-[8%] text-center">Cargar</th>
-						<th class="px-4 py-3 w-[8%] text-center">Validar</th>
-						<th class="px-4 py-3 w-[8%] text-center">Enviar</th>
-						<th class="px-4 py-3 w-[12%] text-right">Acciones</th>
+						<th class="px-4 py-3 text-right">Acciones</th>
 					</tr>
 				</thead>
 
@@ -229,38 +221,7 @@ const statusOptions = [
 								</label>
 							</td>
 
-							<td class="px-4 py-2.5 text-center">
-								<div class="flex justify-center">
-									<input
-										type="checkbox"
-										:checked="c.bolCarga"
-										disabled
-										class="h-4 w-4 rounded border-slate-300 text-[#00357F] bg-slate-100"
-									/>
-								</div>
-							</td>
-
-							<td class="px-4 py-2.5 text-center">
-								<div class="flex justify-center">
-									<input
-										type="checkbox"
-										:checked="c.bolValidacion"
-										disabled
-										class="h-4 w-4 rounded border-slate-300 text-[#00357F] bg-slate-100"
-									/>
-								</div>
-							</td>
-
-							<td class="px-4 py-2.5 text-center">
-								<div class="flex justify-center">
-									<input
-										type="checkbox"
-										:checked="c.bolEnvio"
-										disabled
-										class="h-4 w-4 rounded border-slate-300 text-[#00357F] bg-slate-100"
-									/>
-								</div>
-							</td>
+                            
 
 							<td class="px-4 py-2.5 text-right">
 								<div class="inline-flex items-center justify-end gap-2">
