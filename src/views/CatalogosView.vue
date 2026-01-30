@@ -62,7 +62,6 @@ onMounted(fetchCatalogos)
                     </select>
                 </div>
             </div>
-
             <CatalogosTable
                 :items="sortedItems"
                 :is-loading="isLoading"

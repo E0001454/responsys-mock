@@ -91,7 +91,6 @@ export const mapeoService = {
       idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
     return apiClient.createMapeoLinea(lineaId, normalized).then(res => {
-      // Log bitácora: POST on mapeos (mapéo -> objeto 2)
       api.postBitacoraByContext('POST', `/lineas/${lineaId}/mapeos`, normalized, `Crear mapeo línea ${lineaId}`, normalized.idUsuario).catch(() => {})
       return res
     })
