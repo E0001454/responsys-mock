@@ -27,10 +27,17 @@ const emit = defineEmits<{
 	}): void
 }>()
 
-const form = ref({
+const form = ref<any>({
 	idABCConfigMapeoCampana: 0,
 	idABCCatColumna: 0,
-	regex: ''
+	regex: '',
+	obligatorio: false,
+	valor: {
+		tipoSel: 'cadena',
+		tipoId: null,
+		cadena: { tipoId: null, minimo: null, maximo: null },
+		numero: { tipoId: null, enteros: null, decimales: null }
+	}
 })
 
 const isEditing = computed(() => props.mode === 'edit')
@@ -70,10 +77,26 @@ watch(
 		}
 
 		if (mode === 'edit' && initialData) {
-			form.value = {
-				idABCConfigMapeoCampana: initialData.mapeoId,
-				idABCCatColumna: initialData.columnaId,
-				regex: initialData.regex ?? ''
+			form.value.idABCConfigMapeoCampana = initialData.mapeoId
+			form.value.idABCCatColumna = initialData.columnaId
+			form.value.regex = initialData.regex ?? ''
+			form.value.obligatorio = initialData.obligatorio ?? initialData.columna?.obligatorio ?? false
+
+			const v = initialData.valor ?? initialData.columna?.valor ?? null
+			if (v) {
+				const hasCadena = Boolean(v.cadena && (v.cadena.minimo !== null || v.cadena.maximo !== null || (v.cadena.tipo && v.cadena.tipo.id)))
+				const hasNumero = Boolean(v.numero && (v.numero.enteros !== null || v.numero.decimales !== null || (v.numero.tipo && v.numero.tipo.id)))
+				form.value.valor.tipoSel = hasCadena && hasNumero ? 'ambos' : hasCadena ? 'cadena' : hasNumero ? 'numero' : 'cadena'
+
+				form.value.valor.tipoId = v.tipo?.id ?? null
+				form.value.valor.cadena.tipoId = v.cadena?.tipo?.id ?? null
+				form.value.valor.cadena.minimo = v.cadena?.minimo ?? null
+				form.value.valor.cadena.maximo = v.cadena?.maximo ?? null
+				form.value.valor.numero.tipoId = v.numero?.tipo?.id ?? null
+				form.value.valor.numero.enteros = v.numero?.enteros ?? null
+				form.value.valor.numero.decimales = v.numero?.decimales ?? null
+			} else {
+				form.value.valor = { tipoSel: 'cadena', tipoId: null, cadena: { tipoId: null, minimo: null, maximo: null }, numero: { tipoId: null, enteros: null, decimales: null } }
 			}
 		}
 	},
@@ -94,7 +117,32 @@ watch(
 )
 
 function save() {
-	emit('saved', { ...form.value })
+	const valorPayload: any = {
+		tipo: { id: form.value.valor.tipoId ?? form.value.valor.cadena.tipoId ?? form.value.valor.numero.tipoId ?? null },
+		cadena: {
+			tipo: { id: form.value.valor.cadena.tipoId ?? null },
+			minimo: form.value.valor.cadena.minimo ?? null,
+			maximo: form.value.valor.cadena.maximo ?? null
+		},
+		numero: {
+			tipo: { id: form.value.valor.numero.tipoId ?? null },
+			enteros: form.value.valor.numero.enteros ?? null,
+			decimales: form.value.valor.numero.decimales ?? null
+		}
+	}
+
+	const payload = {
+		idUsuario: 1,
+		columna: {
+			idABCConfigMapeoCampana: form.value.idABCConfigMapeoCampana,
+			idABCCatColumna: form.value.idABCCatColumna,
+			regex: form.value.regex || null,
+			obligatorio: form.value.obligatorio ?? null,
+			valor: valorPayload
+		}
+	}
+
+	emit('saved', payload.columna)
 	emit('close')
 }
 </script>

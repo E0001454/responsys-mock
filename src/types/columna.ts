@@ -70,8 +70,9 @@ export interface UpdateColumnaLineaPayload extends CreateColumnaLineaPayload {}
 
 export interface PatchColumnaLineaPayload {
   idUsuario: number
-  idABCConfigMapeoLinea: number
-  idABCCatColumna: number
+  columna: {
+    tipo: { id: number }
+  }
 }
 
 export interface CreateColumnaCampanaPayload {
@@ -89,8 +90,9 @@ export interface UpdateColumnaCampanaPayload extends CreateColumnaCampanaPayload
 
 export interface PatchColumnaCampanaPayload {
   idUsuario: number
-  idABCConfigMapeoCampana: number
-  idABCCatColumna: number
+  columna: {
+    tipo: { id: number }
+  }
 }
 
 export interface FieldConfig {

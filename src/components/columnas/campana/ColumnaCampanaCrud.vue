@@ -11,6 +11,10 @@ import ColumnaCampanaTable from './ColumnaCampanaTable.vue'
 import ColumnaCampanaModal from './ColumnaCampanaModal.vue'
 import ColumnaDetailsModal from '../ColumnaDetailsModal.vue'
 
+const props = defineProps<{
+	mapeoId?: number | string | null
+}>()
+
 interface Option {
 	label: string
 	value: number
@@ -130,7 +134,10 @@ function toggleFilterMenu(column: string) {
 }
 
 onMounted(() => {
-	fetchAll()
+	if (props.mapeoId !== undefined && props.mapeoId !== null) {
+		selectedFilters.mapeos = [Number(props.mapeoId)]
+	}
+	fetchAll(props.mapeoId)
 	fetchCatalogos()
 	fetchMapeos()
 	fetchCatalogosLineasYCampanas()
@@ -163,6 +170,11 @@ watch(
 	},
 	{ deep: true }
 )
+
+watch(() => props.mapeoId, (v) => {
+    selectedFilters.mapeos = v !== undefined && v !== null ? [Number(v)] : []
+    fetchAll(v)
+})
 
 function updatePageSize() {
 	const available = window.innerHeight * 0.87 - 240

@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import { columnaService } from '@/services/columnaService'
 import SearchableSelect from '@/components/forms/SearchableSelect.vue'
-import type { ColumnaLineaModel, ColumnaValor } from '@/models/columnaLinea.model'
+import type { ColumnaLineaModel } from '@/models/columnaLinea.model'
 
 interface Option {
 	label: string
@@ -28,6 +28,9 @@ const form = ref<any>({
 	regex: '',
 	obligatorio: false,
 	valor: {
+		
+		tipoSel: 'cadena',
+		
 		tipoId: null,
 		cadena: {
 			tipoId: null,
@@ -116,6 +119,11 @@ watch(
 			form.value.obligatorio = initialData.obligatorio ?? false
 			const v = initialData.valor ?? initialData.columna?.valor ?? null
 			if (v) {
+				
+				const hasCadena = Boolean(v.cadena && (v.cadena.minimo !== null || v.cadena.maximo !== null || (v.cadena.tipo && v.cadena.tipo.id)))
+				const hasNumero = Boolean(v.numero && (v.numero.enteros !== null || v.numero.decimales !== null || (v.numero.tipo && v.numero.tipo.id)))
+				form.value.valor.tipoSel = hasCadena && hasNumero ? 'ambos' : hasCadena ? 'cadena' : hasNumero ? 'numero' : 'cadena'
+
 				form.value.valor.tipoId = v.tipo?.id ?? null
 				form.value.valor.cadena.tipoId = v.cadena?.tipo?.id ?? null
 				form.value.valor.cadena.minimo = v.cadena?.minimo ?? null
@@ -125,6 +133,7 @@ watch(
 				form.value.valor.numero.decimales = v.numero?.decimales ?? null
 			} else {
 				form.value.valor = {
+					tipoSel: 'cadena',
 					tipoId: null,
 					cadena: { tipoId: null, minimo: null, maximo: null },
 					numero: { tipoId: null, enteros: null, decimales: null }
@@ -149,25 +158,29 @@ watch(
 )
 
 async function save() {
+	
+	const valorPayload: any = {
+		tipo: { id: form.value.valor.tipoId ?? form.value.valor.cadena.tipoId ?? form.value.valor.numero.tipoId ?? null },
+		cadena: {
+			tipo: { id: form.value.valor.cadena.tipoId ?? null },
+			minimo: form.value.valor.cadena.minimo ?? null,
+			maximo: form.value.valor.cadena.maximo ?? null
+		},
+		numero: {
+			tipo: { id: form.value.valor.numero.tipoId ?? null },
+			enteros: form.value.valor.numero.enteros ?? null,
+			decimales: form.value.valor.numero.decimales ?? null
+		}
+	}
+
 	const payload = {
-		idUsuario: 1,
+		idUsuario: (props.initialData as any)?.idUsuario ?? 1,
 		columna: {
-			tipo: { id: form.value.idABCCatColumna ?? form.value.valor.tipoId ?? null },
-			obligatorio: form.value.obligatorio ?? null,
+			idABCConfigMapeoLinea: form.value.idABCConfigMapeoLinea,
+			idABCCatColumna: form.value.idABCCatColumna,
 			regex: form.value.regex || null,
-			valor: {
-				tipo: { id: form.value.valor.tipoId ?? null },
-				cadena: {
-					tipo: { id: form.value.valor.cadena.tipoId ?? null },
-					minimo: form.value.valor.cadena.minimo ?? null,
-					maximo: form.value.valor.cadena.maximo ?? null
-				},
-				numero: {
-					tipo: { id: form.value.valor.numero.tipoId ?? null },
-					enteros: form.value.valor.numero.enteros ?? null,
-					decimales: form.value.valor.numero.decimales ?? null
-				}
-			}
+			obligatorio: form.value.obligatorio ?? null,
+			valor: valorPayload
 		}
 	}
 
@@ -229,42 +242,36 @@ async function save() {
 
 					<div>
 						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Tipo valor</label>
-						<SearchableSelect v-model="form.valor.tipoId" :options="columnas" placeholder="Seleccione tipo de valor" />
-					</div>
-
-					<div class="grid grid-cols-2 gap-4">
 						<div>
-							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Tipo cadena</label>
-							<SearchableSelect v-model="form.valor.cadena.tipoId" :options="columnas" placeholder="Tipo cadena" />
-						</div>
-
-						<div>
-							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Tipo numérico</label>
-							<SearchableSelect v-model="form.valor.numero.tipoId" :options="columnas" placeholder="Tipo numérico" />
+							<select v-model="form.valor.tipoSel" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm">
+								<option value="cadena">Cadena</option>
+								<option value="numero">Numérico</option>
+								<option value="ambos">Ambos</option>
+							</select>
 						</div>
 					</div>
 
 					<div class="grid grid-cols-2 gap-4">
 						<div>
 							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Mínimo (cadena)</label>
-							<input type="number" v-model.number="form.valor.cadena.minimo" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+							<input type="number" placeholder="Ej. 1" v-model.number="form.valor.cadena.minimo" :disabled="form.valor.tipoSel === 'numero'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'numero' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
 						</div>
 
 						<div>
 							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Máximo (cadena)</label>
-							<input type="number" v-model.number="form.valor.cadena.maximo" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+							<input type="number" placeholder="Ej. 10" v-model.number="form.valor.cadena.maximo" :disabled="form.valor.tipoSel === 'numero'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'numero' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
 						</div>
 					</div>
 
 					<div class="grid grid-cols-2 gap-4">
 						<div>
 							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Enteros (número)</label>
-							<input type="number" v-model.number="form.valor.numero.enteros" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+							<input type="number" placeholder="Ej. 3" v-model.number="form.valor.numero.enteros" :disabled="form.valor.tipoSel === 'cadena'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'cadena' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
 						</div>
 
 						<div>
 							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Decimales (número)</label>
-							<input type="number" v-model.number="form.valor.numero.decimales" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+							<input type="number" placeholder="Ej. 2" v-model.number="form.valor.numero.decimales" :disabled="form.valor.tipoSel === 'cadena'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'cadena' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
 						</div>
 					</div>
 

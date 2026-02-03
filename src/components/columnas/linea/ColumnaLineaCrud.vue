@@ -117,7 +117,7 @@ onMounted(() => {
 	if (props.mapeoId !== undefined && props.mapeoId !== null) {
 		selectedFilters.mapeos = [Number(props.mapeoId)]
 	}
-	fetchAll()
+	fetchAll(props.mapeoId)
 	fetchCatalogosColumnas()
 	fetchMapeos()
 	fetchCatalogosLineas()

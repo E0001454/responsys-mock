@@ -7,12 +7,21 @@ export function useColumnasCampana() {
     const items = ref<ColumnaCampanaModel[]>([])
 	const loading = ref(false)
 	const error = ref<string | null>(null)
+    const currentMapeo = ref<string | number | null>(null)
 
-	async function fetchAll() {
+	async function fetchAll(mapeoId?: string | number | null) {
 		loading.value = true
 		error.value = null
 		try {
-			const raw = await columnaService.getColumnasCampana()
+			let raw
+			if (mapeoId !== undefined && mapeoId !== null) {
+				currentMapeo.value = mapeoId
+				raw = await columnaService.getColumnasCampanaByMapeo(mapeoId)
+			} else if (currentMapeo.value !== null) {
+				raw = await columnaService.getColumnasCampanaByMapeo(currentMapeo.value)
+			} else {
+				raw = await columnaService.getColumnasCampana()
+			}
 			items.value = raw.map(adaptColumnaCampana)
 		} catch (e: any) {
 			error.value = e.message
@@ -29,12 +38,10 @@ export function useColumnasCampana() {
 				wasActive
 					? 'patchDesactivarColumnaCampana'
 					: 'patchActivarColumnaCampana'
-			]({
-				idABCConfigMapeoCampana: item.mapeoId,
-				idABCCatColumna: item.columnaId,
-				idUsuario: 1
-			})
-			await fetchAll()
+			](
+				{ columna: { tipo: { id: item.columnaId } }, idUsuario: 1 }
+			)
+			await fetchAll(currentMapeo.value)
 		} finally {
 			loading.value = false
 		}

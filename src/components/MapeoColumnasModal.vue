@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { watch, onUnmounted } from 'vue'
 import ColumnaLineaCrud from './columnas/linea/ColumnaLineaCrud.vue'
+import ColumnaCampanaCrud from './columnas/campana/ColumnaCampanaCrud.vue'
 import type { ColumnaGetResponse as ColumnaData } from '../types/columna'
 
 interface Option { label: string; value: number }
@@ -11,6 +12,7 @@ const props = defineProps<{
   mapeoNombre?: string
   columnas?: ColumnaData[]
   lineasDisponibles?: Option[]
+  isCampana?: boolean
 }>()
 
 const emit = defineEmits(['close', 'toggle', 'edit', 'details'])
@@ -34,7 +36,12 @@ onUnmounted(() => { try { document.body.style.overflow = '' } catch (_) {} })
         </div>
 
         <div class="p-4">
-          <ColumnaLineaCrud :mapeo-id="props.mapeoId" />
+          <template v-if="props.isCampana">
+            <ColumnaCampanaCrud :mapeo-id="props.mapeoId" />
+          </template>
+          <template v-else>
+            <ColumnaLineaCrud :mapeo-id="props.mapeoId" />
+          </template>
         </div>
 
         <div class="px-6 py-3 border-t text-right bg-slate-50">

@@ -9,9 +9,12 @@ export interface ColumnaLineaModel {
   obligatorio: boolean | null
   valor: ColumnaValor | null
 
+  idUsuario?: number | null
+
   columna: {
     tipo: {
-      idABCCatColumna: number
+      id?: number
+      idABCCatColumna?: number
     }
 
     bolActivo?: boolean

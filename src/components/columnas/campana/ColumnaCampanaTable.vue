@@ -10,17 +10,12 @@ interface Option {
 }
 
 interface SelectedFilters {
-	mapeos: number[]
 	columnas: number[]
 	status: boolean[]
 }
 
 const props = defineProps<{
 	columnas: ColumnaCampanaModel[]
-	mapeos: Option[]
-	mapeosRaw?: any[]
-	lineasCatalogo?: Option[]
-	campanasCatalogo?: Option[]
 	columnasCatalogo: Option[]
 	selectedFilters: SelectedFilters
 	openFilter: string | null
@@ -32,49 +27,19 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	(e: 'toggle', item: ColumnaCampanaModel): void
+	(e: 'toggleObligatorio', item: ColumnaCampanaModel): void
 	(e: 'edit', item: ColumnaCampanaModel): void
 	(e: 'details', item: ColumnaCampanaModel): void
+	(e: 'add'): void
 	(e: 'toggleFilter', column: string): void
-	(e: 'selectAllMapeos'): void
 	(e: 'selectAllColumnas'): void
 	(e: 'prev'): void
 	(e: 'next'): void
 }>()
 
-function getMapeoLabel(id: number) {
-	return props.mapeos.find(m => m.value === id)?.label ?? `Mapeo ${id}`
-}
-
 function getColumnaLabel(id: number) {
 	return props.columnasCatalogo.find(c => c.value === id)?.label ?? `Columna ${id}`
 }
-
-function getLineaLabelByMapeo(mapeoId: number) {
-	try {
-		const m = (props.mapeosRaw || []).find((x: any) => Number(x.idABCConfigMapeoLinea) === Number(mapeoId))
-		const lineaId = m?.idABCCatLineaNegocio
-		return props.lineasCatalogo?.find(l => l.value === Number(lineaId))?.label ?? `Línea ${lineaId ?? '-'} `
-	} catch {
-		return '-'
-	}
-}
-
-function getCampanaLabelByMapeo(mapeoId: number) {
-	try {
-		const m = (props.mapeosRaw || []).find((x: any) => Number(x.idABCConfigMapeoLinea) === Number(mapeoId))
-		const campanaId = m?.idABCCatCampana
-		return props.campanasCatalogo?.find(c => c.value === Number(campanaId))?.label ?? (campanaId ? `Campaña ${campanaId}` : '-')
-	} catch {
-		return '-'
-	}
-}
-
-const selectedMapeos = computed({
-	get: () => props.selectedFilters.mapeos,
-	set: value => {
-		props.selectedFilters.mapeos = value
-	}
-})
 
 const selectedColumnas = computed({
 	get: () => props.selectedFilters.columnas,
@@ -100,56 +65,45 @@ const statusOptions = [
 <template>
 	<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col  min-h-[400px] h-[87vh] max-h-[calc(100vh-2rem)]">
 		<div class="overflow-y-auto overflow-x-hidden flex-1" style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;">
-			<table class="w-full text-left border-collapse table-fixed">
-				<colgroup>
-					<col class="w-[40%]" />
-					<col class="w-[12%]" />
-					<col class="w-[48%]" />
-				</colgroup>
-				<thead>
-					<tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
-						<th class="px-4 py-3 relative">Línea</th>
-						<th class="px-4 py-3 relative">Campaña</th>
-						<th class="px-4 py-3 relative">
-							<FilterDropdown
-								label="Mapeo"
-								header-label="Filtrar por mapeo"
-								:options="props.mapeos"
-								v-model="selectedMapeos"
-								:open="props.openFilter === 'mapeo'"
-								:is-filtered="selectedMapeos.length < props.mapeos.length"
-								@toggle="emit('toggleFilter', 'mapeo')"
-								@select-all="emit('selectAllMapeos')"
-							/>
-						</th>
-						<th class="px-4 py-3 w-[20%] relative">
-							<FilterDropdown
-								label="Columna"
-								header-label="Filtrar por columna"
-								:options="props.columnasCatalogo"
-								v-model="selectedColumnas"
-								:open="props.openFilter === 'columna'"
-								:is-filtered="selectedColumnas.length < props.columnasCatalogo.length"
-								@toggle="emit('toggleFilter', 'columna')"
-								@select-all="emit('selectAllColumnas')"
-							/>
-						</th>
-						<th class="px-4 py-3 relative text-center">
-							<FilterDropdown
-								label="Activo"
-								header-label="Estado"
-								:options="statusOptions"
-								v-model="selectedStatus"
-								:open="props.openFilter === 'status'"
-								:is-filtered="selectedStatus.length < 2"
-								:show-select-all="false"
-								menu-width="w-48"
-								@toggle="emit('toggleFilter', 'status')"
-							/>
-						</th>
-						<th class="px-4 py-3 text-right">Acciones</th>
-					</tr>
-				</thead>
+				<table class="w-full text-left border-collapse table-fixed">
+					<colgroup>
+						<col class="w-[50%]" />
+						<col class="w-[15%]" />
+						<col class="w-[15%]" />
+						<col class="w-[20%]" />
+					</colgroup>
+					<thead>
+						<tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
+							<th class="px-4 py-3 relative">
+								<FilterDropdown
+									label="Columna"
+									header-label="Filtrar por columna"
+									:options="props.columnasCatalogo"
+									v-model="selectedColumnas"
+									:open="props.openFilter === 'columna'"
+									:is-filtered="selectedColumnas.length < props.columnasCatalogo.length"
+									@toggle="emit('toggleFilter', 'columna')"
+									@select-all="emit('selectAllColumnas')"
+								/>
+							</th>
+
+							<th class="px-4 py-3 relative text-center">
+								<FilterDropdown
+									label="Activo"
+									header-label="Estado"
+									:options="statusOptions"
+									v-model="selectedStatus"
+									:open="props.openFilter === 'status'"
+									:is-filtered="selectedStatus.length < 2"
+									:show-select-all="false"
+									menu-width="w-48"
+									@toggle="emit('toggleFilter', 'status')"
+								/>
+							</th>
+							<th class="px-4 py-3 relative text-center">Obligatorio</th>
+							<th class="px-4 py-3 text-right">Acciones</th>
+						</tr>
+					</thead>
 
 				<tbody class="divide-y divide-slate-100">
 					<tr v-if="isLoading">
@@ -178,47 +132,48 @@ const statusOptions = [
 								@dblclick="emit('details', c)"
 						>
 							<td class="px-4 py-2.5 text-slate-600">
-								{{ getLineaLabelByMapeo(c.mapeoId) }}
-							</td>
-
-							<td class="px-4 py-2.5 text-slate-600">
-								{{ getCampanaLabelByMapeo(c.mapeoId) }}
-							</td>
-
-							<td class="px-4 py-2.5 font-medium text-slate-700">
-								{{ getMapeoLabel(c.mapeoId) }}
-							</td>
-
-							<td class="px-4 py-2.5 text-slate-600">
-								{{ getColumnaLabel(c.columnaId) }}
+								{{ getColumnaLabel(c.columna?.tipo?.idABCCatColumna ?? c.columna?.tipo?.id ?? c.columnaId) }}
 							</td>
 
 							<td class="px-4 py-2.5 text-center">
 								<label
 									class="inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200 cursor-pointer group select-none"
-									:class="c.bolActivo
+									:class="(c.bolActivo ?? c.columna?.bolActivo)
 										? 'bg-blue-50 border-blue-200 hover:border-blue-300'
 										: 'bg-slate-50 border-slate-200 hover:border-slate-300'"
 								>
 									<input
 										type="checkbox"
-										:checked="c.bolActivo"
-										@change="emit('toggle', c)"
 										class="sr-only peer"
-									>
+										:checked="c.bolActivo ?? c.columna?.bolActivo"
+										@change="emit('toggle', c)"
+									/>
 
 									<span
 										class="h-2 w-2 rounded-full transition-colors duration-200 shadow-sm"
-										:class="c.bolActivo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
+										:class="(c.bolActivo ?? c.columna?.bolActivo)
+											? 'bg-[#00357F]'
+											: 'bg-[#AD0A0A]'"
 									></span>
 
 									<span
 										class="text-xs font-semibold transition-colors duration-200"
-										:class="c.bolActivo ? 'text-[#00357F]' : 'text-slate-500'"
+										:class="(c.bolActivo ?? c.columna?.bolActivo)
+											? 'text-[#00357F]'
+											: 'text-slate-500'"
 									>
-										{{ c.bolActivo ? 'Activo' : 'Inactivo' }}
+										{{ (c.bolActivo ?? c.columna?.bolActivo) ? 'Activo' : 'Inactivo' }}
 									</span>
 								</label>
+							</td>
+
+							<td class="px-4 py-2.5 text-center">
+								<input
+									type="checkbox"
+									class="h-4 w-4 accent-[#00357F] cursor-not-allowed"
+									:checked="Boolean(c.obligatorio ?? c.columna?.obligatorio)"
+									disabled
+								/>
 							</td>
 
                             
@@ -227,20 +182,16 @@ const statusOptions = [
 								<div class="inline-flex items-center justify-end gap-2">
 									<button
 										@click="emit('details', c)"
-										class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors cursor-pointer group"
-										aria-label="Ver detalles"
+										class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors group"
 									>
 										<Eye class="w-4 h-4" />
-										<span class="absolute whitespace-nowrap -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">Ver detalles</span>
 									</button>
 
 									<button
 										@click.stop.prevent="emit('edit', c)"
-										class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors cursor-pointer group"
-										aria-label="Editar registro"
+										class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors group"
 									>
 										<Edit3 class="w-4 h-4" />
-										<span class="absolute whitespace-nowrap -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">Modificar</span>
 									</button>
 								</div>
 							</td>
@@ -249,24 +200,36 @@ const statusOptions = [
 				</tbody>
 			</table>
 
-			<div class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex justify-between items-center rounded-b-xl">
-				<span>Mostrando {{ props.columnas.length }} de {{ props.totalColumnas }} registros</span>
-				<div class="flex gap-2 items-center">
-					<button
-						class="hover:text-[#00357F] disabled:opacity-50"
-						:disabled="props.currentPage <= 1"
-						@click="emit('prev')"
-					>
-						Anterior
-					</button>
-					<span class="text-[11px] text-slate-400">{{ props.currentPage }} / {{ props.totalPages }}</span>
-					<button
-						class="hover:text-[#00357F] disabled:opacity-50"
-						:disabled="props.currentPage >= props.totalPages"
-						@click="emit('next')"
-					>
-						Siguiente
-					</button>
+			<div class="px-4 py-3 border-t border-slate-200 bg-slate-50">
+				<div class="flex items-center justify-between">
+					<div>
+						<button
+							@click="emit('add')"
+							class="inline-flex items-center gap-2 px-3 py-1.5 bg-[#00357F] text-white rounded-md hover:bg-[#002a66] transition-colors cursor-pointer"
+						>
+							+ Configurar otra columna
+						</button>
+					</div>
+
+					<div class="flex items-center gap-3">
+						<button
+							class="hover:text-[#00357F] disabled:opacity-50"
+							:disabled="props.currentPage <= 1"
+							@click="emit('prev')"
+						>
+							Anterior
+						</button>
+
+						<span class="text-sm text-slate-500">Página {{ props.currentPage }} / {{ props.totalPages }}</span>
+
+						<button
+							class="hover:text-[#00357F] disabled:opacity-50"
+							:disabled="props.currentPage >= props.totalPages"
+							@click="emit('next')"
+						>
+							Siguiente
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>

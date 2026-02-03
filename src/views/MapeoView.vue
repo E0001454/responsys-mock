@@ -121,6 +121,7 @@ const showColumnasModal = ref(false)
 const columnasForModal = ref<any[]>([])
 const nombreMapeoForModal = ref<string>('')
 const mapeoIdForModal = ref<number | string | null>(null)
+const isCampanaForModal = ref(false)
 
 function openAddModal() {
   modalMode.value = 'add'
@@ -232,7 +233,8 @@ function mapCatalogosToOptions(items: { id: number; nombre: string; bolActivo: b
 function openColumnasModal(m: MapeoRow) {
   columnasForModal.value = []
   nombreMapeoForModal.value = (m as any).nombre ?? ''
-  mapeoIdForModal.value = (m as any).idABCConfigMapeoLinea ?? (m as any).id ?? null
+  mapeoIdForModal.value = (m as any).idABCConfigMapeoCampana ?? (m as any).idABCConfigMapeoLinea ?? (m as any).id ?? null
+  isCampanaForModal.value = isCampanaRow(m)
   showColumnasModal.value = true
 }
 
@@ -373,6 +375,7 @@ function updatePageSize() {
       :show="showColumnasModal"
       :mapeo-id="mapeoIdForModal"
       :mapeo-nombre="nombreMapeoForModal"
+      :is-campana="isCampanaForModal"
       :lineas-disponibles="lineasDisponibles"
       @close="showColumnasModal = false"
     />

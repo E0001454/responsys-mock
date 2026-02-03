@@ -144,7 +144,7 @@ const statusOptions = [
               @dblclick="emit('details', c)"
             >
               <td class="px-4 py-2.5 text-slate-600">
-                {{ getColumnaLabel(c.columna?.tipo?.idABCCatColumna ?? c.columnaId) }}
+                {{ getColumnaLabel(c.columna?.tipo?.idABCCatColumna ?? c.columna?.tipo?.id ?? c.columnaId) }}
               </td>
 
               <td class="px-4 py-2.5 text-center">
@@ -179,15 +179,14 @@ const statusOptions = [
                 </label>
               </td>
 
-             <td class="px-4 py-2.5 text-center">
-				<input
-					type="checkbox"
-					class="h-4 w-4 accent-[#00357F] cursor-not-allowed"
-          :checked="Boolean(c.obligatorio ?? c.columna?.obligatorio)"
-					disabled
-				/>
-				</td>
-
+              <td class="px-4 py-2.5 text-center">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 accent-[#00357F] cursor-not-allowed"
+                  :checked="Boolean(c.obligatorio ?? c.columna?.obligatorio)"
+                  disabled
+                />
+              </td>
 
               <td class="px-4 py-2.5 text-right">
                 <div class="inline-flex items-center justify-end gap-2">
@@ -206,6 +205,7 @@ const statusOptions = [
                   </button>
                 </div>
               </td>
+
             </tr>
 
             <tr>
