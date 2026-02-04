@@ -5,7 +5,6 @@ import { useMapeosCampana } from '@/composables/useMapeosCampana'
 import { catalogosService } from '@/services/catalogosService'
 import type { CatalogoItem } from '@/types/catalogos'
 import type { ColumnaCampanaModel } from '@/models/columnaCampana.model'
-import { columnaService } from '@/services/columnaService'
 
 import ColumnaCampanaTable from './ColumnaCampanaTable.vue'
 import ColumnaCampanaModal from './ColumnaCampanaModal.vue'
@@ -73,44 +72,6 @@ async function fetchCatalogos() {
 		.map(c => ({ label: c.nombre, value: c.id }))
 }
 
-async function handleSave(payload: {
-	idABCConfigMapeoCampana: number
-	idABCCatColumna: number
-	regex: string
-}) {
-	loading.value = true
-	try {
-		if (mode.value === 'add') {
-			await columnaService.createColumnaCampana(
-				payload.idABCConfigMapeoCampana,
-				{
-					idUsuario: 1,
-					columna: {
-						idABCConfigMapeoCampana: payload.idABCConfigMapeoCampana,
-						idABCCatColumna: payload.idABCCatColumna,
-						regex: payload.regex
-					}
-				}
-			)
-		} else {
-			await columnaService.updateColumnaCampana({
-				idUsuario: 1,
-				columna: {
-					idABCConfigMapeoCampana: payload.idABCConfigMapeoCampana,
-					idABCCatColumna: payload.idABCCatColumna,
-					regex: payload.regex
-				}
-			})
-		}
-
-		showModal.value = false
-		await fetchAll()
-	} catch (e: any) {
-		console.error(e)
-	} finally {
-		loading.value = false
-	}
-}
 
 function openAdd() {
 	mode.value = 'add'
@@ -202,6 +163,7 @@ defineExpose({ openAdd })
 					:current-page="currentPage"
 					:total-pages="totalPages"
 					@toggle="toggle"
+					@add="openAdd"
 					@edit="openEdit"
 					@details="openDetails"
 					@toggle-filter="toggleFilterMenu"
@@ -221,6 +183,7 @@ defineExpose({ openAdd })
 		</div>
 
 		<ColumnaCampanaModal
+			:key="mode + String(selected?.columnaId ?? 'new')"
 			:show="showModal"
 			:mode="mode"
 			:mapeos="mapeos"
@@ -228,8 +191,9 @@ defineExpose({ openAdd })
 			:initial-data="selected"
 			:existing-items="items"
 			:is-loading="loading"
+			:selected-mapeo-id="props.mapeoId"
 			@close="showModal = false"
-			@saved="handleSave"
+			@saved="fetchAll"
 		/>
 
 		<ColumnaDetailsModal

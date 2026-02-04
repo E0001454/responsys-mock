@@ -106,7 +106,7 @@ const statusOptions = [
 					</thead>
 
 				<tbody class="divide-y divide-slate-100">
-					<tr v-if="isLoading">
+					<tr v-if="props.isLoading">
 						<td colspan="100%" class="px-4 py-12">
 							<div class="flex flex-col items-center justify-center text-slate-500">
 								<div class="w-6 h-6 border-2 border-[#00357F] border-t-transparent rounded-full animate-spin mb-2"></div>

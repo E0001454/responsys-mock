@@ -84,12 +84,12 @@ const thSmallClass = 'px-4 py-3'
 
 <template>
   <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col  min-h-[400px] h-[87vh] max-h-[calc(100vh-2rem)]">
-    <div class="overflow-y-auto overflow-x-hidden flex-1" style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;">
+    <div class="overflow-y-auto overflow-x-auto flex-1" style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;">
       <table class="w-full text-left border-collapse table-fixed">
         <colgroup>
           <col class="w-[18%]" />
           <col v-if="props.activeTab === 'campana'" class="w-[14%]" />
-          <col class="w-[28%]" />
+          <col class="w-[25%]" />
           <col class="w-[12%]" />
           <col class="w-[8%]" />
           <col class="w-[8%]" />

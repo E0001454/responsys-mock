@@ -8,6 +8,7 @@ export function useColumnasCampana() {
 	const loading = ref(false)
 	const error = ref<string | null>(null)
     const currentMapeo = ref<string | number | null>(null)
+		const rawResponse = ref<any>(null)
 
 	async function fetchAll(mapeoId?: string | number | null) {
 		loading.value = true
@@ -22,7 +23,21 @@ export function useColumnasCampana() {
 			} else {
 				raw = await columnaService.getColumnasCampana()
 			}
-			items.value = raw.map(adaptColumnaCampana)
+
+			console.debug('[useColumnasCampana] fetchAll mapeoId=', mapeoId, 'raw=', raw)
+				rawResponse.value = raw
+			const list = ((): any[] => {
+				if (Array.isArray(raw)) return raw
+				if (raw && typeof raw === 'object') {
+					if (Array.isArray((raw as any).data)) return (raw as any).data
+					if (Array.isArray((raw as any).items)) return (raw as any).items
+					return [raw]
+				}
+				return []
+			})()
+			items.value = list.map(adaptColumnaCampana)
+
+			console.debug('[useColumnasCampana] normalized items length=', items.value.length, items.value.slice?.(0,5))
 		} catch (e: any) {
 			error.value = e.message
 		} finally {
@@ -54,27 +69,29 @@ export function useColumnasCampana() {
         }) {
         loading.value = true
         try {
-            await columnaService.createColumnaCampanaGlobal({
-            ...payload,
-            idUsuario: 1
-            })
+			await columnaService.createColumnaCampanaGlobal({
+			idUsuario: 1,
+			columna: {
+				tipo: { id: payload.idABCCatColumna },
+				regex: payload.regex ?? null
+			}
+			})
             await fetchAll()
         } finally {
             loading.value = false
         }
         }
-        async function update(payload: {
-        idABCConfigMapeoCampana: number
-        idABCCatColumna: number
-        regex: string
-        }) {
+		async function update(payload: {
+		idABCConfigMapeoCampana: number
+		idABCCatColumna: number
+		regex: string
+		}) {
         loading.value = true
         try {
-			await columnaService.updateColumnaCampana({
+			await columnaService.updateColumnaCampana(payload.idABCConfigMapeoCampana, {
 				idUsuario: 1,
 				columna: {
-					idABCConfigMapeoCampana: payload.idABCConfigMapeoCampana,
-					idABCCatColumna: payload.idABCCatColumna,
+					tipo: { id: payload.idABCCatColumna },
 					regex: payload.regex
 				}
 			})
@@ -93,5 +110,6 @@ export function useColumnasCampana() {
 		toggle,
         create,
         update
+		, rawResponse
 	}
 }

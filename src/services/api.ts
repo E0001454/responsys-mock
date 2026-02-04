@@ -23,6 +23,11 @@ async function request<T>(
     ...options.headers
   }
 
+  const suppressToast = ((): boolean => {
+    const raw = (headers as any)['X-Suppress-Toast'] ?? (headers as any)['x-suppress-toast']
+    return String(raw ?? '').toLowerCase() === 'true'
+  })()
+
   let response: Response
   try {
     response = await fetch(url, {
@@ -43,15 +48,15 @@ async function request<T>(
   if (response.ok) {
     if (method === 'GET') {
       const path = String(endpoint || '').toLowerCase()
-      if (path.includes('/mapeos') || path.includes('/columnas')) {
+      if (!suppressToast && (path.includes('/mapeos') || path.includes('/columnas'))) {
         addToast('Datos cargados correctamente', 'info')
       }
     } else if (method === 'POST') {
-      addToast('Recurso creado correctamente', 'success')
+      if (!suppressToast) addToast('Recurso creado correctamente', 'success')
     } else if (method === 'PUT' || method === 'PATCH') {
-      addToast('Recurso actualizado correctamente', 'success')
+      if (!suppressToast) addToast('Recurso actualizado correctamente', 'success')
     } else if (method === 'DELETE') {
-      addToast('Recurso eliminado correctamente', 'success')
+      if (!suppressToast) addToast('Recurso eliminado correctamente', 'success')
     }
 
     return data as T
@@ -81,7 +86,9 @@ async function request<T>(
       message = data && data.message ? String(data.message) : `${status} ${response.statusText}`
   }
 
-  addToast(message, 'error')
+  if (!((options.headers as any)?.['X-Suppress-Toast'] === 'true' || (options.headers as any)?.['x-suppress-toast'] === 'true' || suppressToast)) {
+    addToast(message, 'error')
+  }
   const err = new Error(message)
   ;(err as any).status = status
   ;(err as any).response = response
@@ -114,7 +121,7 @@ export const http = {
 
 export const api = {
   // Catálogos
-  getCatalogos: (codigo: string) => http.get(`/catalogos?codigo=${encodeURIComponent(codigo)}`),
+  getCatalogos: (codigo: string) => http.get(`/catalogos/${encodeURIComponent(String(codigo))}`),
 
   // Mapeo línea
   getAllMapeos: () => http.get('/lineas/mapeos'),
@@ -158,8 +165,7 @@ export const api = {
     mapeoId: string | number,
     payload: CreateColumnaLineaPayload
   ) => http.post(`/lineas/mapeos/${mapeoId}/columnas`, payload),
-  updateColumnaLinea: (payload: UpdateColumnaLineaPayload) => {
-    const mapeoId = (payload as any)?.mapeoId ?? (payload as any)?.mapeo?.id ?? (payload as any)?.idMapeo
+  updateColumnaLinea: (mapeoId: string | number | undefined, payload: UpdateColumnaLineaPayload) => {
     const endpoint = mapeoId ? `/lineas/mapeos/${mapeoId}/columnas` : '/lineas/mapeos/columnas'
     return http.put(endpoint, payload)
   },
@@ -177,8 +183,7 @@ export const api = {
     mapeoId: string | number,
     payload: CreateColumnaCampanaPayload
   ) => http.post(`/campanas/mapeos/${mapeoId}/columnas`, payload),
-  updateColumnaCampana: (payload: UpdateColumnaCampanaPayload) => {
-    const mapeoId = (payload as any)?.mapeoId ?? (payload as any)?.mapeo?.id ?? (payload as any)?.idMapeo
+  updateColumnaCampana: (mapeoId: string | number | undefined, payload: UpdateColumnaCampanaPayload) => {
     const endpoint = mapeoId ? `/campanas/mapeos/${mapeoId}/columnas` : '/campanas/mapeos/columnas'
     return http.put(endpoint, payload)
   },
@@ -215,7 +220,12 @@ export const api = {
 
 
     if (resourcePayload?.idABCCatColumna) payload.idABCCatColumna = resourcePayload.idABCCatColumna
+    else if (resourcePayload?.columna?.tipo?.id) payload.idABCCatColumna = resourcePayload.columna.tipo.id
 
-    return http.post('/bitacoras/usuarios', payload)
+    return request<any>('/bitacoras/usuarios', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'X-Suppress-Toast': 'true' }
+    })
   }
 }

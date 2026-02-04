@@ -233,9 +233,13 @@ function mapCatalogosToOptions(items: { id: number; nombre: string; bolActivo: b
 function openColumnasModal(m: MapeoRow) {
   columnasForModal.value = []
   nombreMapeoForModal.value = (m as any).nombre ?? ''
-  mapeoIdForModal.value = (m as any).idABCConfigMapeoCampana ?? (m as any).idABCConfigMapeoLinea ?? (m as any).id ?? null
+  {
+    const candidate = (m as any).idABCConfigMapeoCampana ?? (m as any).idABCConfigMapeoLinea ?? (m as any).idABCConfigMapeo ?? (m as any).id ?? null
+    mapeoIdForModal.value = candidate !== null && candidate !== undefined ? Number(candidate) : null
+  }
   isCampanaForModal.value = isCampanaRow(m)
   showColumnasModal.value = true
+  console.debug('[MapeoView] openColumnasModal id=', mapeoIdForModal.value, 'isCampana=', isCampanaForModal.value, 'm=', m)
 }
 
 async function fetchCatalogosBase() {

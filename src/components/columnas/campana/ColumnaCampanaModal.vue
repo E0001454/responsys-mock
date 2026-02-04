@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { columnaService } from '@/services/columnaService'
 import SearchableSelect from '@/components/forms/SearchableSelect.vue'
 import type { ColumnaCampanaModel } from '@/models/columnaCampana.model'
 
@@ -16,16 +17,10 @@ const props = defineProps<{
 	mapeos: Option[]
 	columnas: Option[]
 	existingItems: ColumnaCampanaModel[]
+	selectedMapeoId?: number | string | null
 }>()
 
-const emit = defineEmits<{
-	(e: 'close'): void
-	(e: 'saved', payload: {
-		idABCConfigMapeoCampana: number
-		idABCCatColumna: number
-		regex: string
-	}): void
-}>()
+const emit = defineEmits(['close', 'saved'])
 
 const form = ref<any>({
 	idABCConfigMapeoCampana: 0,
@@ -41,6 +36,12 @@ const form = ref<any>({
 })
 
 const isEditing = computed(() => props.mode === 'edit')
+
+const mapeoNombre = computed(() => {
+	const id = props.selectedMapeoId ?? form.value.idABCConfigMapeoCampana ?? null
+	const found = props.mapeos.find(m => m.value == id)
+	return found ? found.label : `Mapeo ${id ?? ''}`
+})
 
 const availableColumnas = computed(() => {
 	const selectedMapeo = form.value.idABCConfigMapeoCampana
@@ -60,15 +61,40 @@ const availableColumnas = computed(() => {
 
 function resetForm() {
 	form.value = {
-		idABCConfigMapeoCampana: 0,
+		idABCConfigMapeoCampana: props.selectedMapeoId ?? 0,
 		idABCCatColumna: 0,
-		regex: ''
+		regex: '',
+		obligatorio: false,
+		valor: {
+			tipoId: null,
+			cadena: { tipoId: null, minimo: null, maximo: null },
+			numero: { tipoId: null, enteros: null, decimales: null }
+		}
 	}
 }
 
 watch(
-	[() => props.show, () => props.mode, () => props.initialData],
-	([show, mode, initialData]) => {
+	() => props.selectedMapeoId,
+	(v) => {
+		if (v !== undefined && v !== null && !isEditing.value) {
+			form.value.idABCConfigMapeoCampana = v
+		}
+	}
+)
+
+watch(
+	[
+		() => props.show,
+		() => props.mode,
+		() => props.initialData
+	],
+	(
+		[show, mode, initialData]: [
+			boolean,
+			'add' | 'edit',
+			ColumnaCampanaModel | null
+		]
+	) => {
 		if (!show) return
 
 		if (mode === 'add') {
@@ -81,7 +107,6 @@ watch(
 			form.value.idABCCatColumna = initialData.columnaId
 			form.value.regex = initialData.regex ?? ''
 			form.value.obligatorio = initialData.obligatorio ?? initialData.columna?.obligatorio ?? false
-
 			const v = initialData.valor ?? initialData.columna?.valor ?? null
 			if (v) {
 				const hasCadena = Boolean(v.cadena && (v.cadena.minimo !== null || v.cadena.maximo !== null || (v.cadena.tipo && v.cadena.tipo.id)))
@@ -96,7 +121,12 @@ watch(
 				form.value.valor.numero.enteros = v.numero?.enteros ?? null
 				form.value.valor.numero.decimales = v.numero?.decimales ?? null
 			} else {
-				form.value.valor = { tipoSel: 'cadena', tipoId: null, cadena: { tipoId: null, minimo: null, maximo: null }, numero: { tipoId: null, enteros: null, decimales: null } }
+				form.value.valor = {
+					tipoSel: 'cadena',
+					tipoId: null,
+					cadena: { tipoId: null, minimo: null, maximo: null },
+					numero: { tipoId: null, enteros: null, decimales: null }
+				}
 			}
 		}
 	},
@@ -116,7 +146,7 @@ watch(
 	}
 )
 
-function save() {
+async function save() {
 	const valorPayload: any = {
 		tipo: { id: form.value.valor.tipoId ?? form.value.valor.cadena.tipoId ?? form.value.valor.numero.tipoId ?? null },
 		cadena: {
@@ -132,17 +162,22 @@ function save() {
 	}
 
 	const payload = {
-		idUsuario: 1,
 		columna: {
-			idABCConfigMapeoCampana: form.value.idABCConfigMapeoCampana,
-			idABCCatColumna: form.value.idABCCatColumna,
-			regex: form.value.regex || null,
+			tipo: { id: form.value.idABCCatColumna ?? null },
 			obligatorio: form.value.obligatorio ?? null,
+			regex: form.value.regex || null,
 			valor: valorPayload
-		}
+		},
+		idUsuario: (props.initialData as any)?.idUsuario ?? 1
 	}
 
-	emit('saved', payload.columna)
+	if (props.mode === 'add') {
+		await columnaService.createColumnaCampana(form.value.idABCConfigMapeoCampana, payload)
+	} else {
+		await columnaService.updateColumnaCampana(form.value.idABCConfigMapeoCampana, payload)
+	}
+
+	emit('saved')
 	emit('close')
 }
 </script>
@@ -152,7 +187,7 @@ function save() {
 		<div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
 			<div class="px-6 py-4 bg-[#00357F] flex justify-between items-center shrink-0">
 				<h3 class="text-lg font-bold text-white flex items-center gap-2">
-					{{ mode === 'add' ? 'Nueva columna (Campaña)' : 'Editar columna (Campaña)' }}
+					Configurar columna en {{ mapeoNombre }}
 				</h3>
 				<button
 					@click="$emit('close')"
@@ -165,19 +200,6 @@ function save() {
 
 			<div class="p-6 overflow-y-auto custom-scrollbar">
 				<form @submit.prevent="save" class="space-y-5">
-					<div>
-						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">
-							Mapeo <span class="text-red-500 ml-1">*</span>
-						</label>
-						<div class="relative">
-							<SearchableSelect
-								v-model="form.idABCConfigMapeoCampana"
-								:options="mapeos"
-								:disabled="isEditing"
-								placeholder="Seleccione una opción"
-							/>
-						</div>
-					</div>
 
 					<div>
 						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">
@@ -193,7 +215,50 @@ function save() {
 						</div>
 					</div>
 
-                    
+					<div>
+						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Obligatorio</label>
+						<div class="flex items-center gap-3">
+							<label class="inline-flex items-center gap-2">
+								<input type="checkbox" v-model="form.obligatorio" class="h-4 w-4 accent-[#00357F]" />
+								<span class="text-sm text-slate-600">Marcado si es obligatorio</span>
+							</label>
+						</div>
+					</div>
+
+					<div>
+						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Tipo valor</label>
+						<div>
+							<select v-model="form.valor.tipoSel" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm">
+								<option value="cadena">Cadena</option>
+								<option value="numero">Numérico</option>
+								<option value="ambos">Ambos</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Mínimo (cadena)</label>
+							<input type="number" placeholder="Ej. 1" v-model.number="form.valor.cadena.minimo" :disabled="form.valor.tipoSel === 'numero'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'numero' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+						</div>
+
+						<div>
+							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Máximo (cadena)</label>
+							<input type="number" placeholder="Ej. 10" v-model.number="form.valor.cadena.maximo" :disabled="form.valor.tipoSel === 'numero'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'numero' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+						</div>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Enteros (número)</label>
+							<input type="number" placeholder="Ej. 3" v-model.number="form.valor.numero.enteros" :disabled="form.valor.tipoSel === 'cadena'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'cadena' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+						</div>
+
+						<div>
+							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Decimales (número)</label>
+							<input type="number" placeholder="Ej. 2" v-model.number="form.valor.numero.decimales" :disabled="form.valor.tipoSel === 'cadena'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'cadena' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+						</div>
+					</div>
 
 					<div>
 						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Regex</label>

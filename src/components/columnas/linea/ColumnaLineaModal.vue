@@ -174,20 +174,19 @@ async function save() {
 	}
 
 	const payload = {
-		idUsuario: (props.initialData as any)?.idUsuario ?? 1,
 		columna: {
-			idABCConfigMapeoLinea: form.value.idABCConfigMapeoLinea,
-			idABCCatColumna: form.value.idABCCatColumna,
-			regex: form.value.regex || null,
+			tipo: { id: form.value.idABCCatColumna ?? null },
 			obligatorio: form.value.obligatorio ?? null,
+			regex: form.value.regex || null,
 			valor: valorPayload
-		}
+		},
+		idUsuario: (props.initialData as any)?.idUsuario ?? 1
 	}
 
 	if (props.mode === 'add') {
 		await columnaService.createColumnaLinea(form.value.idABCConfigMapeoLinea, payload)
 	} else {
-		await columnaService.updateColumnaLinea(payload)
+		await columnaService.updateColumnaLinea(form.value.idABCConfigMapeoLinea, payload)
 	}
 
 	emit('saved')

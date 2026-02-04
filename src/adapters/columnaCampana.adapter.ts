@@ -64,30 +64,32 @@ export function adaptColumnaCampana(
   raw: ColumnaCampanaData
 ): ColumnaCampanaModel {
   const r = asRecord(raw)
+  const columnaRec = asRecord(r.columna)
   const llave = asRecord(r.llaveMapeoCampanaColumna)
 
-  const mapeoId = toNumber(llave.idABCConfigMapeoCampana ?? r.idABCConfigMapeoCampana) ?? 0
-  const columnaId = toNumber((r.columna as Record<string, unknown>)?.tipo ? ((r.columna as Record<string, unknown>).tipo as Record<string, unknown>).id ?? ((r.columna as Record<string, unknown>).tipo as Record<string, unknown>).idABCCatColumna : llave.idABCCatColumna ?? r.idABCCatColumna) ?? 0
+  const mapeoId = toNumber(columnaRec.idABCConfigMapeoCampana ?? llave.idABCConfigMapeoCampana ?? r.idABCConfigMapeoCampana) ?? 0
+  const tipoRec = (columnaRec.tipo as Record<string, unknown>) ?? {}
+  const columnaId = toNumber(tipoRec.id ?? tipoRec.idABCCatColumna ?? llave.idABCCatColumna ?? r.idABCCatColumna) ?? 0
 
-  const valor = adaptValor((r.columna as Record<string, unknown>)?.valor ?? r.valor ?? null)
+  const valor = adaptValor(columnaRec.valor ?? r.valor ?? null)
 
   return {
     tipo: 'campana',
     mapeoId,
     columnaId,
-    bolActivo: Boolean(r.bolActivo ?? false),
-    regex: normalizeRegex(r.regex ?? null),
-    obligatorio: normalizeObligatorio((r.columna as Record<string, unknown>)?.obligatorio ?? r.obligatorio ?? null),
+    bolActivo: toBoolean(r.bolActivo ?? columnaRec.bolActivo ?? false),
+    regex: normalizeRegex(columnaRec.regex ?? r.regex ?? null),
+    obligatorio: normalizeObligatorio(columnaRec.obligatorio ?? columnaRec.obligatoria ?? r.obligatorio ?? null),
     valor: valor,
-    idUsuario: toNumber(r.idUsuario ?? (r.columna as Record<string, unknown>)?.idUsuario ?? null),
+    idUsuario: toNumber(r.idUsuario ?? columnaRec.idUsuario ?? null),
     columna: {
       tipo: { id: columnaId ?? undefined, idABCCatColumna: columnaId ?? undefined },
-      bolActivo: toBoolean((r.columna as Record<string, unknown>)?.bolActivo ?? undefined),
-      obligatorio: normalizeObligatorio((r.columna as Record<string, unknown>)?.obligatorio ?? undefined),
-      regex: normalizeRegex((r.columna as Record<string, unknown>)?.regex ?? undefined),
+      bolActivo: toBoolean(columnaRec.bolActivo ?? undefined),
+      obligatorio: normalizeObligatorio(columnaRec.obligatorio ?? columnaRec.obligatoria ?? undefined),
+      regex: normalizeRegex(columnaRec.regex ?? undefined),
       valor: valor
     },
-    fechaCreacion: typeof r.fechaCreacion === 'string' ? r.fechaCreacion : undefined,
-    fechaUltimaModificacion: typeof r.fechaUltimaModificacion === 'string' ? r.fechaUltimaModificacion : undefined
+    fechaCreacion: typeof columnaRec.fechaCreacion === 'string' ? columnaRec.fechaCreacion : (typeof r.fechaCreacion === 'string' ? r.fechaCreacion : undefined),
+    fechaUltimaModificacion: typeof columnaRec.fechaUltimaModificacion === 'string' ? columnaRec.fechaUltimaModificacion : (typeof r.fechaUltimaModificacion === 'string' ? r.fechaUltimaModificacion : undefined)
   }
 }

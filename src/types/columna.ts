@@ -58,8 +58,7 @@ export type ColumnaGetResponse =
 export interface CreateColumnaLineaPayload {
   idUsuario: number
   columna: {
-    idABCConfigMapeoLinea: number
-    idABCCatColumna: number
+    tipo: { id: number | null }
     regex?: string | null
     obligatorio?: boolean | null
     valor?: ColumnaValor | null
@@ -78,8 +77,7 @@ export interface PatchColumnaLineaPayload {
 export interface CreateColumnaCampanaPayload {
   idUsuario: number
   columna: {
-    idABCConfigMapeoCampana: number
-    idABCCatColumna: number
+    tipo: { id: number | null }
     regex?: string | null
     obligatorio?: boolean | null
     valor?: ColumnaValor | null
