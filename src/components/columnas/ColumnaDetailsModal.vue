@@ -71,7 +71,6 @@ const columnaLabel = computed(() => {
 		<div
 			class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]"
 		>
-			<!-- Header -->
 			<div class="px-6 py-4 bg-[#00357F] flex justify-between items-center shrink-0">
 				<h3 class="text-lg font-bold text-white flex items-center gap-2">
 					Detalle de Columna
@@ -84,14 +83,12 @@ const columnaLabel = computed(() => {
 				</button>
 			</div>
 
-			<!-- Body -->
 			<div class="p-6 overflow-y-auto custom-scrollbar">
 				<div v-if="!item" class="text-sm text-slate-500">
 					Sin información para mostrar.
 				</div>
 
 				<div v-else class="space-y-4 text-sm">
-					<!-- Básico -->
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 						<div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
 							<span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
@@ -124,7 +121,6 @@ const columnaLabel = computed(() => {
 						</div>
 					</div>
 
-					<!-- Regex -->
 					  <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
 						<span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
 							Regex
@@ -135,8 +131,6 @@ const columnaLabel = computed(() => {
 					</div>
 
                     
-
-					<!-- Fechas -->
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 						<div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
 							<span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">

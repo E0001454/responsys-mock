@@ -42,7 +42,10 @@ async function request<T>(
 
   if (response.ok) {
     if (method === 'GET') {
-      addToast('Datos cargados correctamente', 'info')
+      const path = String(endpoint || '').toLowerCase()
+      if (path.includes('/mapeos') || path.includes('/columnas')) {
+        addToast('Datos cargados correctamente', 'info')
+      }
     } else if (method === 'POST') {
       addToast('Recurso creado correctamente', 'success')
     } else if (method === 'PUT' || method === 'PATCH') {
@@ -155,8 +158,11 @@ export const api = {
     mapeoId: string | number,
     payload: CreateColumnaLineaPayload
   ) => http.post(`/lineas/mapeos/${mapeoId}/columnas`, payload),
-  updateColumnaLinea: (payload: UpdateColumnaLineaPayload) =>
-    http.put('/lineas/mapeos/columnas', payload),
+  updateColumnaLinea: (payload: UpdateColumnaLineaPayload) => {
+    const mapeoId = (payload as any)?.mapeoId ?? (payload as any)?.mapeo?.id ?? (payload as any)?.idMapeo
+    const endpoint = mapeoId ? `/lineas/mapeos/${mapeoId}/columnas` : '/lineas/mapeos/columnas'
+    return http.put(endpoint, payload)
+  },
   patchActivarColumnaLinea: (payload: PatchColumnaLineaPayload) =>
     http.patch('/lineas/mapeos/columnas/activar', payload),
   patchDesactivarColumnaLinea: (payload: PatchColumnaLineaPayload) =>
@@ -171,8 +177,11 @@ export const api = {
     mapeoId: string | number,
     payload: CreateColumnaCampanaPayload
   ) => http.post(`/campanas/mapeos/${mapeoId}/columnas`, payload),
-  updateColumnaCampana: (payload: UpdateColumnaCampanaPayload) =>
-    http.put('/campanas/mapeos/columnas', payload),
+  updateColumnaCampana: (payload: UpdateColumnaCampanaPayload) => {
+    const mapeoId = (payload as any)?.mapeoId ?? (payload as any)?.mapeo?.id ?? (payload as any)?.idMapeo
+    const endpoint = mapeoId ? `/campanas/mapeos/${mapeoId}/columnas` : '/campanas/mapeos/columnas'
+    return http.put(endpoint, payload)
+  },
   patchActivarColumnaCampana: (payload: PatchColumnaCampanaPayload) =>
     http.patch('/campanas/mapeos/columnas/activar', payload),
   patchDesactivarColumnaCampana: (payload: PatchColumnaCampanaPayload) =>
