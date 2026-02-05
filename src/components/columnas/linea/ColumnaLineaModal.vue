@@ -233,7 +233,7 @@ async function save() {
 						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Obligatorio</label>
 						<div class="flex items-center gap-3">
 							<label class="inline-flex items-center gap-2">
-								<input type="checkbox" v-model="form.obligatorio" class="h-4 w-4 accent-[#00357F]" />
+								<input type="checkbox" v-model="form.obligatorio" checked="true" class="h-4 w-4 accent-[#00357F]" />
 								<span class="text-sm text-slate-600">Marcado si es obligatorio</span>
 							</label>
 						</div>
@@ -245,12 +245,12 @@ async function save() {
 							<select v-model="form.valor.tipoSel" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm">
 								<option value="cadena">Cadena</option>
 								<option value="numero">Numérico</option>
-								<option value="ambos">Ambos</option>
+								<!-- <option value="ambos">Ambos</option> -->
 							</select>
 						</div>
 					</div>
 
-					<div class="grid grid-cols-2 gap-4">
+					<div class="grid grid-cols-2 gap-4" v-if="form.valor.tipoSel === 'cadena'">
 						<div>
 							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Mínimo (cadena)</label>
 							<input type="number" placeholder="Ej. 1" v-model.number="form.valor.cadena.minimo" :disabled="form.valor.tipoSel === 'numero'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'numero' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
@@ -262,7 +262,7 @@ async function save() {
 						</div>
 					</div>
 
-					<div class="grid grid-cols-2 gap-4">
+					<div class="grid grid-cols-2 gap-4" v-if="form.valor.tipoSel === 'numero'">
 						<div>
 							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Enteros (número)</label>
 							<input type="number" placeholder="Ej. 3" v-model.number="form.valor.numero.enteros" :disabled="form.valor.tipoSel === 'cadena'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'cadena' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
@@ -276,7 +276,7 @@ async function save() {
 
                     
 
-					<div>
+					<!-- <div>
 						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Regex</label>
 						<textarea
 							v-model="form.regex"
@@ -284,17 +284,17 @@ async function save() {
 							rows="2"
 							placeholder="Expresión regular para validación"
 						></textarea>
-					</div>
+					</div> -->
 
 					<div class="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-2">
-						<button
+						<!-- <button
 							type="button"
 							class="px-5 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
 							@click="$emit('close')"
 							:disabled="isLoading"
 						>
 							Cancelar
-						</button>
+						</button> -->
 						<button
 							type="submit"
 							class="px-5 py-2.5 text-sm font-bold text-[#00357F] bg-[#FFD100] hover:bg-yellow-400 rounded-lg shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"

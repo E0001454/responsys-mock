@@ -30,9 +30,14 @@ onUnmounted(() => { try { document.body.style.overflow = '' } catch (_) {} })
 
     <div class="w-[95%] max-w-6xl z-[99999]">
       <div class="bg-white rounded-xl shadow-xl overflow-hidden">
-        <div class="px-6 py-4 border-b flex items-center justify-between">
-          <h3 class="text-lg font-semibold">Columnas del mapeo {{ props.mapeoNombre ?? '-' }}</h3>
-          <button @click="emit('close')" class="text-slate-500 hover:text-slate-800">Cerrar</button>
+        <div class="px-6 py-4 bg-[#00357F] flex justify-between items-center shrink-0">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">Columnas del mapeo {{ props.mapeoNombre ?? '-' }}</h3>
+          <button
+          @click="emit('close')"
+          class="text-white/70 hover:text-white transition-colors text-2xl leading-none focus:outline-none cursor-pointer"
+        >
+          &times;
+        </button>
         </div>
 
         <div class="p-4">
@@ -44,9 +49,7 @@ onUnmounted(() => { try { document.body.style.overflow = '' } catch (_) {} })
           </template>
         </div>
 
-        <div class="px-6 py-3 border-t text-right bg-slate-50">
-          <button @click="emit('close')" class="px-4 py-2 bg-[#00357F] text-white rounded cursor-pointer">Cerrar</button>
-        </div>
+       
       </div>
     </div>
   </div>
