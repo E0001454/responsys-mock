@@ -13,6 +13,10 @@ const props = defineProps<{
   columnas?: ColumnaData[]
   lineasDisponibles?: Option[]
   isCampana?: boolean
+  selectedLineaId?: number | string | null
+  selectedCampanaId?: number | string | null
+  selectedLineaNombre?: string | null
+  selectedCampanaNombre?: string | null
 }>()
 
 const emit = defineEmits(['close', 'toggle', 'edit', 'details'])
@@ -42,10 +46,22 @@ onUnmounted(() => { try { document.body.style.overflow = '' } catch (_) {} })
 
         <div class="p-4">
           <template v-if="props.isCampana">
-            <ColumnaCampanaCrud :mapeo-id="props.mapeoId" />
+            <ColumnaCampanaCrud
+              :mapeo-id="props.mapeoId"
+              :mapeo-nombre="props.mapeoNombre"
+              :selected-linea-id="props.selectedLineaId"
+              :selected-campana-id="props.selectedCampanaId"
+              :selected-linea-nombre="props.selectedLineaNombre ?? null"
+              :selected-campana-nombre="props.selectedCampanaNombre ?? null"
+            />
           </template>
           <template v-else>
-            <ColumnaLineaCrud :mapeo-id="props.mapeoId" />
+            <ColumnaLineaCrud
+              :mapeo-id="props.mapeoId"
+              :mapeo-nombre="props.mapeoNombre"
+              :selected-linea-id="props.selectedLineaId"
+              :selected-linea-nombre="props.selectedLineaNombre ?? null"
+            />
           </template>
         </div>
 

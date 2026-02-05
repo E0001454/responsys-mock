@@ -12,6 +12,11 @@ import ColumnaDetailsModal from '../ColumnaDetailsModal.vue'
 
 const props = defineProps<{
 	mapeoId?: number | string | null
+	mapeoNombre?: string
+	selectedLineaId?: number | string | null
+	selectedCampanaId?: number | string | null
+	selectedLineaNombre?: string | null
+	selectedCampanaNombre?: string | null
 }>()
 
 interface Option {
@@ -187,11 +192,18 @@ defineExpose({ openAdd })
 			:show="showModal"
 			:mode="mode"
 			:mapeos="mapeos"
+			:lineas="lineasCatalogo"
+			:campanas="campanasCatalogo"
 			:columnas="columnasCatalogo"
 			:initial-data="selected"
 			:existing-items="items"
 			:is-loading="loading"
 			:selected-mapeo-id="props.mapeoId"
+			:selected-mapeo-nombre="props.mapeoNombre ?? null"
+			:selected-linea-id="props.selectedLineaId ?? null"
+			:selected-campana-id="props.selectedCampanaId ?? null"
+			:selected-linea-nombre="props.selectedLineaNombre ?? null"
+			:selected-campana-nombre="props.selectedCampanaNombre ?? null"
 			@close="showModal = false"
 			@saved="fetchAll"
 		/>

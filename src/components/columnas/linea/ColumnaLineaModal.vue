@@ -16,17 +16,22 @@ const props = defineProps<{
 	isLoading: boolean
 	mapeos: Option[]
 	columnas: Option[]
+	lineas?: Option[]
 	existingItems: ColumnaLineaModel[]
 	selectedMapeoId?: number | string | null
+	selectedLineaId?: number | string | null
+	selectedMapeoNombre?: string | null
+	selectedLineaNombre?: string | null
 }>()
 
 const emit = defineEmits(['close', 'saved'])
 
 const form = ref<any>({
 	idABCConfigMapeoLinea: 0,
+	lineaId: null,
 	idABCCatColumna: 0,
 	regex: '',
-	obligatorio: false,
+	obligatorio: true,
 	valor: {
 		
 		tipoSel: 'cadena',
@@ -48,9 +53,20 @@ const form = ref<any>({
 const isEditing = computed(() => props.mode === 'edit')
 
 const mapeoNombre = computed(() => {
+	if (props.selectedMapeoNombre) return props.selectedMapeoNombre
 	const id = props.selectedMapeoId ?? form.value.idABCConfigMapeoLinea ?? null
 	const found = props.mapeos.find(m => m.value == id)
 	return found ? found.label : `Mapeo ${id ?? ''}`
+})
+
+const hasMapeoInList = computed(() => {
+    const id = props.selectedMapeoId ?? form.value.idABCConfigMapeoLinea ?? null
+    return props.mapeos.some(m => m.value == id)
+})
+
+const hasLineaInList = computed(() => {
+    const id = props.selectedLineaId ?? form.value.lineaId ?? null
+    return (props.lineas || []).some(l => l.value == id)
 })
 
 const availableColumnas = computed(() => {
@@ -72,9 +88,10 @@ const availableColumnas = computed(() => {
 function resetForm() {
 	form.value = {
 		idABCConfigMapeoLinea: props.selectedMapeoId ?? 0,
+		lineaId: props.selectedLineaId ?? null,
 		idABCCatColumna: 0,
 		regex: '',
-		obligatorio: false,
+		obligatorio: true,
 		valor: {
 			tipoId: null,
 			cadena: { tipoId: null, minimo: null, maximo: null },
@@ -90,6 +107,15 @@ watch(
 			form.value.idABCConfigMapeoLinea = v
 		}
 	}
+)
+
+watch(
+    () => props.selectedLineaId,
+    (v) => {
+        if (v !== undefined && v !== null) {
+            form.value.lineaId = v
+        }
+    }
 )
 
 watch(
@@ -114,6 +140,7 @@ watch(
 
 		if (mode === 'edit' && initialData) {
 			form.value.idABCConfigMapeoLinea = initialData.mapeoId
+			form.value.lineaId = props.selectedLineaId ?? form.value.lineaId
 			form.value.idABCCatColumna = initialData.columnaId
 			form.value.regex = initialData.regex ?? ''
 			form.value.obligatorio = initialData.obligatorio ?? false
@@ -176,7 +203,7 @@ async function save() {
 	const payload = {
 		columna: {
 			tipo: { id: form.value.idABCCatColumna ?? null },
-			obligatorio: form.value.obligatorio ?? null,
+			obligatorio: props.mode === 'add' ? true : (form.value.obligatorio ?? null),
 			regex: form.value.regex || null,
 			valor: valorPayload
 		},
@@ -214,6 +241,24 @@ async function save() {
 			<div class="p-6 overflow-y-auto custom-scrollbar">
 				<form @submit.prevent="save" class="space-y-5">
 
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+								<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Mapeo</label>
+								<select v-model="form.idABCConfigMapeoLinea" disabled aria-disabled="true" class="w-full px-4 py-2.5 border rounded-lg text-sm opacity-60 cursor-not-allowed bg-gray-100 border-gray-300">
+									<option v-if="props.selectedMapeoId && props.selectedMapeoNombre && !hasMapeoInList" :value="props.selectedMapeoId">{{ props.selectedMapeoNombre }}</option>
+									<option v-for="o in mapeos" :key="o.value" :value="o.value">{{ o.label }}</option>
+								</select>
+						</div>
+
+						<div v-if="lineas && lineas.length">
+								<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Línea</label>
+								<select v-model="form.lineaId" disabled aria-disabled="true" class="w-full px-4 py-2.5 border rounded-lg text-sm opacity-60 cursor-not-allowed bg-gray-100 border-gray-300">
+									<option v-if="props.selectedLineaId && !hasLineaInList" :value="props.selectedLineaId">{{ props.selectedLineaNombre ?? (props.lineas || []).find(l => l.value == props.selectedLineaId)?.label ?? 'Línea ' + props.selectedLineaId }}</option>
+									<option v-for="o in lineas" :key="o.value" :value="o.value">{{ o.label }}</option>
+								</select>
+						</div>
+					</div>
+
 
 					<div>
 						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">
@@ -230,11 +275,11 @@ async function save() {
 					</div>
 
 					<div>
-						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Obligatorio</label>
+						
 						<div class="flex items-center gap-3">
 							<label class="inline-flex items-center gap-2">
-								<input type="checkbox" v-model="form.obligatorio" checked="true" class="h-4 w-4 accent-[#00357F]" />
-								<span class="text-sm text-slate-600">Marcado si es obligatorio</span>
+								<span class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Obligatorio</span>
+								<input type="checkbox" v-model="form.obligatorio" :disabled="!isEditing" class="h-4 w-4 accent-[#00357F]" />
 							</label>
 						</div>
 					</div>
@@ -253,24 +298,24 @@ async function save() {
 					<div class="grid grid-cols-2 gap-4" v-if="form.valor.tipoSel === 'cadena'">
 						<div>
 							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Mínimo (cadena)</label>
-							<input type="number" placeholder="Ej. 1" v-model.number="form.valor.cadena.minimo" :disabled="form.valor.tipoSel === 'numero'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'numero' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+							<input type="number" placeholder="Ej. 1" v-model.number="form.valor.cadena.minimo" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
 						</div>
 
 						<div>
 							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Máximo (cadena)</label>
-							<input type="number" placeholder="Ej. 10" v-model.number="form.valor.cadena.maximo" :disabled="form.valor.tipoSel === 'numero'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'numero' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+							<input type="number" placeholder="Ej. 10" v-model.number="form.valor.cadena.maximo" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
 						</div>
 					</div>
 
 					<div class="grid grid-cols-2 gap-4" v-if="form.valor.tipoSel === 'numero'">
 						<div>
 							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Enteros (número)</label>
-							<input type="number" placeholder="Ej. 3" v-model.number="form.valor.numero.enteros" :disabled="form.valor.tipoSel === 'cadena'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'cadena' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+							<input type="number" placeholder="Ej. 3" v-model.number="form.valor.numero.enteros" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
 						</div>
 
 						<div>
 							<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Decimales (número)</label>
-							<input type="number" placeholder="Ej. 2" v-model.number="form.valor.numero.decimales" :disabled="form.valor.tipoSel === 'cadena'" :class="{ 'opacity-10 cursor-not-allowed bg-gray-100': form.valor.tipoSel === 'cadena' }" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
+							<input type="number" placeholder="Ej. 2" v-model.number="form.valor.numero.decimales" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" />
 						</div>
 					</div>
 

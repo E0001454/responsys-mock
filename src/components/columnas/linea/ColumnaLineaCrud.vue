@@ -17,6 +17,9 @@ import { useMapeosLinea } from '@/composables/useMapeosLinea'
 
 const props = defineProps<{
 	mapeoId?: number | string | null
+	mapeoNombre?: string
+	selectedLineaId?: number | string | null
+	selectedLineaNombre?: string | null
 }>()
 
 const {
@@ -194,7 +197,11 @@ defineExpose({ openAdd })
 			:is-loading="loading"
 			:columnas="columnasCatalogo"
 			:mapeos="mapeos"
+			:lineas="lineasCatalogo"
 			:selected-mapeo-id="selected?.mapeoId ?? mapeoId ?? null"
+			:selected-mapeo-nombre="selected?.mapeoNombre ?? props.mapeoNombre ?? null"
+			:selected-linea-id="props.selectedLineaId ?? null"
+			:selected-linea-nombre="props.selectedLineaNombre ?? null"
 			:existing-items="items"
 			@close="showModal = false"
 			@saved="fetchAll"
