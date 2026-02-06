@@ -227,7 +227,8 @@ async function save() {
 		<div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
 			<div class="px-6 py-4 bg-[#00357F] flex justify-between items-center shrink-0">
 				<h3 class="text-lg font-bold text-white flex items-center gap-2">
-					Configurar columna en {{ mapeoNombre }}
+					<!-- Configurar columna en {{ mapeoNombre }} -->
+					Agregar columna
 				</h3>
 				<button
 					@click="$emit('close')"
@@ -279,7 +280,7 @@ async function save() {
 						<div class="flex items-center gap-3">
 							<label class="inline-flex items-center gap-2">
 								<span class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Obligatorio</span>
-								<input type="checkbox" v-model="form.obligatorio" :disabled="!isEditing" class="h-4 w-4 accent-[#00357F]" />
+								<input type="checkbox" v-model="form.obligatorio" class="h-4 w-4 accent-[#00357F]" />
 							</label>
 						</div>
 					</div>
