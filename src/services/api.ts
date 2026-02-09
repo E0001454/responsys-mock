@@ -12,6 +12,40 @@ import { addToast } from '@/stores/toastStore'
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 const _shownLoadedToasts = new Set<string>()
 
+function getBrowserInfo() {
+  if (typeof navigator === 'undefined') {
+    return { name: 'unknown', version: 'unknown', ua: 'unknown' }
+  }
+
+  const ua = navigator.userAgent
+  const edge = /Edg\/([\d.]+)/.exec(ua)
+  const chrome = /Chrome\/([\d.]+)/.exec(ua)
+  const firefox = /Firefox\/([\d.]+)/.exec(ua)
+  const safari = /Version\/([\d.]+).*Safari/.exec(ua)
+
+  if (edge) return { name: 'Edge', version: edge[1], ua }
+  if (chrome) return { name: 'Chrome', version: chrome[1], ua }
+  if (firefox) return { name: 'Firefox', version: firefox[1], ua }
+  if (safari) return { name: 'Safari', version: safari[1], ua }
+
+  return { name: 'unknown', version: 'unknown', ua }
+}
+
+async function getClientIp(): Promise<string> {
+  try {
+    const res = await fetch('https://api.ipify.org?format=json')
+    if (!res.ok) return '0.0.0.0'
+    const data = await res.json()
+    return String(data?.ip ?? '0.0.0.0')
+  } catch {
+    return '0.0.0.0'
+  }
+}
+
+async function getClientMac(): Promise<string> {
+  return 'No permitido'
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -24,9 +58,11 @@ async function request<T>(
     ...options.headers
   }
 
+  const endpointLower = String(endpoint || '').toLowerCase()
+  const isBitacoraEndpoint = endpointLower.includes('/bitacoras/eventos') || endpointLower.includes('/bitacoras')
   const suppressToast = ((): boolean => {
     const raw = (headers as any)['X-Suppress-Toast'] ?? (headers as any)['x-suppress-toast']
-    return String(raw ?? '').toLowerCase() === 'true'
+    return String(raw ?? '').toLowerCase() === 'true' || isBitacoraEndpoint
   })()
 
   let response: Response
@@ -36,7 +72,7 @@ async function request<T>(
       headers
     })
   } catch (err) {
-    addToast('Error de red: no se pudo conectar al servidor', 'error')
+    if (!suppressToast) addToast('Error de red: no se pudo conectar al servidor', 'error')
     throw err
   }
 
@@ -47,8 +83,8 @@ async function request<T>(
   const data = text ? JSON.parse(text) : undefined
 
     if (response.ok) {
+      const path = endpointLower
     if (method === 'GET') {
-      const path = String(endpoint || '').toLowerCase()
       if (!suppressToast && (path.includes('/mapeos') || path.includes('/columnas'))) {
         if (!_shownLoadedToasts.has(path)) {
           addToast('Datos cargados correctamente', 'info')
@@ -56,11 +92,11 @@ async function request<T>(
         }
       }
     } else if (method === 'POST') {
-      if (!suppressToast) addToast('Recurso creado correctamente', 'success')
+      if (!suppressToast && !isBitacoraEndpoint) addToast('Recurso creado correctamente', 'success')
     } else if (method === 'PUT' || method === 'PATCH') {
-      if (!suppressToast) addToast('Recurso actualizado correctamente', 'success')
+      if (!suppressToast && !isBitacoraEndpoint) addToast('Recurso actualizado correctamente', 'success')
     } else if (method === 'DELETE') {
-      if (!suppressToast) addToast('Recurso eliminado correctamente', 'success')
+      if (!suppressToast && !isBitacoraEndpoint) addToast('Recurso eliminado correctamente', 'success')
     }
 
     return data as T
@@ -173,10 +209,10 @@ export const api = {
     const endpoint = mapeoId ? `/lineas/mapeos/${mapeoId}/columnas` : '/lineas/mapeos/columnas'
     return http.put(endpoint, payload)
   },
-  patchActivarColumnaLinea: (payload: PatchColumnaLineaPayload) =>
-    http.patch('/lineas/mapeos/columnas/activar', payload),
-  patchDesactivarColumnaLinea: (payload: PatchColumnaLineaPayload) =>
-    http.patch('/lineas/mapeos/columnas/desactivar', payload),
+  patchActivarColumnaLinea: (mapeoId: string | number, payload: PatchColumnaLineaPayload) =>
+    http.patch(`/lineas/mapeos/${mapeoId}/columnas/activar`, payload),
+  patchDesactivarColumnaLinea: (mapeoId: string | number, payload: PatchColumnaLineaPayload) =>
+    http.patch(`/lineas/mapeos/${mapeoId}/columnas/desactivar`, payload),
 
   // Columna mapeo (campaña)
   getColumnasCampana: () => http.get('/campanas/mapeos/0/columnas'),
@@ -191,15 +227,15 @@ export const api = {
     const endpoint = mapeoId ? `/campanas/mapeos/${mapeoId}/columnas` : '/campanas/mapeos/columnas'
     return http.put(endpoint, payload)
   },
-  patchActivarColumnaCampana: (payload: PatchColumnaCampanaPayload) =>
-    http.patch('/campanas/mapeos/columnas/activar', payload),
-  patchDesactivarColumnaCampana: (payload: PatchColumnaCampanaPayload) =>
-    http.patch('/campanas/mapeos/columnas/desactivar', payload)
+  patchActivarColumnaCampana: (mapeoId: string | number, payload: PatchColumnaCampanaPayload) =>
+    http.patch(`/campanas/mapeos/${mapeoId}/columnas/activar`, payload),
+  patchDesactivarColumnaCampana: (mapeoId: string | number, payload: PatchColumnaCampanaPayload) =>
+    http.patch(`/campanas/mapeos/${mapeoId}/columnas/desactivar`, payload)
 
   ,
   // Bitácoras de usuarios
-  postBitacoraUsuario: (payload: BitacoraPayload) => http.post('/bitacoras/usuarios', payload),
-  postBitacoraByContext: (
+  postBitacoraUsuario: (payload: BitacoraPayload) => http.post('/bitacoras/eventos', payload),
+  postBitacoraByContext: async (
     method: 'POST' | 'PUT' | 'PATCH' | string,
     endpoint: string,
     resourcePayload: any = {},
@@ -208,25 +244,31 @@ export const api = {
     ip: string = '192.178.14.14',
     navegador: string = 'chrome'
   ) => {
+    // void idUsuario
+    void resourcePayload
     const evento = method === 'POST' ? 3 : method === 'PUT' || method === 'PATCH' ? 4 : 0
 
     let objeto = 2 
     if (String(endpoint).includes('/columnas')) objeto = 4 
 
+    const browserInfo = getBrowserInfo()
+    const mac = await getClientMac()
+    const resolvedIp = ip || (await getClientIp())
+    const resolvedNavegador = navegador || browserInfo.name
+    const resolvedDetalle = detalle ?? `${browserInfo.ua}, ${browserInfo.name}, ${browserInfo.version}, ${mac}`
+
     const payload: BitacoraPayload = {
-      idABCUsuario: idUsuario,
-      idABCCatEvento: evento,
-      idABCCatObjeto: objeto,
-      detalle: detalle ?? `${method} ${endpoint}`,
-      ip,
-      navegador
+      idUsuario: idUsuario,
+      bitacora: {
+        evento: { id: evento },
+        objeto: { id: objeto },
+        detalle: resolvedDetalle,
+        ip: resolvedIp,
+        navegador: resolvedNavegador
+      }
     }
 
-
-    if (resourcePayload?.idABCCatColumna) payload.idABCCatColumna = resourcePayload.idABCCatColumna
-    else if (resourcePayload?.columna?.tipo?.id) payload.idABCCatColumna = resourcePayload.columna.tipo.id
-
-    return request<any>('/bitacoras/usuarios', {
+    return request<any>('/bitacoras/eventos', {
       method: 'POST',
       body: JSON.stringify(payload),
       headers: { 'X-Suppress-Toast': 'true' }

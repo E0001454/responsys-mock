@@ -70,7 +70,7 @@ const statusOptions = [
       </button>
     </div>
     <div
-      class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col"
+      class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[400px]"
     >
       <div
         class="overflow-y-auto overflow-x-hidden flex-1"
