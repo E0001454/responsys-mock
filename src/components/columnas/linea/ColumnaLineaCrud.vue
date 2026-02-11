@@ -1,19 +1,26 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, reactive, watch } from 'vue'
-import { useColumnasLinea } from '@/composables/useColumnasLinea'
+import { useColumnasLinea } from '@/composables/columnas/linea/useColumnasLinea'
 import ColumnaLineaTable from './ColumnaLineaTable.vue'
 import ColumnaLineaModal from './ColumnaLineaModal.vue'
 import ColumnaDetailsModal from '../ColumnaDetailsModal.vue'
-import type { ColumnaLineaModel } from '@/models/columnaLinea.model'
+import type { ColumnaLineaModel } from '@/models/columnas/linea/columnaLinea.model'
 
-import { catalogosService } from '@/services/catalogosService'
+import { catalogosService } from '@/services/catalogos/catalogosService'
 
 interface Option {
 	label: string
 	value: number
 }
 
-import { useMapeosLinea } from '@/composables/useMapeosLinea'
+import { useMapeosLinea } from '@/composables/mapeos/linea/useMapeosLinea'
+
+const props = defineProps<{
+	mapeoId?: number | string | null
+	mapeoNombre?: string
+	selectedLineaId?: number | string | null
+	selectedLineaNombre?: string | null
+}>()
 
 const {
 	mapeos,
@@ -24,7 +31,7 @@ const {
 const columnasCatalogo = ref<Option[]>([])
 const lineasCatalogo = ref<Option[]>([])
 
-import type { CatalogoItem } from '@/types/catalogos'
+import type { CatalogoItem } from '@/types/catalogos/catalogos'
 
 async function fetchCatalogosColumnas() {
 	const list: CatalogoItem[] = await catalogosService.getCatalogos('CLM')
@@ -86,7 +93,7 @@ const paginated = computed(() => {
 const showModal = ref(false)
 const showDetails = ref(false)
 const mode = ref<'add' | 'edit'>('add')
-const selected = ref<ColumnaLineaModel | null>(null)
+const selected = ref<any>(null)
 
 function openAdd() {
 	mode.value = 'add'
@@ -105,12 +112,22 @@ function openDetails(item: ColumnaLineaModel) {
 	showDetails.value = true
 }
 
+async function handleSaved() {
+	await Promise.all([
+		fetchAll(props.mapeoId ?? null),
+		fetchMapeos()
+	])
+}
+
 function toggleFilterMenu(column: string) {
 	openFilter.value = openFilter.value === column ? null : column
 }
 
 onMounted(() => {
-	fetchAll()
+	if (props.mapeoId !== undefined && props.mapeoId !== null) {
+		selectedFilters.mapeos = [Number(props.mapeoId)]
+	}
+	fetchAll(props.mapeoId)
 	fetchCatalogosColumnas()
 	fetchMapeos()
 	fetchCatalogosLineas()
@@ -135,6 +152,10 @@ watch(
 	},
 	{ deep: true }
 )
+
+watch(() => props.mapeoId, (v) => {
+	selectedFilters.mapeos = v !== undefined && v !== null ? [Number(v)] : []
+})
 
 function updatePageSize() {
 	const available = window.innerHeight * 0.87 - 240
@@ -163,6 +184,7 @@ defineExpose({ openAdd })
 			@toggle="toggle"
 			@edit="openEdit"
 			@details="openDetails"
+			@add="openAdd"
 			@toggle-filter="toggleFilterMenu"
 			@select-all-mapeos="selectedFilters.mapeos = mapeos.map(x => x.value)"
 			@select-all-columnas="selectedFilters.columnas = columnasCatalogo.map(x => x.value)"
@@ -182,16 +204,27 @@ defineExpose({ openAdd })
 			:is-loading="loading"
 			:columnas="columnasCatalogo"
 			:mapeos="mapeos"
+			:lineas="lineasCatalogo"
+			:selected-mapeo-id="selected?.mapeoId ?? mapeoId ?? null"
+			:selected-mapeo-nombre="selected?.mapeoNombre ?? props.mapeoNombre ?? null"
+			:selected-linea-id="props.selectedLineaId ?? null"
+			:selected-linea-nombre="props.selectedLineaNombre ?? null"
 			:existing-items="items"
 			@close="showModal = false"
-			@saved="fetchAll"
+			@saved="handleSaved"
 		/>
 
 		<ColumnaDetailsModal
 			:show="showDetails"
 			:item="selected"
 			:mapeos="mapeos"
+			:raw-mapeos="rawMapeos"
+			:selected-mapeo-id="props.mapeoId ?? selected?.mapeoId ?? null"
+			:selected-mapeo-nombre="props.mapeoNombre ?? selected?.mapeoNombre ?? null"
 			:columnas="columnasCatalogo"
+			:lineas="lineasCatalogo"
+			:selected-linea-id="selected?.lineaId ?? props.selectedLineaId ?? null"
+			:selected-linea-nombre="selected?.lineaNombre ?? props.selectedLineaNombre ?? null"
 			@close="showDetails = false"
 		/>
 	</div>

@@ -1,15 +1,23 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, reactive, watch } from 'vue'
-import { useColumnasCampana } from '@/composables/useColumnasCampana'
-import { useMapeosCampana } from '@/composables/useMapeosCampana'
-import { catalogosService } from '@/services/catalogosService'
-import type { CatalogoItem } from '@/types/catalogos'
-import type { ColumnaCampanaModel } from '@/models/columnaCampana.model'
-import { columnaService } from '@/services/columnaService'
+import { useColumnasCampana } from '@/composables/columnas/campana/useColumnasCampana'
+import { useMapeosCampana } from '@/composables/mapeos/campana/useMapeosCampana'
+import { catalogosService } from '@/services/catalogos/catalogosService'
+import type { CatalogoItem } from '@/types/catalogos/catalogos'
+import type { ColumnaCampanaModel } from '@/models/columnas/campana/columnaCampana.model'
 
 import ColumnaCampanaTable from './ColumnaCampanaTable.vue'
 import ColumnaCampanaModal from './ColumnaCampanaModal.vue'
 import ColumnaDetailsModal from '../ColumnaDetailsModal.vue'
+
+const props = defineProps<{
+	mapeoId?: number | string | null
+	mapeoNombre?: string
+	selectedLineaId?: number | string | null
+	selectedCampanaId?: number | string | null
+	selectedLineaNombre?: string | null
+	selectedCampanaNombre?: string | null
+}>()
 
 interface Option {
 	label: string
@@ -60,7 +68,7 @@ const paginated = computed(() => {
 const showModal = ref(false)
 const showDetails = ref(false)
 const mode = ref<'add' | 'edit'>('add')
-const selected = ref<ColumnaCampanaModel | null>(null)
+const selected = ref<any>(null)
 
 async function fetchCatalogos() {
 	const list: CatalogoItem[] = await catalogosService.getCatalogos('CLM')
@@ -69,45 +77,6 @@ async function fetchCatalogos() {
 		.map(c => ({ label: c.nombre, value: c.id }))
 }
 
-async function handleSave(payload: {
-	idABCConfigMapeoCampana: number
-	idABCCatColumna: number
-	bolCarga: boolean
-	bolValidacion: boolean
-	bolEnvio: boolean
-	regex: string
-}) {
-	loading.value = true
-	try {
-		if (mode.value === 'add') {
-			await columnaService.createColumnaCampana(
-				payload.idABCConfigMapeoCampana,
-				{
-					idABCCatColumna: payload.idABCCatColumna,
-					idUsuario: 1,
-					regex: payload.regex
-				}
-			)
-		} else {
-			await columnaService.updateColumnaCampana({
-				idABCConfigMapeoCampana: payload.idABCConfigMapeoCampana,
-				idABCCatColumna: payload.idABCCatColumna,
-				bolCarga: payload.bolCarga,
-				bolValidacion: payload.bolValidacion,
-				bolEnvio: payload.bolEnvio,
-				regex: payload.regex,
-				idUsuario: 1
-			})
-		}
-
-		showModal.value = false
-		await fetchAll()
-	} catch (e: any) {
-		console.error(e)
-	} finally {
-		loading.value = false
-	}
-}
 
 function openAdd() {
 	mode.value = 'add'
@@ -126,12 +95,22 @@ function openDetails(item: ColumnaCampanaModel) {
 	showDetails.value = true
 }
 
+async function handleSaved() {
+	await Promise.all([
+		fetchAll(props.mapeoId ?? null),
+		fetchMapeos()
+	])
+}
+
 function toggleFilterMenu(column: string) {
 	openFilter.value = openFilter.value === column ? null : column
 }
 
 onMounted(() => {
-	fetchAll()
+	if (props.mapeoId !== undefined && props.mapeoId !== null) {
+		selectedFilters.mapeos = [Number(props.mapeoId)]
+	}
+	fetchAll(props.mapeoId)
 	fetchCatalogos()
 	fetchMapeos()
 	fetchCatalogosLineasYCampanas()
@@ -165,6 +144,11 @@ watch(
 	{ deep: true }
 )
 
+watch(() => props.mapeoId, (v) => {
+    selectedFilters.mapeos = v !== undefined && v !== null ? [Number(v)] : []
+    fetchAll(v)
+})
+
 function updatePageSize() {
 	const available = window.innerHeight * 0.87 - 240
 	const rows = Math.floor(available / 44)
@@ -191,6 +175,7 @@ defineExpose({ openAdd })
 					:current-page="currentPage"
 					:total-pages="totalPages"
 					@toggle="toggle"
+					@add="openAdd"
 					@edit="openEdit"
 					@details="openDetails"
 					@toggle-filter="toggleFilterMenu"
@@ -210,22 +195,40 @@ defineExpose({ openAdd })
 		</div>
 
 		<ColumnaCampanaModal
+			:key="mode + String(selected?.columnaId ?? 'new')"
 			:show="showModal"
 			:mode="mode"
 			:mapeos="mapeos"
+			:lineas="lineasCatalogo"
+			:campanas="campanasCatalogo"
 			:columnas="columnasCatalogo"
 			:initial-data="selected"
 			:existing-items="items"
 			:is-loading="loading"
+			:selected-mapeo-id="props.mapeoId"
+			:selected-mapeo-nombre="props.mapeoNombre ?? null"
+			:selected-linea-id="props.selectedLineaId ?? null"
+			:selected-campana-id="props.selectedCampanaId ?? null"
+			:selected-linea-nombre="props.selectedLineaNombre ?? null"
+			:selected-campana-nombre="props.selectedCampanaNombre ?? null"
 			@close="showModal = false"
-			@saved="handleSave"
+			@saved="handleSaved"
 		/>
 
 		<ColumnaDetailsModal
 			:show="showDetails"
 			:item="selected"
 			:mapeos="mapeos"
+			:raw-mapeos="rawMapeos"
+			:selected-mapeo-id="props.mapeoId ?? selected?.mapeoId ?? null"
+			:selected-mapeo-nombre="props.mapeoNombre ?? selected?.mapeoNombre ?? null"
 			:columnas="columnasCatalogo"
+			:lineas="lineasCatalogo"
+			:campanas="campanasCatalogo"
+			:selected-linea-id="selected?.lineaId ?? props.selectedLineaId ?? null"
+			:selected-linea-nombre="selected?.lineaNombre ?? props.selectedLineaNombre ?? null"
+			:selected-campana-id="selected?.campanaId ?? props.selectedCampanaId ?? null"
+			:selected-campana-nombre="selected?.campanaNombre ?? props.selectedCampanaNombre ?? null"
 			@close="showDetails = false"
 		/>
 	</div>
