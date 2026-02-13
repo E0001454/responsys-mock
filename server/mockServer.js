@@ -22,7 +22,9 @@ const store = {
   mapeosLinea: [],
   mapeosCampana: [],
   columnasLinea: [],
-  columnasCampana: []
+  columnasCampana: [],
+  tareasLinea: [],
+  tareasCampana: []
 }
 
 async function loadCatalogos() {
@@ -42,7 +44,17 @@ async function loadData() {
   store.mapeosCampana = await readJson('api/mapeos/campana.json')
   store.columnasLinea = await readJson('api/columnas/linea.json')
   store.columnasCampana = await readJson('api/columnas/campana.json')
+  store.tareasLinea = await readJson('api/tareas/linea.json')
+  store.tareasCampana = await readJson('api/tareas/campana.json')
   await loadCatalogos()
+  console.log('[mock-server] data loaded', {
+    mapeosLinea: store.mapeosLinea.length,
+    mapeosCampana: store.mapeosCampana.length,
+    columnasLinea: store.columnasLinea.length,
+    columnasCampana: store.columnasCampana.length,
+    tareasLinea: store.tareasLinea.length,
+    tareasCampana: store.tareasCampana.length
+  })
 }
 
 function send(res, status, data) {
@@ -51,7 +63,7 @@ function send(res, status, data) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Suppress-Toast'
+    'Access-Control-Allow-Headers': 'Content-Type, X-Suppress-Toast, ngrok-skip-browser-warning'
   })
   res.end(payload)
 }
@@ -82,8 +94,31 @@ function findMapeoLinea(id) {
   return store.mapeosLinea.find(m => Number(m.idABCConfigMapeoLinea) === Number(id))
 }
 
+function getCampanaMapeoId(item) {
+  return Number(item?.idABCConfigMapeoCampana ?? item?.idABCConfigMapeoLinea ?? item?.id ?? 0)
+}
+
 function findMapeoCampana(id) {
-  return store.mapeosCampana.find(m => Number(m.idABCConfigMapeoLinea) === Number(id))
+  const targetId = Number(id)
+  return store.mapeosCampana.find(m => getCampanaMapeoId(m) === targetId)
+}
+
+function getTareaLineaId(item) {
+  return Number(item?.idABCConfigTareaLinea ?? item?.id ?? 0)
+}
+
+function getTareaCampanaId(item) {
+  return Number(item?.idABCConfigTareaCampana ?? item?.id ?? 0)
+}
+
+function findTareaLinea(id) {
+  const targetId = Number(id)
+  return store.tareasLinea.find(t => getTareaLineaId(t) === targetId)
+}
+
+function findTareaCampana(id) {
+  const targetId = Number(id)
+  return store.tareasCampana.find(t => getTareaCampanaId(t) === targetId)
 }
 
 function matchPath(urlPath, pattern) {
@@ -131,6 +166,67 @@ function buildColumnaCampanaRecord(mapeoId, payload) {
   }
 }
 
+function buildTareaLineaRecord(lineaId, payload) {
+  const base = payload?.tarea ?? payload ?? {}
+  const carga = base.carga ?? {}
+  const validacion = base.validacion ?? {}
+  const envio = base.envio ?? {}
+  return {
+    idABCConfigTareaLinea: Number(base.idABCConfigTareaLinea ?? base.id ?? 0),
+    idABCCatLineaNegocio: Number(base.idABCCatLineaNegocio ?? lineaId ?? 0),
+    ingesta: base.ingesta ?? '',
+    carga: {
+      ejecucion: carga.ejecucion ?? base.ejecucionIngesta ?? '',
+      dia: carga.dia ?? base.diaIngesta ?? '',
+      hora: carga.hora ?? base.horaIngesta ?? ''
+    },
+    validacion: {
+      ejecucion: validacion.ejecucion ?? base.ejecucionValidacion ?? '',
+      dia: validacion.dia ?? base.diaValidacion ?? '',
+      hora: validacion.hora ?? base.horaValidacion ?? ''
+    },
+    envio: {
+      ejecucion: envio.ejecucion ?? base.ejecucionEnvio ?? '',
+      dia: envio.dia ?? base.diaEnvio ?? '',
+      hora: envio.hora ?? base.horaEnvio ?? ''
+    },
+    bolActivo: base.bolActivo ?? true,
+    fechaCreacion: now(),
+    fechaUltimaModificacion: now()
+  }
+}
+
+function buildTareaCampanaRecord(lineaId, campanaId, payload) {
+  const base = payload?.tarea ?? payload ?? {}
+  const carga = base.carga ?? {}
+  const validacion = base.validacion ?? {}
+  const envio = base.envio ?? {}
+  return {
+    idABCConfigTareaCampana: Number(base.idABCConfigTareaCampana ?? base.id ?? 0),
+    idABCCatLineaNegocio: Number(base.idABCCatLineaNegocio ?? lineaId ?? 0),
+    idABCCatCampana: Number(base.idABCCatCampana ?? campanaId ?? 0),
+    ingesta: base.ingesta ?? '',
+    carga: {
+      ejecucion: carga.ejecucion ?? base.ejecucionIngesta ?? '',
+      dia: carga.dia ?? base.diaIngesta ?? '',
+      hora: carga.hora ?? base.horaIngesta ?? ''
+    },
+    validacion: {
+      ejecucion: validacion.ejecucion ?? base.ejecucionValidacion ?? '',
+      dia: validacion.dia ?? base.diaValidacion ?? '',
+      hora: validacion.hora ?? base.horaValidacion ?? ''
+    },
+    envio: {
+      ejecucion: envio.ejecucion ?? base.ejecucionEnvio ?? '',
+      dia: envio.dia ?? base.diaEnvio ?? '',
+      hora: envio.hora ?? base.horaEnvio ?? ''
+    },
+    bolActivo: base.bolActivo ?? true,
+    fechaCreacion: now(),
+    fechaUltimaModificacion: now()
+  }
+}
+
 function withColumnCounts(list, scope) {
   if (scope === 'linea') {
     return list.map(m => ({
@@ -140,7 +236,7 @@ function withColumnCounts(list, scope) {
   }
   return list.map(m => ({
     ...m,
-    columnas: store.columnasCampana.filter(c => Number(c.idABCConfigMapeoCampana) === Number(m.idABCConfigMapeoLinea)).length
+    columnas: store.columnasCampana.filter(c => Number(c.idABCConfigMapeoCampana) === getCampanaMapeoId(m)).length
   }))
 }
 
@@ -151,8 +247,22 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || '/', `http://${req.headers.host}`)
     const pathname = url.pathname
 
+    console.log('[mock-server] request', {
+      method: req.method,
+      pathname,
+      query: url.search
+    })
+
+    if (req.method === 'GET' && (pathname === '/' || pathname === '/health')) {
+      return send(res, 200, {
+        status: 'ok',
+        apiBase: `${url.origin}${API_PREFIX}`,
+        hint: 'Use the /api endpoints (e.g. /api/lineas/mapeos).'
+      })
+    }
+
     if (!pathname.startsWith(API_PREFIX)) {
-      return send(res, 404, { message: 'Not found' })
+      return send(res, 404, { message: 'Not found', hint: 'Try /api or /health.' })
     }
 
     const pathOnly = pathname.slice(API_PREFIX.length)
@@ -169,6 +279,22 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, withColumnCounts(store.mapeosLinea, 'linea'))
       }
 
+      if (pathOnly === '/lineas/campanas/mapeos') {
+        console.log('[mock-server] GET /lineas/campanas/mapeos', {
+          count: store.mapeosCampana.length,
+          sampleId: store.mapeosCampana[0]?.idABCConfigMapeoCampana ?? null
+        })
+        return send(res, 200, withColumnCounts(store.mapeosCampana, 'campana'))
+      }
+
+      if (pathOnly === '/lineas/tareas') {
+        return send(res, 200, store.tareasLinea)
+      }
+
+      if (pathOnly === '/lineas/campanas/tareas') {
+        return send(res, 200, store.tareasCampana)
+      }
+
       const lineasMapeoParams = matchPath(pathOnly, '/lineas/:lineaId/mapeos')
       if (lineasMapeoParams) {
         const lineaId = Number(lineasMapeoParams.lineaId)
@@ -176,8 +302,21 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, withColumnCounts(list, 'linea'))
       }
 
-      if (pathOnly === '/lineas/campanas/mapeos') {
-        return send(res, 200, withColumnCounts(store.mapeosCampana, 'campana'))
+      const lineasTareaParams = matchPath(pathOnly, '/lineas/:lineaId/tareas')
+      if (lineasTareaParams) {
+        const lineaId = Number(lineasTareaParams.lineaId)
+        const list = store.tareasLinea.filter(t => Number(t.idABCCatLineaNegocio) === lineaId)
+        return send(res, 200, list)
+      }
+
+      const campanaTareaParams = matchPath(pathOnly, '/lineas/:lineaId/campanas/:campanaId/tareas')
+      if (campanaTareaParams) {
+        const lineaId = Number(campanaTareaParams.lineaId)
+        const campanaId = Number(campanaTareaParams.campanaId)
+        const list = store.tareasCampana.filter(t =>
+          Number(t.idABCCatLineaNegocio) === lineaId && Number(t.idABCCatCampana) === campanaId
+        )
+        return send(res, 200, list)
       }
 
       const columnasLineaParams = matchPath(pathOnly, '/lineas/mapeos/:mapeoId/columnas')
@@ -232,10 +371,10 @@ const server = http.createServer(async (req, res) => {
         const body = await parseBody(req)
         const lineaId = Number(campanaCreateParams.lineaId)
         const campanaId = Number(campanaCreateParams.campanaId)
-        const next = nextId(store.mapeosCampana, 'idABCConfigMapeoLinea')
+        const next = nextId(store.mapeosCampana, 'idABCConfigMapeoCampana')
         const base = body.mapeo ?? body
         const record = {
-          idABCConfigMapeoLinea: next,
+          idABCConfigMapeoCampana: next,
           idABCCatLineaNegocio: Number(base.idABCCatLineaNegocio ?? lineaId),
           idABCCatCampana: Number(base.idABCCatCampana ?? campanaId),
           idABCUsuario: Number(body.idUsuario ?? body.idABCUsuario ?? 1),
@@ -249,6 +388,33 @@ const server = http.createServer(async (req, res) => {
           fechaUltimaModificacion: now()
         }
         store.mapeosCampana.push(record)
+        return send(res, 200, record)
+      }
+
+      const tareasLineaCreate = matchPath(pathOnly, '/lineas/:lineaId/tareas')
+      if (tareasLineaCreate) {
+        const body = await parseBody(req)
+        const lineaId = Number(tareasLineaCreate.lineaId)
+        const next = nextId(store.tareasLinea, 'idABCConfigTareaLinea')
+        const record = {
+          ...buildTareaLineaRecord(lineaId, body),
+          idABCConfigTareaLinea: next
+        }
+        store.tareasLinea.push(record)
+        return send(res, 200, record)
+      }
+
+      const tareasCampanaCreate = matchPath(pathOnly, '/lineas/:lineaId/campanas/:campanaId/tareas')
+      if (tareasCampanaCreate) {
+        const body = await parseBody(req)
+        const lineaId = Number(tareasCampanaCreate.lineaId)
+        const campanaId = Number(tareasCampanaCreate.campanaId)
+        const next = nextId(store.tareasCampana, 'idABCConfigTareaCampana')
+        const record = {
+          ...buildTareaCampanaRecord(lineaId, campanaId, body),
+          idABCConfigTareaCampana: next
+        }
+        store.tareasCampana.push(record)
         return send(res, 200, record)
       }
 
@@ -291,10 +457,30 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, current)
       }
 
+      if (pathOnly === '/lineas/tareas') {
+        const body = await parseBody(req)
+        const payload = body.tarea ?? body
+        const id = Number(payload.id ?? payload.idABCConfigTareaLinea)
+        const current = findTareaLinea(id)
+        if (!current) return send(res, 404, { message: 'Not found' })
+        Object.assign(current, payload, { fechaUltimaModificacion: now() })
+        return send(res, 200, current)
+      }
+
+      if (pathOnly === '/lineas/campanas/tareas') {
+        const body = await parseBody(req)
+        const payload = body.tarea ?? body
+        const id = Number(payload.id ?? payload.idABCConfigTareaCampana)
+        const current = findTareaCampana(id)
+        if (!current) return send(res, 404, { message: 'Not found' })
+        Object.assign(current, payload, { fechaUltimaModificacion: now() })
+        return send(res, 200, current)
+      }
+
       if (pathOnly === '/lineas/campanas/mapeos') {
         const body = await parseBody(req)
         const payload = body.mapeo ?? body
-        const id = Number(payload.id ?? payload.idABCConfigMapeoLinea)
+        const id = Number(payload.id ?? payload.idABCConfigMapeoCampana ?? payload.idABCConfigMapeoLinea)
         const current = findMapeoCampana(id)
         if (!current) return send(res, 404, { message: 'Not found' })
         Object.assign(current, payload, { fechaUltimaModificacion: now() })
@@ -367,9 +553,29 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, current)
       }
 
+      if (pathOnly === '/lineas/tareas/activar' || pathOnly === '/lineas/tareas/desactivar') {
+        const body = await parseBody(req)
+        const id = Number(body?.tarea?.id ?? body?.id)
+        const current = findTareaLinea(id)
+        if (!current) return send(res, 404, { message: 'Not found' })
+        current.bolActivo = pathOnly.endsWith('/activar')
+        current.fechaUltimaModificacion = now()
+        return send(res, 200, current)
+      }
+
+      if (pathOnly === '/lineas/campanas/tareas/activar' || pathOnly === '/lineas/campanas/tareas/desactivar') {
+        const body = await parseBody(req)
+        const id = Number(body?.tarea?.id ?? body?.id)
+        const current = findTareaCampana(id)
+        if (!current) return send(res, 404, { message: 'Not found' })
+        current.bolActivo = pathOnly.endsWith('/activar')
+        current.fechaUltimaModificacion = now()
+        return send(res, 200, current)
+      }
+
       if (pathOnly === '/lineas/campanas/mapeos/activar' || pathOnly === '/lineas/campanas/mapeos/desactivar') {
         const body = await parseBody(req)
-        const id = Number(body?.mapeo?.id ?? body?.id)
+        const id = Number(body?.mapeo?.id ?? body?.mapeo?.idABCConfigMapeoCampana ?? body?.id)
         const current = findMapeoCampana(id)
         if (!current) return send(res, 404, { message: 'Not found' })
         current.bolActivo = pathOnly.endsWith('/activar')
@@ -406,6 +612,20 @@ const server = http.createServer(async (req, res) => {
         const mapeoId = Number(mapeoLineaDelete.mapeoId)
         store.mapeosLinea = store.mapeosLinea.filter(m => Number(m.idABCConfigMapeoLinea) !== mapeoId)
         store.columnasLinea = store.columnasLinea.filter(c => Number(c.idABCConfigMapeoLinea) !== mapeoId)
+        return send(res, 200, { ok: true })
+      }
+
+      const tareaLineaDelete = matchPath(pathOnly, '/lineas/:lineaId/tareas/:tareaId')
+      if (tareaLineaDelete) {
+        const tareaId = Number(tareaLineaDelete.tareaId)
+        store.tareasLinea = store.tareasLinea.filter(t => getTareaLineaId(t) !== tareaId)
+        return send(res, 200, { ok: true })
+      }
+
+      const tareaCampanaDelete = matchPath(pathOnly, '/lineas/:lineaId/campanas/:campanaId/tareas/:tareaId')
+      if (tareaCampanaDelete) {
+        const tareaId = Number(tareaCampanaDelete.tareaId)
+        store.tareasCampana = store.tareasCampana.filter(t => getTareaCampanaId(t) !== tareaId)
         return send(res, 200, { ok: true })
       }
     }
