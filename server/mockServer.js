@@ -426,7 +426,7 @@ const server = http.createServer(async (req, res) => {
           idABCCatLineaNegocio: Number(base.idABCCatLineaNegocio ?? lineaId),
           idABCCatCampana: Number(base.idABCCatCampana ?? campanaId),
           idABCUsuario: Number(body.idUsuario ?? body.idABCUsuario ?? 1),
-          nombre: base.nombre ?? `Mapeo Campana ${next}`,
+          nombre: base.nombre ?? `Mapeo Campaña ${next}`,
           descripcion: base.descripcion ?? '',
           bolActivo: base.bolActivo ?? true,
           validar: base.validar ?? false,
