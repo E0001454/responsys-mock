@@ -9,39 +9,66 @@ export interface TareaLineaFormModel {
   ejecucionIngesta: string
   diaIngesta: string
   horaIngesta: string
+  cargaSlots?: Array<{ dia: string; hora: string }>
   ejecucionValidacion: string
   diaValidacion: string
   horaValidacion: string
+  validacionSlots?: Array<{ dia: string; hora: string }>
   ejecucionEnvio: string
   diaEnvio: string
   horaEnvio: string
+  envioSlots?: Array<{ dia: string; hora: string }>
   idUsuario?: number | ''
 }
 
-export function toCreateTareaLineaPayload(form: TareaLineaFormModel): CreateTareaLineaPayload {
+const toSchedule = (ejecucion: string, dia: string, hora: string) => {
+  const isComplete = Boolean(ejecucion && dia && hora)
   return {
+    ejecucion: isComplete ? ejecucion : null,
+    dia: isComplete ? dia : null,
+    hora: isComplete ? hora : null
+  }
+}
+
+const normalizeSlots = (slots: Array<{ dia: string; hora: string }> | undefined, dia: string, hora: string) => {
+  const list = Array.isArray(slots) ? slots.filter(item => item?.dia && item?.hora) : []
+  if (dia && hora && !list.some(item => item.dia === dia && item.hora === hora)) {
+    list.unshift({ dia, hora })
+  }
+  return list
+}
+
+const buildScheduleList = (ejecucion: string, slots: Array<{ dia: string; hora: string }>) => {
+  return slots.map(slot => toSchedule(ejecucion, slot.dia, slot.hora))
+}
+
+const at = <T>(list: T[], index: number): T | null => (index >= 0 && index < list.length ? list[index] : null)
+
+export function toCreateTareaLineaPayloads(form: TareaLineaFormModel): CreateTareaLineaPayload[] {
+  const cargaSlots = normalizeSlots(form.cargaSlots, form.diaIngesta, form.horaIngesta)
+  const validacionSlots = normalizeSlots(form.validacionSlots, form.diaValidacion, form.horaValidacion)
+  const envioSlots = normalizeSlots(form.envioSlots, form.diaEnvio, form.horaEnvio)
+
+  const cargaList = buildScheduleList(form.ejecucionIngesta, cargaSlots)
+  const validacionList = buildScheduleList(form.ejecucionValidacion, validacionSlots)
+  const envioList = buildScheduleList(form.ejecucionEnvio, envioSlots)
+  const maxItems = Math.max(cargaList.length, validacionList.length, envioList.length, 1)
+
+  return Array.from({ length: maxItems }, (_, index) => ({
     tarea: {
       idABCCatLineaNegocio: Number(form.idABCCatLineaNegocio ?? 0),
       ingesta: form.ingesta,
-      carga: {
-        ejecucion: form.ejecucionIngesta,
-        dia: form.diaIngesta,
-        hora: form.horaIngesta
-      },
-      validacion: {
-        ejecucion: form.ejecucionValidacion,
-        dia: form.diaValidacion,
-        hora: form.horaValidacion
-      },
-      envio: {
-        ejecucion: form.ejecucionEnvio,
-        dia: form.diaEnvio,
-        hora: form.horaEnvio
-      }
+      carga: at(cargaList, index) ?? at(cargaList, 0) ?? toSchedule('', '', ''),
+      validacion: at(validacionList, index) ?? toSchedule('', '', ''),
+      envio: at(envioList, index) ?? toSchedule('', '', '')
     },
     idABCUsuario: Number(form.idUsuario ?? 1),
     idUsuario: form.idUsuario === '' ? undefined : Number(form.idUsuario ?? 1)
-  }
+  }))
+}
+
+export function toCreateTareaLineaPayload(form: TareaLineaFormModel): CreateTareaLineaPayload {
+  return toCreateTareaLineaPayloads(form)[0]
 }
 
 export function toUpdateTareaLineaPayload(
@@ -53,21 +80,9 @@ export function toUpdateTareaLineaPayload(
       id: tareaId,
       idABCCatLineaNegocio: Number(form.idABCCatLineaNegocio ?? 0),
       ingesta: form.ingesta,
-      carga: {
-        ejecucion: form.ejecucionIngesta,
-        dia: form.diaIngesta,
-        hora: form.horaIngesta
-      },
-      validacion: {
-        ejecucion: form.ejecucionValidacion,
-        dia: form.diaValidacion,
-        hora: form.horaValidacion
-      },
-      envio: {
-        ejecucion: form.ejecucionEnvio,
-        dia: form.diaEnvio,
-        hora: form.horaEnvio
-      }
+      carga: toSchedule(form.ejecucionIngesta, form.diaIngesta, form.horaIngesta),
+      validacion: toSchedule(form.ejecucionValidacion, form.diaValidacion, form.horaValidacion),
+      envio: toSchedule(form.ejecucionEnvio, form.diaEnvio, form.horaEnvio)
     },
     idUsuario: Number(form.idUsuario ?? 1)
   }
