@@ -1,5 +1,9 @@
 import { api } from '../../api'
-import type { TareaCampanaData } from '@/types/tareas/campana'
+import type {
+  TareaCampanaData,
+  TareaCampanaHorarioPostItem,
+  TareaCampanaHorariosPostPayload
+} from '@/types/tareas/campana'
 import { normalizeTareasCampana } from '@/adapters/tareas/campana/tareaCampana.adapter'
 
 interface ApiClient {
@@ -7,7 +11,7 @@ interface ApiClient {
   getTareasCampanaByLineaCampana(lineaId: string | number, campanaId: string | number): Promise<TareaCampanaData[]>
   createTareaCampana(lineaId: string | number, campanaId: string | number, payload: any): Promise<TareaCampanaData>
   getHorariosTareaCampana(tareaId: string | number): Promise<any[]>
-  postHorariosTareaCampana(tareaId: string | number, payload: any): Promise<any>
+  postHorariosTareaCampana(tareaId: string | number, payload: TareaCampanaHorariosPostPayload): Promise<any>
   patchActivarHorarioTareaCampana(tareaId: string | number, payload: any): Promise<any>
   patchDesactivarHorarioTareaCampana(tareaId: string | number, payload: any): Promise<any>
   updateTareaCampana(payload: any): Promise<TareaCampanaData>
@@ -26,11 +30,75 @@ function resolveTareaCampanaId(response: any): number {
   return Number(raw ?? 0)
 }
 
+function normalizeText(value: unknown): string {
+  return String(value ?? '').trim().toLowerCase()
+}
+
+function resolveDayToken(horario: any): string {
+  const dayId = Number(
+    horario?.dia?.id
+    ?? horario?.diaId
+    ?? horario?.diaSemana?.id
+    ?? horario?.idABCCatDia
+    ?? 0
+  )
+  if (dayId > 0) return `d:${dayId}`
+
+  const dayName = normalizeText(
+    horario?.dia?.nombre
+    ?? horario?.dia
+    ?? horario?.diaSemana?.nombre
+    ?? horario?.nombreDia
+    ?? ''
+  )
+  return dayName ? `dn:${dayName}` : 'd:0'
+}
+
+function resolveHourToken(horario: any): string {
+  const hourId = Number(
+    horario?.dia?.hora?.id
+    ?? horario?.hora?.id
+    ?? horario?.horaId
+    ?? horario?.idABCCatHora
+    ?? 0
+  )
+  if (hourId > 0) return `h:${hourId}`
+
+  const hourName = normalizeText(
+    horario?.dia?.hora?.nombre
+    ?? horario?.hora?.nombre
+    ?? horario?.hora
+    ?? horario?.nombreHora
+    ?? ''
+  )
+  return hourName ? `hn:${hourName}` : 'h:0'
+}
+
 function horarioSignature(horario: any): string {
-  const typeId = Number(horario?.tipoHorario?.id ?? horario?.tipo?.id ?? horario?.idABCCatTipoHorario ?? 0)
+  return `${resolveDayToken(horario)}|${resolveHourToken(horario)}`
+}
+
+function toHorarioPostItem(horario: any): TareaCampanaHorarioPostItem | null {
   const dayId = Number(horario?.dia?.id ?? 0)
   const hourId = Number(horario?.dia?.hora?.id ?? horario?.hora?.id ?? 0)
-  return `${typeId}|${dayId}|${hourId}`
+  if (!dayId || !hourId) return null
+
+  return {
+    dia: {
+      id: dayId,
+      hora: { id: hourId }
+    }
+  }
+}
+
+function normalizeHorariosForPost(horarios: any[]): TareaCampanaHorarioPostItem[] {
+  return uniqueHorariosBySignature(horarios)
+    .map(toHorarioPostItem)
+    .filter((item): item is TareaCampanaHorarioPostItem => Boolean(item))
+}
+
+function resolveHorarioCampanaId(horario: any): number {
+  return Number(horario?.idABCConfigHorarioTareaCampana ?? horario?.horarioId ?? horario?.id ?? 0)
 }
 
 function uniqueHorariosBySignature(horarios: any[]): any[] {
@@ -47,13 +115,126 @@ function uniqueHorariosBySignature(horarios: any[]): any[] {
   return result
 }
 
+function isHorarioActive(horario: any): boolean {
+  return (horario?.activo ?? horario?.bolActivo ?? true) !== false
+}
+
+function extractArrayResponse(raw: unknown): any[] {
+  if (Array.isArray(raw)) return raw
+  const data = (raw as { data?: unknown } | null | undefined)?.data
+  return Array.isArray(data) ? data : []
+}
+
+async function syncHorariosByTareaId(
+  tareaId: number,
+  payload: {
+    horarios: any[]
+    idUsuario: number
+    horariosDesactivarIds: number[]
+    horariosActivarIds: number[]
+  }
+) {
+  if (!tareaId || tareaId <= 0) return
+
+  const requiresExistingHorarios =
+    (Array.isArray(payload.horarios) && payload.horarios.length > 0)
+    || payload.horariosActivarIds.length > 0
+    || payload.horariosDesactivarIds.length > 0
+
+  const existingHorarios = requiresExistingHorarios
+    ? await apiClient.getHorariosTareaCampana(tareaId).catch(() => [])
+    : []
+
+  let horariosActivarIds = Array.isArray(payload.horariosActivarIds)
+    ? payload.horariosActivarIds.map(Number).filter((id) => !Number.isNaN(id) && id > 0)
+    : []
+  let horariosDesactivarIds = Array.isArray(payload.horariosDesactivarIds)
+    ? payload.horariosDesactivarIds.map(Number).filter((id) => !Number.isNaN(id) && id > 0)
+    : []
+
+  if (Array.isArray(payload.horarios)) {
+    const requestedHorarios = uniqueHorariosBySignature(payload.horarios)
+    const requestedSignatures = new Set(requestedHorarios.map(horarioSignature))
+    const inferredActivarIds: number[] = []
+    const inferredDesactivarIds: number[] = []
+
+    for (const existing of Array.isArray(existingHorarios) ? existingHorarios : []) {
+      const horarioId = resolveHorarioCampanaId(existing)
+      if (horarioId <= 0) continue
+
+      const signature = horarioSignature(existing)
+      const existsInRequested = requestedSignatures.has(signature)
+      const active = isHorarioActive(existing)
+
+      if (existsInRequested && !active) {
+        inferredActivarIds.push(horarioId)
+      }
+
+      if (!existsInRequested && active) {
+        inferredDesactivarIds.push(horarioId)
+      }
+    }
+
+    horariosActivarIds = Array.from(new Set([...horariosActivarIds, ...inferredActivarIds]))
+    horariosDesactivarIds = Array.from(new Set([...horariosDesactivarIds, ...inferredDesactivarIds]))
+
+  }
+
+  if (Array.isArray(payload.horarios) && payload.horarios.length) {
+    const existingSignatures = new Set(
+      (Array.isArray(existingHorarios) ? existingHorarios : []).map(horarioSignature)
+    )
+    const pending = uniqueHorariosBySignature(payload.horarios)
+      .filter(h => !existingSignatures.has(horarioSignature(h)))
+
+    const horarios = normalizeHorariosForPost(pending)
+    if (horarios.length) {
+      await apiClient.postHorariosTareaCampana(tareaId, {
+        horarios,
+        idUsuario: payload.idUsuario
+      })
+    }
+  }
+
+  if (horariosActivarIds.length) {
+    const uniqueIds = Array.from(new Set(horariosActivarIds))
+
+    for (const horarioId of uniqueIds) {
+      await apiClient.patchActivarHorarioTareaCampana(tareaId, {
+        horario: { id: horarioId },
+        idUsuario: payload.idUsuario
+      })
+    }
+  }
+
+  if (horariosDesactivarIds.length) {
+    const uniqueIds = Array.from(new Set(horariosDesactivarIds))
+
+    for (const horarioId of uniqueIds) {
+      await apiClient.patchDesactivarHorarioTareaCampana(tareaId, {
+        horario: { id: horarioId },
+        idUsuario: payload.idUsuario
+      })
+    }
+  }
+}
+
 export const tareaCampanaService = {
-  getAll() {
-    return apiClient.getTareasCampana().then(normalizeTareasCampana)
+  async getAll() {
+    const raw = await apiClient.getTareasCampana()
+    const list = extractArrayResponse(raw)
+    return normalizeTareasCampana(list)
   },
 
-  getByLineaCampana(lineaId: string | number, campanaId: string | number) {
-    return apiClient.getTareasCampanaByLineaCampana(lineaId, campanaId).then(normalizeTareasCampana)
+  async getByLineaCampana(lineaId: string | number, campanaId: string | number) {
+    const raw = await apiClient.getTareasCampanaByLineaCampana(lineaId, campanaId)
+    const list = extractArrayResponse(raw)
+    return normalizeTareasCampana(list)
+  },
+
+  async getHorariosByTarea(tareaId: string | number) {
+    const raw = await apiClient.getHorariosTareaCampana(tareaId).catch(() => [])
+    return extractArrayResponse(raw)
   },
 
   async create(lineaId: string | number, campanaId: string | number, payload: any) {
@@ -71,9 +252,10 @@ export const tareaCampanaService = {
     const tareaId = resolveTareaCampanaId(tareaResponse)
 
     if (tareaId && Array.isArray(normalized.horarios) && normalized.horarios.length) {
-      for (const horario of normalized.horarios) {
+      const horarios = normalizeHorariosForPost(normalized.horarios)
+      if (horarios.length) {
         await apiClient.postHorariosTareaCampana(tareaId, {
-          horario,
+          horarios,
           idUsuario: normalized.idUsuario
         })
       }
@@ -115,41 +297,7 @@ export const tareaCampanaService = {
     const tareaResponse = await apiClient.updateTareaCampana(tareaPayload)
     const tareaId = resolveTareaCampanaId(tareaResponse)
 
-    if (tareaId && Array.isArray(normalized.horarios) && normalized.horarios.length) {
-      const existing = await apiClient.getHorariosTareaCampana(tareaId).catch(() => [])
-      const existingSignatures = new Set(
-        (Array.isArray(existing) ? existing : []).map(horarioSignature)
-      )
-      const pending = uniqueHorariosBySignature(normalized.horarios)
-        .filter(h => !existingSignatures.has(horarioSignature(h)))
-
-      for (const horario of pending) {
-        await apiClient.postHorariosTareaCampana(tareaId, {
-          horario,
-          idUsuario: normalized.idUsuario
-        })
-      }
-    }
-
-    if (tareaId && normalized.horariosActivarIds.length) {
-      const uniqueIds = Array.from(new Set(normalized.horariosActivarIds))
-      for (const horarioId of uniqueIds) {
-        await apiClient.patchActivarHorarioTareaCampana(tareaId, {
-          horario: { id: horarioId },
-          idUsuario: normalized.idUsuario
-        })
-      }
-    }
-
-    if (tareaId && normalized.horariosDesactivarIds.length) {
-      const uniqueIds = Array.from(new Set(normalized.horariosDesactivarIds))
-      for (const horarioId of uniqueIds) {
-        await apiClient.patchDesactivarHorarioTareaCampana(tareaId, {
-          horario: { id: horarioId },
-          idUsuario: normalized.idUsuario
-        })
-      }
-    }
+    await syncHorariosByTareaId(tareaId, normalized)
 
     api
       .postBitacoraByContext(
@@ -162,6 +310,21 @@ export const tareaCampanaService = {
       .catch(() => {})
 
     return tareaResponse
+  },
+
+  async syncHorarios(tareaId: number, payload: any) {
+    const normalized = {
+      horarios: payload?.horarios ?? [],
+      idUsuario: Number(payload?.idUsuario ?? payload?.idABCUsuario ?? 1),
+      horariosDesactivarIds: Array.isArray(payload?.horariosDesactivarIds)
+        ? payload.horariosDesactivarIds.map(Number).filter((id: number) => !Number.isNaN(id) && id > 0)
+        : [],
+      horariosActivarIds: Array.isArray(payload?.horariosActivarIds)
+        ? payload.horariosActivarIds.map(Number).filter((id: number) => !Number.isNaN(id) && id > 0)
+        : []
+    }
+
+    await syncHorariosByTareaId(Number(tareaId ?? 0), normalized)
   },
 
   delete(lineaId: string | number, campanaId: string | number, tareaId: string | number) {
@@ -197,6 +360,48 @@ export const tareaCampanaService = {
         )
         .catch(() => {})
       return res
+    })
+  },
+
+  patchActivarHorario(tareaId: number, horarioId: number, idUsuario: number) {
+    return apiClient.patchActivarHorarioTareaCampana(tareaId, {
+      horario: { id: horarioId },
+      idUsuario
+    })
+  },
+
+  patchDesactivarHorario(tareaId: number, horarioId: number, idUsuario: number) {
+    return apiClient.patchDesactivarHorarioTareaCampana(tareaId, {
+      horario: { id: horarioId },
+      idUsuario
+    })
+  },
+
+  patchActivarHorarioBySlot(tareaId: number, slot: { dia: number; hora: number }, idUsuario: number) {
+    return apiClient.patchActivarHorarioTareaCampana(tareaId, {
+      horarios: [
+        {
+          dia: {
+            id: Number(slot?.dia ?? 0),
+            hora: { id: Number(slot?.hora ?? 0) }
+          }
+        }
+      ],
+      idUsuario
+    })
+  },
+
+  patchDesactivarHorarioBySlot(tareaId: number, slot: { dia: number; hora: number }, idUsuario: number) {
+    return apiClient.patchDesactivarHorarioTareaCampana(tareaId, {
+      horarios: [
+        {
+          dia: {
+            id: Number(slot?.dia ?? 0),
+            hora: { id: Number(slot?.hora ?? 0) }
+          }
+        }
+      ],
+      idUsuario
     })
   }
 }

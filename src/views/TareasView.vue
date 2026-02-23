@@ -7,6 +7,8 @@ import TareaLineaModal from '@/components/tareas/linea/TareaLineaModal.vue'
 import TareaCampanaModal from '@/components/tareas/campana/TareaCampanaModal.vue'
 import TareaLineaDetailsModal from '@/components/tareas/linea/TareaLineaDetailsModal.vue'
 import TareaCampanaDetailsModal from '@/components/tareas/campana/TareaCampanaDetailsModal.vue'
+import TareaSaveProgressOverlay from '@/components/tareas/shared/TareaSaveProgressOverlay.vue'
+import FormActionConfirmModal from '@/components/shared/FormActionConfirmModal.vue'
 import { catalogosService } from '@/services/catalogos/catalogosService'
 import { tareaLineaService } from '@/services/tareas/linea/tareaLineaService'
 import { tareaCampanaService } from '@/services/tareas/campana/tareaCampanaService'
@@ -16,12 +18,25 @@ import type { MapeoLineaData } from '@/types/mapeos/linea'
 import type { MapeoCampanaData } from '@/types/mapeos/campana'
 import type { TareaLineaFormModel } from '@/models/tareas/linea/tareaLinea.model'
 import type { TareaCampanaFormModel } from '@/models/tareas/campana/tareaCampana.model'
-import { toCreateTareaLineaPayloads, toUpdateTareaLineaPayload } from '@/models/tareas/linea/tareaLinea.model'
-import { toCreateTareaCampanaPayloads, toUpdateTareaCampanaPayload } from '@/models/tareas/campana/tareaCampana.model'
+import { toCreateTareaLineaPayloads, toUpdateTareaLineaOperations } from '@/models/tareas/linea/tareaLinea.model'
+import { toCreateTareaCampanaPayloads, toUpdateTareaCampanaOperations } from '@/models/tareas/campana/tareaCampana.model'
+import {
+  normalizeWeekdayInputValue,
+  toHoraLabel,
+  type Option as CatalogOption
+} from '@/composables/tareas/tareaScheduleUtils'
+import {
+  enrichTareaWithMapeoName,
+  mapCatalogosToOptions,
+  resolveTareaMapeoId,
+  stageKeys,
+  stageTypeByKey
+} from '@/composables/tareas/tareasViewUtils'
+import { addToast } from '@/stores/toastStore'
 
 const tabs = [
   { key: 'linea', label: 'Lineas de negocio', icon: Layers },
-  { key: 'campana', label: 'Campanas', icon: Megaphone }
+  { key: 'campana', label: 'Campañas', icon: Megaphone }
 ] as const
 
 type TabKey = typeof tabs[number]['key']
@@ -35,11 +50,14 @@ interface Option {
 type TareaLineaRow = {
   idABCConfigTareaLinea: number
   idABCCatLineaNegocio: number
-  ingesta: string
+  ingesta?: string
   bolActivo: boolean
-  carga?: { ejecucion?: string; dia?: string; hora?: string }
-  validacion?: { ejecucion?: string; dia?: string; hora?: string }
-  envio?: { ejecucion?: string; dia?: string; hora?: string }
+  carga?: { ejecucionId?: number; ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
+  validacion?: { ejecucionId?: number; ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
+  envio?: { ejecucionId?: number; ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
+  idsTarea?: { carga?: number; validacion?: number; envio?: number }
+  tareasPorTipo?: { carga?: any; validacion?: any; envio?: any }
+  horarios?: any[]
   fechaCreacion?: string
   fechaUltimaModificacion?: string
   [key: string]: any
@@ -49,11 +67,14 @@ type TareaCampanaRow = {
   idABCConfigTareaCampana: number
   idABCCatLineaNegocio: number
   idABCCatCampana: number
-  ingesta: string
+  ingesta?: string
   bolActivo: boolean
-  carga?: { ejecucion?: string; dia?: string; hora?: string }
-  validacion?: { ejecucion?: string; dia?: string; hora?: string }
-  envio?: { ejecucion?: string; dia?: string; hora?: string }
+  carga?: { ejecucionId?: number; ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
+  validacion?: { ejecucionId?: number; ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
+  envio?: { ejecucionId?: number; ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
+  idsTarea?: { carga?: number; validacion?: number; envio?: number }
+  tareasPorTipo?: { carga?: any; validacion?: any; envio?: any }
+  horarios?: any[]
   fechaCreacion?: string
   fechaUltimaModificacion?: string
   [key: string]: any
@@ -61,11 +82,62 @@ type TareaCampanaRow = {
 
 const lineasDisponibles = ref<Option[]>([])
 const campanasDisponibles = ref<Option[]>([])
+const diasDisponibles = ref<CatalogOption[]>([])
+const horasDisponibles = ref<CatalogOption[]>([])
+const ejecucionesDisponibles = ref<CatalogOption[]>([])
+const actividadTipoIds = ref({
+  carga: 1,
+  validacion: 2,
+  envio: 3
+})
 
 const allTareasLinea = ref<TareaLineaRow[]>([])
 const allTareasCampana = ref<TareaCampanaRow[]>([])
 const allMapeosLinea = ref<MapeoLineaData[]>([])
 const allMapeosCampana = ref<MapeoCampanaData[]>([])
+
+const tareasLineaEnriched = computed(() =>
+  allTareasLinea.value.map(item => enrichTareaWithMapeoName(item, allMapeosLinea.value))
+)
+
+const tareasCampanaEnriched = computed(() =>
+  allTareasCampana.value.map(item => enrichTareaWithMapeoName(item, allMapeosCampana.value))
+)
+
+const selectedEditMapeoId = computed(() => {
+  if (modalMode.value !== 'edit' || !selectedItem.value) return 0
+  return resolveTareaMapeoId(selectedItem.value)
+})
+
+const mapeosLineaForModal = computed(() => {
+  const usedIds = new Set(
+    allTareasLinea.value
+      .map(item => resolveTareaMapeoId(item))
+      .filter(id => id > 0)
+  )
+
+  return allMapeosLinea.value.filter(mapeo => {
+    const mapeoId = Number(mapeo.idABCConfigMapeoLinea ?? 0)
+    if (mapeoId <= 0) return false
+    if (modalMode.value === 'edit' && mapeoId === selectedEditMapeoId.value) return true
+    return !usedIds.has(mapeoId)
+  })
+})
+
+const mapeosCampanaForModal = computed(() => {
+  const usedIds = new Set(
+    allTareasCampana.value
+      .map(item => resolveTareaMapeoId(item))
+      .filter(id => id > 0)
+  )
+
+  return allMapeosCampana.value.filter(mapeo => {
+    const mapeoId = Number(mapeo.idABCConfigMapeoLinea ?? 0)
+    if (mapeoId <= 0) return false
+    if (modalMode.value === 'edit' && mapeoId === selectedEditMapeoId.value) return true
+    return !usedIds.has(mapeoId)
+  })
+})
 
 const isLoadingLinea = ref(false)
 const isLoadingCampana = ref(false)
@@ -98,6 +170,34 @@ const selectedItem = ref<TareaLineaRow | TareaCampanaRow | null>(null)
 const showDetailsModal = ref(false)
 const detailTab = ref<TabKey>('linea')
 const detailItem = ref<TareaLineaRow | TareaCampanaRow | null>(null)
+const isLoadingDetails = ref(false)
+const showSaveProgress = ref(false)
+const saveProgressCompleted = ref(0)
+const saveProgressTotal = ref(1)
+const saveProgressAction = ref('')
+const statusToggleLocks = ref(new Set<string>())
+const showStatusConfirmModal = ref(false)
+const pendingStatusItem = ref<TareaLineaRow | TareaCampanaRow | null>(null)
+
+const statusConfirmLoading = computed(() => {
+  if (!pendingStatusItem.value) return false
+  return isCampanaRow(pendingStatusItem.value)
+    ? isLoadingCampana.value
+    : isLoadingLinea.value
+})
+
+const statusConfirmTitle = computed(() => {
+  if (!pendingStatusItem.value) return 'Confirmar cambio de estatus'
+  return pendingStatusItem.value.bolActivo
+    ? 'Confirmar desactivación'
+    : 'Confirmar activación'
+})
+
+const statusConfirmMessage = computed(() => {
+  if (!pendingStatusItem.value) return '¿Deseas continuar con este cambio de estatus?'
+  const actionText = pendingStatusItem.value.bolActivo ? 'desactivar' : 'activar'
+  return `¿Deseas ${actionText} este registro de tarea?`
+})
 
 const normalizeString = (s: unknown) => {
   if (s === null || s === undefined) return ''
@@ -132,12 +232,30 @@ function matchesSearch(nameValue: string, query: string) {
   return qTokens.every(token => nameWords.some(w => w.includes(token)))
 }
 
-function getSearchableText(item: { ingesta?: string; carga?: { ejecucion?: string } }) {
-  return `${item.ingesta ?? ''} ${item.carga?.ejecucion ?? ''}`.trim()
+function getSearchableText(item: { ingesta?: string; carga?: { ejecucion?: string }; idABCConfigTareaLinea?: number; idABCConfigTareaCampana?: number }) {
+  return `${item.ingesta ?? ''} ${item.carga?.ejecucion ?? ''} ${item.idABCConfigTareaLinea ?? ''} ${item.idABCConfigTareaCampana ?? ''}`.trim()
+}
+
+function toTimestamp(value?: string) {
+  const parsed = value ? Date.parse(value) : Number.NaN
+  return Number.isFinite(parsed) ? parsed : -1
+}
+
+function newestFirstCompare(
+  left: { fechaCreacion?: string; idABCConfigTareaLinea?: number; idABCConfigTareaCampana?: number },
+  right: { fechaCreacion?: string; idABCConfigTareaLinea?: number; idABCConfigTareaCampana?: number }
+) {
+  const leftTs = toTimestamp(left.fechaCreacion)
+  const rightTs = toTimestamp(right.fechaCreacion)
+  if (rightTs !== leftTs) return rightTs - leftTs
+
+  const leftId = Number(left.idABCConfigTareaCampana ?? left.idABCConfigTareaLinea ?? 0)
+  const rightId = Number(right.idABCConfigTareaCampana ?? right.idABCConfigTareaLinea ?? 0)
+  return rightId - leftId
 }
 
 const filteredTareasLinea = computed(() => {
-  return allTareasLinea.value.filter(item => {
+  return tareasLineaEnriched.value.filter(item => {
     const matchSearch = matchesSearch(getSearchableText(item), searchQueryLinea.value || '')
     const matchLinea = selectedFiltersLinea.lineas.length
       ? selectedFiltersLinea.lineas.includes(item.idABCCatLineaNegocio)
@@ -146,11 +264,11 @@ const filteredTareasLinea = computed(() => {
       ? selectedFiltersLinea.status.includes(item.bolActivo)
       : true
     return matchSearch && matchLinea && matchStatus
-  })
+  }).sort(newestFirstCompare)
 })
 
 const filteredTareasCampana = computed(() => {
-  return allTareasCampana.value.filter(item => {
+  return tareasCampanaEnriched.value.filter(item => {
     const matchSearch = matchesSearch(getSearchableText(item), searchQueryCampana.value || '')
     const matchLinea = selectedFiltersCampana.lineas.length
       ? selectedFiltersCampana.lineas.includes(item.idABCCatLineaNegocio)
@@ -162,7 +280,7 @@ const filteredTareasCampana = computed(() => {
       ? selectedFiltersCampana.campanas.includes(item.idABCCatCampana)
       : true
     return matchSearch && matchLinea && matchStatus && matchCampana
-  })
+  }).sort(newestFirstCompare)
 })
 
 const totalPagesLinea = computed(() =>
@@ -214,18 +332,85 @@ const getCampanaLabel = (id?: number) => {
   return campanasDisponibles.value.find(x => x.value === id)?.label ?? `Campaña ${id}`
 }
 
-function mapCatalogosToOptions(items: { id: number; nombre: string; bolActivo: boolean }[]) {
-  return items
-    .filter(item => item.bolActivo !== false)
-    .map(item => ({ label: item.nombre, value: item.id }))
+function toHourMinutes(value: unknown) {
+  const label = toHoraLabel(value)
+  const [hoursRaw, minutesRaw] = String(label ?? '').split(':')
+  const hours = Number(hoursRaw)
+  const minutes = Number(minutesRaw)
+  if ([hours, minutes].some(Number.isNaN)) return Number.POSITIVE_INFINITY
+  return (hours * 60) + minutes
+}
+
+function resolveHourLabelFromCatalogItem(item: { nombre?: string; codigo?: string }) {
+  const fromNombre = toHoraLabel(item?.nombre)
+  if (fromNombre) return fromNombre
+
+  const fromCodigo = toHoraLabel(item?.codigo)
+  if (fromCodigo) return fromCodigo
+
+  const rawNombre = String(item?.nombre ?? '').trim()
+  if (rawNombre) return rawNombre
+
+  return String(item?.codigo ?? '').trim()
 }
 
 async function fetchCatalogos() {
   const catalogos = await catalogosService.getCatalogosAgrupados()
   const lineas = catalogos.find(group => group.codigo === 'LNN')?.registros ?? []
   const campanas = catalogos.find(group => group.codigo === 'CMP')?.registros ?? []
+  const dias = catalogos.find(group => String(group.codigo).toUpperCase() === 'DIA')?.registros ?? []
+  const horas = catalogos.find(group => String(group.codigo).toUpperCase() === 'HRS')?.registros ?? []
+  const ejecuciones = catalogos.find(group => String(group.codigo).toUpperCase() === 'EJE')?.registros ?? []
+  const actividades = catalogos.find(group => String(group.codigo).toUpperCase() === 'ACT')?.registros ?? []
+  const actividadByCode = new Map(
+    actividades
+      .map(item => [String(item?.codigo ?? '').toUpperCase(), Number(item?.id ?? 0)] as const)
+      .filter((entry) => entry[1] > 0)
+  )
+  actividadTipoIds.value = {
+    carga: actividadByCode.get('CAG') ?? 1,
+    validacion: actividadByCode.get('VLD') ?? 2,
+    envio: actividadByCode.get('ENV') ?? 3
+  }
   lineasDisponibles.value = mapCatalogosToOptions(lineas)
   campanasDisponibles.value = mapCatalogosToOptions(campanas)
+  diasDisponibles.value = [...dias]
+    .sort((left, right) => {
+      const leftInactive = left?.bolActivo === false ? 1 : 0
+      const rightInactive = right?.bolActivo === false ? 1 : 0
+      if (leftInactive !== rightInactive) return leftInactive - rightInactive
+      const leftDay = normalizeWeekdayInputValue(left?.nombre)
+      const rightDay = normalizeWeekdayInputValue(right?.nombre)
+      const order: Record<string, number> = {
+        Lunes: 1,
+        Martes: 2,
+        Miércoles: 3,
+        Jueves: 4,
+        Viernes: 5
+      }
+      return (order[leftDay] ?? 999) - (order[rightDay] ?? 999)
+    })
+    .map(item => ({
+      label: normalizeWeekdayInputValue(item.nombre) || item.nombre,
+      value: item.id
+    }))
+  horasDisponibles.value = [...horas]
+    .sort((left, right) => {
+      const leftInactive = left?.bolActivo === false ? 1 : 0
+      const rightInactive = right?.bolActivo === false ? 1 : 0
+      if (leftInactive !== rightInactive) return leftInactive - rightInactive
+      return toHourMinutes(resolveHourLabelFromCatalogItem(left)) - toHourMinutes(resolveHourLabelFromCatalogItem(right))
+    })
+    .map(item => ({
+      label: resolveHourLabelFromCatalogItem(item),
+      value: item.id
+    }))
+  ejecucionesDisponibles.value = ejecuciones
+    .filter(item => item.bolActivo !== false)
+    .map(item => ({
+      label: item.nombre,
+      value: item.id
+    }))
 }
 
 async function fetchTareasLinea() {
@@ -298,48 +483,258 @@ function handleSearchCampana(query: string) {
 const isCampanaRow = (item: TareaLineaRow | TareaCampanaRow): item is TareaCampanaRow =>
   Object.prototype.hasOwnProperty.call(item, 'idABCCatCampana')
 
+
+async function hydrateLineaForEdit(item: TareaLineaRow): Promise<TareaLineaRow> {
+  const ids = item.idsTarea ?? {}
+  const horariosByStage = await Promise.all(
+    stageKeys.map(async stage => {
+      const taskId = Number(
+        ids[stage]
+        ?? item.tareasPorTipo?.[stage]?.idABCConfigTareaLinea
+        ?? item.tareasPorTipo?.[stage]?.id
+        ?? 0
+      )
+      if (!taskId) return []
+      const horarios = await tareaLineaService.getHorariosByTarea(taskId)
+      return (Array.isArray(horarios) ? horarios : []).map((horario: any) => ({
+        ...horario,
+        stageKey: stage,
+        tipoHorario: {
+          ...(horario?.tipoHorario ?? {}),
+          id: Number(horario?.tipoHorario?.id ?? stageTypeByKey[stage]),
+          nombre: String(horario?.tipoHorario?.nombre ?? stage)
+        },
+        horarioId: Number(horario?.idABCConfigHorarioTareaLinea ?? horario?.id ?? 0) || undefined,
+        persisted: true,
+        activo: horario?.activo ?? horario?.bolActivo ?? true
+      }))
+    })
+  )
+
+  return {
+    ...item,
+    horarios: horariosByStage.flat()
+  }
+}
+
+async function hydrateCampanaForEdit(item: TareaCampanaRow): Promise<TareaCampanaRow> {
+  const ids = item.idsTarea ?? {}
+  const horariosByStage = await Promise.all(
+    stageKeys.map(async stage => {
+      const taskId = Number(
+        ids[stage]
+        ?? item.tareasPorTipo?.[stage]?.idABCConfigTareaCampana
+        ?? item.tareasPorTipo?.[stage]?.id
+        ?? 0
+      )
+      if (!taskId) return []
+      const horarios = await tareaCampanaService.getHorariosByTarea(taskId)
+      return (Array.isArray(horarios) ? horarios : []).map((horario: any) => ({
+        ...horario,
+        stageKey: stage,
+        tipoHorario: {
+          ...(horario?.tipoHorario ?? {}),
+          id: Number(horario?.tipoHorario?.id ?? stageTypeByKey[stage]),
+          nombre: String(horario?.tipoHorario?.nombre ?? stage)
+        },
+        horarioId: Number(horario?.idABCConfigHorarioTareaCampana ?? horario?.id ?? 0) || undefined,
+        persisted: true,
+        activo: horario?.activo ?? horario?.bolActivo ?? true
+      }))
+    })
+  )
+
+  return {
+    ...item,
+    horarios: horariosByStage.flat()
+  }
+}
+
 function openDetails(item: TareaLineaRow | TareaCampanaRow) {
-  detailTab.value = activeTab.value
-  detailItem.value = item
-  showDetailsModal.value = true
+  const run = async () => {
+    detailTab.value = activeTab.value
+    detailItem.value = null
+    showDetailsModal.value = true
+    isLoadingDetails.value = true
+
+    if (isCampanaRow(item)) {
+      detailItem.value = await hydrateCampanaForEdit(item)
+    } else {
+      detailItem.value = await hydrateLineaForEdit(item)
+    }
+  }
+
+  run().catch((e: any) => {
+    error.value = e?.message ?? 'No se pudo cargar el detalle de la tarea.'
+    detailItem.value = item
+  }).finally(() => {
+    isLoadingDetails.value = false
+  })
 }
 
 function closeDetailsModal() {
   showDetailsModal.value = false
   detailItem.value = null
+  isLoadingDetails.value = false
 }
 function openEdit(item: TareaLineaRow | TareaCampanaRow) {
-  modalMode.value = 'edit'
-  modalTab.value = activeTab.value
-  selectedItem.value = item
-  showModal.value = true
+  const run = async () => {
+    modalMode.value = 'edit'
+    modalTab.value = activeTab.value
+
+    if (isCampanaRow(item)) {
+      isLoadingCampana.value = true
+      selectedItem.value = await hydrateCampanaForEdit(item)
+    } else {
+      isLoadingLinea.value = true
+      selectedItem.value = await hydrateLineaForEdit(item)
+    }
+
+    showModal.value = true
+  }
+
+  run().catch((e: any) => {
+    error.value = e?.message ?? 'No se pudo abrir el formulario de edición.'
+  }).finally(() => {
+    isLoadingLinea.value = false
+    isLoadingCampana.value = false
+  })
+}
+
+function toUniquePositiveIds(values: unknown[]): number[] {
+  const list = values
+    .map(value => Number(value ?? 0))
+    .filter(id => Number.isFinite(id) && id > 0)
+  return Array.from(new Set(list))
+}
+
+function resolveTareaToggleTargetIds(item: TareaLineaRow | TareaCampanaRow): number[] {
+  const stageIds = stageKeys.flatMap(stage => {
+    const explicitId = Number(item.idsTarea?.[stage] ?? 0)
+    const fromTipo = Number(
+      item.tareasPorTipo?.[stage]?.id
+      ?? item.tareasPorTipo?.[stage]?.idABCConfigTareaLinea
+      ?? item.tareasPorTipo?.[stage]?.idABCConfigTareaCampana
+      ?? 0
+    )
+    return [explicitId, fromTipo]
+  })
+
+  const principalId = Number(
+    isCampanaRow(item)
+      ? item.idABCConfigTareaCampana
+      : item.idABCConfigTareaLinea
+  )
+  const rawTaskId = Number((item as any)?.tarea?.id ?? 0)
+
+  const uniqueStageIds = toUniquePositiveIds(stageIds)
+  if (uniqueStageIds.length) return uniqueStageIds
+  return toUniquePositiveIds([principalId, rawTaskId])
 }
 
 async function toggleStatus(item: TareaLineaRow | TareaCampanaRow) {
+  const wasActive = item.bolActivo
+  const scope = isCampanaRow(item) ? 'campana' : 'linea'
+  const lockId = Number(
+    isCampanaRow(item)
+      ? item.idABCConfigTareaCampana
+      : item.idABCConfigTareaLinea
+  ) || 0
+  const lockKey = `${scope}:${lockId}`
+  if (statusToggleLocks.value.has(lockKey)) return
+
+  statusToggleLocks.value.add(lockKey)
   try {
     if (isCampanaRow(item)) {
       isLoadingCampana.value = true
-      if (item.bolActivo) {
-        await tareaCampanaService.patchDesactivar(Number(item.idABCConfigTareaCampana), 1)
-      } else {
-        await tareaCampanaService.patchActivar(Number(item.idABCConfigTareaCampana), 1)
+      const targetIds = resolveTareaToggleTargetIds(item)
+      let patchedCount = 0
+      let lastError: any = null
+
+      for (const targetId of targetIds) {
+        try {
+          if (wasActive) {
+            await tareaCampanaService.patchDesactivar(targetId, 1)
+          } else {
+            await tareaCampanaService.patchActivar(targetId, 1)
+          }
+          patchedCount += 1
+        } catch (e: any) {
+          lastError = e
+          if (Number(e?.status ?? 0) === 404) continue
+          throw e
+        }
       }
+
+      if (patchedCount <= 0 && lastError) {
+        throw lastError
+      }
+
       await fetchTareasCampana()
+      addToast(
+        wasActive
+          ? 'Tareas de campaña desactivadas correctamente'
+          : 'Tareas de campaña activadas correctamente',
+        'success'
+      )
     } else {
       isLoadingLinea.value = true
-      if (item.bolActivo) {
-        await tareaLineaService.patchDesactivar(Number(item.idABCConfigTareaLinea), 1)
-      } else {
-        await tareaLineaService.patchActivar(Number(item.idABCConfigTareaLinea), 1)
+      const targetIds = resolveTareaToggleTargetIds(item)
+      let patchedCount = 0
+      let lastError: any = null
+
+      for (const targetId of targetIds) {
+        try {
+          if (wasActive) {
+            await tareaLineaService.patchDesactivar(targetId, 1)
+          } else {
+            await tareaLineaService.patchActivar(targetId, 1)
+          }
+          patchedCount += 1
+        } catch (e: any) {
+          lastError = e
+          if (Number(e?.status ?? 0) === 404) continue
+          throw e
+        }
       }
+
+      if (patchedCount <= 0 && lastError) {
+        throw lastError
+      }
+
       await fetchTareasLinea()
+      addToast(
+        wasActive
+          ? 'Tareas de línea desactivadas correctamente'
+          : 'Tareas de línea activadas correctamente',
+        'success'
+      )
     }
   } catch (e: any) {
     error.value = e.message
   } finally {
+    statusToggleLocks.value.delete(lockKey)
     isLoadingLinea.value = false
     isLoadingCampana.value = false
   }
+}
+
+function requestStatusToggle(item: TareaLineaRow | TareaCampanaRow) {
+  pendingStatusItem.value = item
+  showStatusConfirmModal.value = true
+}
+
+function closeStatusConfirmModal() {
+  if (statusConfirmLoading.value) return
+  showStatusConfirmModal.value = false
+  pendingStatusItem.value = null
+}
+
+async function confirmStatusToggle() {
+  if (!pendingStatusItem.value) return
+  await toggleStatus(pendingStatusItem.value)
+  showStatusConfirmModal.value = false
+  pendingStatusItem.value = null
 }
 
 function openAddModal() {
@@ -354,8 +749,146 @@ function closeModal() {
   selectedItem.value = null
 }
 
+function hasHorarioChanges(payload: { horarios?: any[]; horariosDesactivarIds?: number[]; horariosActivarIds?: number[] }) {
+  return Boolean(
+    (payload.horarios?.length ?? 0) > 0
+    || (payload.horariosDesactivarIds?.length ?? 0) > 0
+    || (payload.horariosActivarIds?.length ?? 0) > 0
+  )
+}
+
+function resolveCurrentExecutionIdByStage(item: any, stage: 'carga' | 'validacion' | 'envio') {
+  return Number(
+    item?.tareasPorTipo?.[stage]?.ejecucion?.id
+    ?? item?.[stage]?.ejecucionId
+    ?? 0
+  )
+}
+
+function shouldUpdateStageTask(
+  item: TareaLineaRow | TareaCampanaRow,
+  stage: 'carga' | 'validacion' | 'envio',
+  nextExecutionId: number
+) {
+  const currentExecutionId = resolveCurrentExecutionIdByStage(item, stage)
+  return currentExecutionId !== nextExecutionId
+}
+
+const stageActionLabel = (stage: 'carga' | 'validacion' | 'envio') => {
+  if (stage === 'carga') return 'carga'
+  if (stage === 'validacion') return 'validación'
+  return 'envío'
+}
+
+function resolveStageTaskIds(item: TareaLineaRow | TareaCampanaRow) {
+  return {
+    carga: Number(item.idsTarea?.carga ?? item.tareasPorTipo?.carga?.id ?? item.tareasPorTipo?.carga?.idABCConfigTareaLinea ?? item.tareasPorTipo?.carga?.idABCConfigTareaCampana ?? 0) || undefined,
+    validacion: Number(item.idsTarea?.validacion ?? item.tareasPorTipo?.validacion?.id ?? item.tareasPorTipo?.validacion?.idABCConfigTareaLinea ?? item.tareasPorTipo?.validacion?.idABCConfigTareaCampana ?? 0) || undefined,
+    envio: Number(item.idsTarea?.envio ?? item.tareasPorTipo?.envio?.id ?? item.tareasPorTipo?.envio?.idABCConfigTareaLinea ?? item.tareasPorTipo?.envio?.idABCConfigTareaCampana ?? 0) || undefined
+  }
+}
+
+function toPositiveIds(values: unknown[]): number[] {
+  return values
+    .map(value => Number(value))
+    .filter(id => !Number.isNaN(id) && id > 0)
+}
+
+function uniqueIds(values: number[]): number[] {
+  return Array.from(new Set(values))
+}
+
+function buildForcedHorarioSyncByStage(
+  payload: any,
+  stageTaskIds: { carga?: number; validacion?: number; envio?: number }
+) {
+  const idUsuario = Number(payload?.idUsuario ?? payload?.idABCUsuario ?? 1)
+  const globalDesactivarIds = toPositiveIds(Array.isArray(payload?.horariosDesactivarIds) ? payload.horariosDesactivarIds : [])
+  const globalActivarIds = toPositiveIds(Array.isArray(payload?.horariosActivarIds) ? payload.horariosActivarIds : [])
+
+  const forcedSyncEntries = stageKeys
+    .map(stage => {
+      const taskId = Number(stageTaskIds[stage] ?? 0)
+      if (!taskId) return null
+
+      const stageSlots = Array.isArray(payload?.[`${stage}Slots`]) ? payload[`${stage}Slots`] : []
+      const stageHorarioIds = new Set(
+        toPositiveIds(stageSlots.map((slot: any) => slot?.horarioId))
+      )
+
+      const inferredDesactivarIds = toPositiveIds(
+        stageSlots
+          .filter((slot: any) => Number(slot?.horarioId ?? 0) > 0 && (slot?.activo ?? true) === false)
+          .map((slot: any) => slot?.horarioId)
+      )
+
+      const horariosDesactivarIds = uniqueIds([
+        ...globalDesactivarIds.filter(id => stageHorarioIds.has(id)),
+        ...inferredDesactivarIds
+      ])
+
+      const horariosActivarIds = uniqueIds(
+        globalActivarIds.filter(id => stageHorarioIds.has(id))
+      )
+
+      if (!horariosDesactivarIds.length && !horariosActivarIds.length) return null
+
+      return {
+        stage,
+        taskId,
+        payload: {
+          horarios: [],
+          idUsuario,
+          horariosDesactivarIds,
+          horariosActivarIds
+        }
+      }
+    })
+    .filter((item): item is { stage: 'carga' | 'validacion' | 'envio'; taskId: number; payload: any } => Boolean(item))
+
+  return forcedSyncEntries
+}
+
+function startSaveProgress(totalActions: number) {
+  saveProgressTotal.value = Math.max(1, totalActions)
+  saveProgressCompleted.value = 0
+  saveProgressAction.value = 'Preparando acciones...'
+  showSaveProgress.value = true
+}
+
+function updateSaveProgressAction(action: string) {
+  saveProgressAction.value = action
+}
+
+function completeSaveProgressStep() {
+  saveProgressCompleted.value = Math.min(saveProgressCompleted.value + 1, saveProgressTotal.value)
+}
+
+function stopSaveProgress() {
+  showSaveProgress.value = false
+  saveProgressCompleted.value = 0
+  saveProgressTotal.value = 1
+  saveProgressAction.value = ''
+}
+
+type SaveAction = {
+  label: string
+  run: () => Promise<void>
+}
+
+function toTaskOnlyUpdatePayload(payloadByStage: any) {
+  return {
+    tarea: payloadByStage?.tarea ?? {},
+    idUsuario: Number(payloadByStage?.idUsuario ?? payloadByStage?.idABCUsuario ?? 1)
+  }
+}
+
 async function handleSave(formData: TareaLineaFormModel | TareaCampanaFormModel) {
+  const wasAdd = modalMode.value === 'add'
   try {
+    error.value = null
+    const actions: SaveAction[] = []
+
     if (modalTab.value === 'campana') {
       isLoadingCampana.value = true
       const payload = formData as TareaCampanaFormModel
@@ -363,38 +896,169 @@ async function handleSave(formData: TareaLineaFormModel | TareaCampanaFormModel)
       const campanaId = Number(payload.idABCCatCampana ?? selectedFiltersCampana.campanas[0] ?? 0)
 
       if (modalMode.value === 'add') {
-        const payloads = toCreateTareaCampanaPayloads(payload)
+        const payloads = toCreateTareaCampanaPayloads(payload, actividadTipoIds.value)
         for (const record of payloads) {
-          await tareaCampanaService.create(lineaId, campanaId, record)
+          const stageId = Number(record?.tarea?.tipo?.id ?? 0)
+          const stage = stageId === 1 ? 'carga' : stageId === 2 ? 'validacion' : 'envio'
+          actions.push({
+            label: `Agregando ${stageActionLabel(stage)}`,
+            run: () => tareaCampanaService.create(lineaId, campanaId, record).then(() => undefined)
+          })
         }
       } else if (selectedItem.value && isCampanaRow(selectedItem.value)) {
-        await tareaCampanaService.update(
-          toUpdateTareaCampanaPayload(payload, selectedItem.value.idABCConfigTareaCampana)
-        )
+        const stageTaskIds = resolveStageTaskIds(selectedItem.value)
+        const operations = toUpdateTareaCampanaOperations(payload, stageTaskIds, actividadTipoIds.value)
+        const syncedHorarioStages = new Set<string>()
+
+        for (const entry of operations.update) {
+          const payloadByStage = entry.payload
+          const stageTaskId = Number(
+            payloadByStage?.tarea?.id
+            ?? stageTaskIds[entry.stage]
+            ?? 0
+          )
+
+          const requiresTaskPut = shouldUpdateStageTask(
+            selectedItem.value,
+            entry.stage,
+            Number(payloadByStage?.tarea?.ejecucion?.id ?? 0)
+          )
+
+          if (requiresTaskPut) {
+            actions.push({
+              label: `Actualizando ${stageActionLabel(entry.stage)}`,
+              run: () => tareaCampanaService.update(toTaskOnlyUpdatePayload(payloadByStage)).then(() => undefined)
+            })
+          }
+
+          if (stageTaskId > 0 && hasHorarioChanges(payloadByStage)) {
+            syncedHorarioStages.add(entry.stage)
+            actions.push({
+              label: `Sincronizando horarios de ${stageActionLabel(entry.stage)}`,
+              run: () => tareaCampanaService.syncHorarios(stageTaskId, payloadByStage).then(() => undefined)
+            })
+          }
+        }
+
+        for (const forcedSync of buildForcedHorarioSyncByStage(payload, stageTaskIds)) {
+          if (syncedHorarioStages.has(forcedSync.stage)) continue
+          actions.push({
+            label: `Sincronizando horarios de ${stageActionLabel(forcedSync.stage)}`,
+            run: () => tareaCampanaService.syncHorarios(forcedSync.taskId, forcedSync.payload).then(() => undefined)
+          })
+        }
+
+        for (const entry of operations.create) {
+          actions.push({
+            label: `Agregando ${stageActionLabel(entry.stage)}`,
+            run: () => tareaCampanaService.create(lineaId, campanaId, entry.payload).then(() => undefined)
+          })
+        }
       }
+
+      actions.push({
+        label: 'Actualizando tabla de campañas',
+        run: () => fetchTareasCampana()
+      })
+
+      startSaveProgress(actions.length)
+      for (const action of actions) {
+        updateSaveProgressAction(action.label)
+        await action.run()
+        completeSaveProgressStep()
+      }
+
       closeModal()
-      await fetchTareasCampana()
     } else {
       isLoadingLinea.value = true
       const payload = formData as TareaLineaFormModel
       const lineaId = Number(payload.idABCCatLineaNegocio ?? selectedFiltersLinea.lineas[0] ?? 0)
 
       if (modalMode.value === 'add') {
-        const payloads = toCreateTareaLineaPayloads(payload)
+        const payloads = toCreateTareaLineaPayloads(payload, actividadTipoIds.value)
         for (const record of payloads) {
-          await tareaLineaService.create(lineaId, record)
+          const stageId = Number(record?.tarea?.tipo?.id ?? 0)
+          const stage = stageId === 1 ? 'carga' : stageId === 2 ? 'validacion' : 'envio'
+          actions.push({
+            label: `Agregando ${stageActionLabel(stage)}`,
+            run: () => tareaLineaService.create(lineaId, record).then(() => undefined)
+          })
         }
       } else if (selectedItem.value && !isCampanaRow(selectedItem.value)) {
-        await tareaLineaService.update(
-          toUpdateTareaLineaPayload(payload, selectedItem.value.idABCConfigTareaLinea)
-        )
+        const stageTaskIds = resolveStageTaskIds(selectedItem.value)
+        const operations = toUpdateTareaLineaOperations(payload, stageTaskIds, actividadTipoIds.value)
+        const syncedHorarioStages = new Set<string>()
+
+        for (const entry of operations.update) {
+          const payloadByStage = entry.payload
+          const stageTaskId = Number(
+            payloadByStage?.tarea?.id
+            ?? stageTaskIds[entry.stage]
+            ?? 0
+          )
+
+          const requiresTaskPut = shouldUpdateStageTask(
+            selectedItem.value,
+            entry.stage,
+            Number(payloadByStage?.tarea?.ejecucion?.id ?? 0)
+          )
+
+          if (requiresTaskPut) {
+            actions.push({
+              label: `Actualizando ${stageActionLabel(entry.stage)}`,
+              run: () => tareaLineaService.update(toTaskOnlyUpdatePayload(payloadByStage)).then(() => undefined)
+            })
+          }
+
+          if (stageTaskId > 0 && hasHorarioChanges(payloadByStage)) {
+            syncedHorarioStages.add(entry.stage)
+            actions.push({
+              label: `Sincronizando horarios de ${stageActionLabel(entry.stage)}`,
+              run: () => tareaLineaService.syncHorarios(stageTaskId, payloadByStage).then(() => undefined)
+            })
+          }
+        }
+
+        for (const forcedSync of buildForcedHorarioSyncByStage(payload, stageTaskIds)) {
+          if (syncedHorarioStages.has(forcedSync.stage)) continue
+          actions.push({
+            label: `Sincronizando horarios de ${stageActionLabel(forcedSync.stage)}`,
+            run: () => tareaLineaService.syncHorarios(forcedSync.taskId, forcedSync.payload).then(() => undefined)
+          })
+        }
+
+        for (const entry of operations.create) {
+          actions.push({
+            label: `Agregando ${stageActionLabel(entry.stage)}`,
+            run: () => tareaLineaService.create(lineaId, entry.payload).then(() => undefined)
+          })
+        }
       }
+
+      actions.push({
+        label: 'Actualizando tabla de líneas',
+        run: () => fetchTareasLinea()
+      })
+
+      startSaveProgress(actions.length)
+      for (const action of actions) {
+        updateSaveProgressAction(action.label)
+        await action.run()
+        completeSaveProgressStep()
+      }
+
       closeModal()
-      await fetchTareasLinea()
     }
+
+    addToast(
+      wasAdd ? 'Tareas agregadas correctamente.' : 'Tareas actualizadas correctamente.',
+      'success',
+      3500
+    )
   } catch (e: any) {
     error.value = e.message
   } finally {
+    stopSaveProgress()
     isLoadingLinea.value = false
     isLoadingCampana.value = false
   }
@@ -482,7 +1146,7 @@ watch(
             class="flex items-center gap-2 bg-[#FFD100] hover:bg-yellow-400 text-[#00357F] text-sm font-bold py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all cursor-pointer"
           >
             <Plus class="w-4 h-4" />
-            <span>Nuevo</span>
+            <span>Nueva</span>
           </button>
         </div>
       </div>
@@ -502,7 +1166,7 @@ watch(
         :get-linea-label="getLineaLabel"
         @toggle-filter="toggleFilterMenuLinea"
         @view-details="openDetails"
-        @toggle-status="toggleStatus"
+        @toggle-status="requestStatusToggle"
         @edit="openEdit"
         @select-all-lineas="selectedFiltersLinea.lineas = lineasDisponibles.map(x => x.value)"
         @prev-page="prevPageLinea"
@@ -527,7 +1191,7 @@ watch(
         :get-campana-label="getCampanaLabel"
         @toggle-filter="toggleFilterMenuCampana"
         @view-details="openDetails"
-        @toggle-status="toggleStatus"
+        @toggle-status="requestStatusToggle"
         @edit="openEdit"
         @select-all-lineas="selectedFiltersCampana.lineas = lineasDisponibles.map(x => x.value)"
         @select-all-campanas="selectedFiltersCampana.campanas = campanasDisponibles.map(x => x.value)"
@@ -548,7 +1212,10 @@ watch(
         :show="showModal"
         :mode="modalMode"
         :lineas-disponibles="lineasDisponibles"
-        :mapeos-linea="allMapeosLinea"
+        :mapeos-linea="mapeosLineaForModal"
+        :dias-disponibles="diasDisponibles"
+        :horas-disponibles="horasDisponibles"
+        :ejecuciones-disponibles="ejecucionesDisponibles"
         :initial-data="selectedItem"
         :is-loading="isLoadingLinea"
         @save="handleSave"
@@ -561,7 +1228,10 @@ watch(
         :mode="modalMode"
         :lineas-disponibles="lineasDisponibles"
         :campanas-disponibles="campanasDisponibles"
-        :mapeos-campana="allMapeosCampana"
+        :mapeos-campana="mapeosCampanaForModal"
+        :dias-disponibles="diasDisponibles"
+        :horas-disponibles="horasDisponibles"
+        :ejecuciones-disponibles="ejecucionesDisponibles"
         :initial-data="selectedItem"
         :is-loading="isLoadingCampana"
         @save="handleSave"
@@ -571,18 +1241,43 @@ watch(
       <TareaLineaDetailsModal
         v-if="detailTab === 'linea'"
         :show="showDetailsModal"
+        :is-loading="isLoadingDetails"
         :item="detailItem as TareaLineaRow | null"
         :get-linea-label="getLineaLabel"
+        :ejecuciones-disponibles="ejecucionesDisponibles"
+        :horas-disponibles="horasDisponibles"
         @close="closeDetailsModal"
       />
 
       <TareaCampanaDetailsModal
         v-if="detailTab === 'campana'"
         :show="showDetailsModal"
+        :is-loading="isLoadingDetails"
         :item="detailItem as TareaCampanaRow | null"
         :get-linea-label="getLineaLabel"
         :get-campana-label="getCampanaLabel"
+        :ejecuciones-disponibles="ejecucionesDisponibles"
+        :horas-disponibles="horasDisponibles"
         @close="closeDetailsModal"
+      />
+
+      <TareaSaveProgressOverlay
+        :show="showSaveProgress"
+        title="Guardando configuración de tareas"
+        :current-action="saveProgressAction"
+        :completed="saveProgressCompleted"
+        :total="saveProgressTotal"
+      />
+
+      <FormActionConfirmModal
+        :show="showStatusConfirmModal"
+        :title="statusConfirmTitle"
+        :message="statusConfirmMessage"
+        confirm-text="Aceptar"
+        cancel-text="Cancelar"
+        :is-loading="statusConfirmLoading"
+        @confirm="confirmStatusToggle"
+        @cancel="closeStatusConfirmModal"
       />
     </div>
   </div>

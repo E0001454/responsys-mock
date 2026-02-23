@@ -2,34 +2,44 @@
 import { ref, watch, computed } from 'vue'
 import type { MapeoCampanaData } from '@/types/mapeos/campana'
 import { SelectField } from '@/components/tareas/shared/tareaFormFields'
-import TareaScheduleConfigurator, { type TareaScheduleModel } from '@/components/tareas/shared/TareaScheduleConfigurator.vue'
-import FormActionConfirmModal from '@/components/shared/FormActionConfirmModal.vue'
+import TareaScheduleConfigurator, {
+  type TareaScheduleModel,
+  type TareaToggleSlotPayload
+} from '@/components/tareas/shared/TareaScheduleConfigurator.vue'
+import ModalActionConfirmOverlay from '@/components/shared/ModalActionConfirmOverlay.vue'
+import { addToast } from '@/stores/toastStore'
+import { tareaCampanaService } from '@/services/tareas/campana/tareaCampanaService'
+import { X } from 'lucide-vue-next'
 import {
-  normalizeWeekdayInputValue,
-  toHoraLabel,
   type Option,
-  type ScheduleSlot,
-  type WeekdayValue
+  type ScheduleSlot
 } from '@/composables/tareas/tareaScheduleUtils'
+import {
+  normalizeCatalogId,
+  resolveIdByLabel,
+  resolveMapeoIdFromInitialData,
+  toScheduleSlotsByType
+} from '@/composables/tareas/tareaFormUtils'
 
 export interface TareaCampanaFormData {
   idABCCatLineaNegocio?: number | ''
   idABCCatCampana?: number | ''
+  idMapeo?: number | ''
   ingesta: string
   carga: string
-  ejecucionIngesta: string
-  diaIngesta: WeekdayValue
-  horaIngesta: string
+  ejecucionIngesta: number | ''
+  diaIngesta: number | ''
+  horaIngesta: number | ''
   cargaSlots?: ScheduleSlot[]
   validacion: string
-  ejecucionValidacion: string
-  diaValidacion: WeekdayValue
-  horaValidacion: string
+  ejecucionValidacion: number | ''
+  diaValidacion: number | ''
+  horaValidacion: number | ''
   validacionSlots?: ScheduleSlot[]
   envio: string
-  ejecucionEnvio: string
-  diaEnvio: WeekdayValue
-  horaEnvio: string
+  ejecucionEnvio: number | ''
+  diaEnvio: number | ''
+  horaEnvio: number | ''
   envioSlots?: ScheduleSlot[]
   horariosDesactivarIds?: number[]
   horariosActivarIds?: number[]
@@ -42,6 +52,9 @@ interface Props {
   lineasDisponibles: Option[]
   campanasDisponibles: Option[]
   mapeosCampana: MapeoCampanaData[]
+  diasDisponibles: Option[]
+  horasDisponibles: Option[]
+  ejecucionesDisponibles: Option[]
   initialData?: Record<string, any> | null
   isLoading?: boolean
 }
@@ -57,12 +70,15 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+const defaultEjecucionId = computed(() => normalizeCatalogId(props.ejecucionesDisponibles?.[0]?.value) || 1)
+
 const getMapeoLabel = (m: MapeoCampanaData) => m.nombre || m.descripcion || `Mapeo ${m.idABCConfigMapeoLinea}`
 
 const allMapeoOptions = computed(() =>
   props.mapeosCampana.map(m => ({
     label: getMapeoLabel(m),
     value: getMapeoLabel(m),
+    idMapeo: Number(m.idABCConfigMapeoLinea ?? 0),
     idLinea: Number(m.linea?.id ?? m.idABCCatLineaNegocio ?? 0),
     idCampana: Number(m.linea?.campana?.id ?? m.idABCCatCampana ?? 0)
   }))
@@ -81,6 +97,7 @@ const filteredMapeoOptions = computed(() => {
   return list.map(m => ({
     label: getMapeoLabel(m),
     value: getMapeoLabel(m),
+    idMapeo: Number(m.idABCConfigMapeoLinea ?? 0),
     idLinea: Number(m.linea?.id ?? m.idABCCatLineaNegocio ?? 0),
     idCampana: Number(m.linea?.campana?.id ?? m.idABCCatCampana ?? 0)
   }))
@@ -104,6 +121,7 @@ const isScheduleReady = ref(false)
 const initialFormSnapshot = ref('')
 const showActionConfirm = ref(false)
 const pendingAction = ref<'save' | 'cancel' | null>(null)
+const isPatchingHorario = ref(false)
 
 const isEditing = computed(() => props.mode === 'edit')
 const isLineaSelected = computed(() => Boolean(formData.value.idABCCatLineaNegocio))
@@ -130,8 +148,7 @@ const ingestaHelper = computed(() => {
   return 'Puedes seleccionar una ingesta primero y se autocompletara la linea y campaña.'
 })
 const canSave = computed(() =>
-  Boolean(formData.value.ingesta) &&
-  isScheduleReady.value
+  isScheduleReady.value && Number(formData.value.idMapeo ?? 0) > 0
 )
 const isDirty = computed(() => serializeFormState(formData.value) !== initialFormSnapshot.value)
 const confirmTitle = computed(() => (pendingAction.value === 'save' ? 'Confirmar guardado' : 'Descartar cambios'))
@@ -140,7 +157,8 @@ const confirmMessage = computed(() =>
     ? '¿Estás seguro de guardar los cambios de este registro?'
     : 'Se detectaron cambios sin guardar. ¿Deseas cancelar y descartar la información modificada?'
 )
-const confirmText = computed(() => (pendingAction.value === 'save' ? 'Guardar' : 'Descartar'))
+const confirmText = computed(() => (pendingAction.value === 'save' ? 'Guardar' : 'Cancelar'))
+const confirmCancelText = computed(() => (pendingAction.value === 'save' ? 'Volver' : 'Seguir editando'))
 
 const scheduleModel = computed<TareaScheduleModel>({
   get: () => ({
@@ -194,6 +212,7 @@ watch(
 
     if (currentIngesta) {
       formData.value.ingesta = ''
+      formData.value.idMapeo = ''
     }
     if (isAutoMapped.value) {
       isAutoMapped.value = false
@@ -215,12 +234,16 @@ watch(
     if (match) {
       const nextLineaId = match.idLinea || ''
       const nextCampanaId = match.idCampana || ''
+      const nextMapeoId = match.idMapeo || ''
 
       if (formData.value.idABCCatLineaNegocio !== nextLineaId) {
         formData.value.idABCCatLineaNegocio = nextLineaId
       }
       if (formData.value.idABCCatCampana !== nextCampanaId) {
         formData.value.idABCCatCampana = nextCampanaId
+      }
+      if (formData.value.idMapeo !== nextMapeoId) {
+        formData.value.idMapeo = nextMapeoId
       }
 
       const nextAutoMapped = !isEditing.value
@@ -233,11 +256,15 @@ watch(
     if (isAutoMapped.value) {
       isAutoMapped.value = false
     }
+    if (formData.value.idMapeo) {
+      formData.value.idMapeo = ''
+    }
   }
 )
 
 const resetHeaderSelection = () => {
   formData.value.ingesta = ''
+  formData.value.idMapeo = ''
   formData.value.idABCCatLineaNegocio = ''
   formData.value.idABCCatCampana = ''
   isAutoMapped.value = false
@@ -298,58 +325,152 @@ const confirmAction = () => {
   closeActionConfirm()
 }
 
-function initializeFormData(): TareaCampanaFormData {
-  if (props.initialData) {
-    const toScheduleSlotsByType = (typeId: number): ScheduleSlot[] => {
-      const horarios = Array.isArray(props.initialData?.horarios) ? props.initialData.horarios : []
-      return horarios
-        .filter((horario: any) => Number(horario?.tipoHorario?.id ?? horario?.tipo?.id ?? horario?.idABCCatTipoHorario ?? 0) === typeId)
-        .map((horario: any) => {
-          const dia = normalizeWeekdayInputValue(horario?.dia?.nombre ?? horario?.dia)
-          const hora = String(
-            horario?.dia?.hora?.nombre
-              ?? horario?.hora?.nombre
-              ?? toHoraLabel(horario?.dia?.hora?.id ?? horario?.hora?.id)
-              ?? ''
-          )
-          return {
-            dia,
-            hora,
-            horarioId: Number(horario?.idABCConfigHorarioTareaCampana ?? horario?.id ?? 0) || undefined,
-            persisted: true,
-            activo: (horario?.activo ?? horario?.bolActivo ?? true) !== false
-          }
-        })
-        .filter((slot: ScheduleSlot) => Boolean(slot.dia && slot.hora))
+const stageTypeByKind = {
+  carga: 1,
+  validacion: 2,
+  envio: 3
+} as const
+
+function resolveTaskIdByKind(kind: keyof typeof stageTypeByKind) {
+  const fromIds = Number(props.initialData?.idsTarea?.[kind] ?? 0)
+  if (fromIds > 0) return fromIds
+
+  const stageTask = props.initialData?.tareasPorTipo?.[kind]
+  return Number(
+    stageTask?.id
+    ?? stageTask?.idABCConfigTareaCampana
+    ?? props.initialData?.idABCConfigTareaCampana
+    ?? 0
+  ) || 0
+}
+
+function resolveHorarioIdFromList(slot: ScheduleSlot, horarios: any[], kind: keyof typeof stageTypeByKind) {
+  void kind
+  const dayId = Number(slot?.dia ?? 0)
+  const hourId = Number(slot?.hora ?? 0)
+
+  const found = (Array.isArray(horarios) ? horarios : []).find((item: any) => {
+    const itemDayId = Number(item?.dia?.id ?? item?.idABCCatDia ?? 0)
+    const itemHourId = Number(item?.dia?.hora?.id ?? item?.hora?.id ?? item?.idABCCatHora ?? 0)
+    return itemDayId === dayId && itemHourId === hourId
+  })
+
+  return Number(found?.idABCConfigHorarioTareaCampana ?? found?.horarioId ?? found?.id ?? 0) || 0
+}
+
+async function handleToggleSlot(payload: TareaToggleSlotPayload) {
+  if (!isEditing.value) return
+  if (isPatchingHorario.value) return
+
+  const taskId = resolveTaskIdByKind(payload.kind)
+  if (!taskId) {
+    addToast('No se pudo identificar la tarea para actualizar el horario.', 'warning', 3500)
+    return
+  }
+
+  let horarioId = Number(payload.slot?.horarioId ?? 0)
+
+  try {
+    isPatchingHorario.value = true
+
+    if (!horarioId) {
+      const horarios = await tareaCampanaService.getHorariosByTarea(taskId)
+      horarioId = resolveHorarioIdFromList(payload.slot, horarios, payload.kind)
     }
 
-    const cargaSlots = toScheduleSlotsByType(1)
-    const validacionSlots = toScheduleSlotsByType(2)
-    const envioSlots = toScheduleSlotsByType(3)
+    const idUsuario = Number(formData.value.idUsuario ?? props.initialData?.idUsuario ?? props.initialData?.idABCUsuario ?? 1)
+    const slotData = {
+      dia: Number(payload.slot?.dia ?? 0),
+      hora: Number(payload.slot?.hora ?? 0)
+    }
 
-    const diaIngesta = cargaSlots[0]?.dia ?? normalizeWeekdayInputValue(props.initialData.carga?.dia ?? props.initialData.diaIngesta)
-    const horaIngesta = cargaSlots[0]?.hora ?? String(props.initialData.carga?.hora ?? props.initialData.horaIngesta ?? '')
-    const diaValidacion = validacionSlots[0]?.dia ?? normalizeWeekdayInputValue(props.initialData.validacion?.dia ?? props.initialData.diaValidacion)
-    const horaValidacion = validacionSlots[0]?.hora ?? String(props.initialData.validacion?.hora ?? props.initialData.horaValidacion ?? '')
-    const diaEnvio = envioSlots[0]?.dia ?? normalizeWeekdayInputValue(props.initialData.envio?.dia ?? props.initialData.diaEnvio)
-    const horaEnvio = envioSlots[0]?.hora ?? String(props.initialData.envio?.hora ?? props.initialData.horaEnvio ?? '')
+    if (payload.nextActive) {
+      if (horarioId) {
+        payload.slot.horarioId = horarioId
+        await tareaCampanaService.patchActivarHorario(taskId, horarioId, idUsuario)
+      } else {
+        await tareaCampanaService.patchActivarHorarioBySlot(taskId, slotData, idUsuario)
+      }
+      addToast('Horario activado correctamente.', 'success', 2500)
+    } else {
+      if (horarioId) {
+        payload.slot.horarioId = horarioId
+        await tareaCampanaService.patchDesactivarHorario(taskId, horarioId, idUsuario)
+      } else {
+        await tareaCampanaService.patchDesactivarHorarioBySlot(taskId, slotData, idUsuario)
+      }
+      addToast('Horario desactivado correctamente.', 'success', 2500)
+    }
+  } catch (error: any) {
+    payload.slot.activo = !payload.nextActive
+    addToast(error?.message ?? 'No se pudo actualizar el horario.', 'error', 3500)
+  } finally {
+    isPatchingHorario.value = false
+  }
+}
+
+function initializeFormData(): TareaCampanaFormData {
+  if (props.initialData) {
+    const cargaSlots = toScheduleSlotsByType(props.initialData, 1, ['idABCConfigHorarioTareaCampana'])
+    const validacionSlots = toScheduleSlotsByType(props.initialData, 2, ['idABCConfigHorarioTareaCampana'])
+    const envioSlots = toScheduleSlotsByType(props.initialData, 3, ['idABCConfigHorarioTareaCampana'])
+    const tareaCarga = props.initialData.tareasPorTipo?.carga ?? props.initialData.tarea
+    const tareaValidacion = props.initialData.tareasPorTipo?.validacion ?? props.initialData.tarea
+    const tareaEnvio = props.initialData.tareasPorTipo?.envio ?? props.initialData.tarea
+
+    const isEditMode = props.mode === 'edit'
+    const diaIngesta = isEditMode
+      ? ''
+      : (cargaSlots[0]?.dia ?? resolveIdByLabel(props.diasDisponibles, props.initialData.carga?.dia ?? props.initialData.diaIngesta))
+    const horaIngesta = isEditMode
+      ? ''
+      : (cargaSlots[0]?.hora ?? resolveIdByLabel(props.horasDisponibles, props.initialData.carga?.hora ?? props.initialData.horaIngesta))
+    const diaValidacion = isEditMode
+      ? ''
+      : (validacionSlots[0]?.dia ?? resolveIdByLabel(props.diasDisponibles, props.initialData.validacion?.dia ?? props.initialData.diaValidacion))
+    const horaValidacion = isEditMode
+      ? ''
+      : (validacionSlots[0]?.hora ?? resolveIdByLabel(props.horasDisponibles, props.initialData.validacion?.hora ?? props.initialData.horaValidacion))
+    const diaEnvio = isEditMode
+      ? ''
+      : (envioSlots[0]?.dia ?? resolveIdByLabel(props.diasDisponibles, props.initialData.envio?.dia ?? props.initialData.diaEnvio))
+    const horaEnvio = isEditMode
+      ? ''
+      : (envioSlots[0]?.hora ?? resolveIdByLabel(props.horasDisponibles, props.initialData.envio?.hora ?? props.initialData.horaEnvio))
+
+    const ejecucionIngesta = normalizeCatalogId(
+      props.initialData.carga?.ejecucionId
+      ?? tareaCarga?.ejecucion?.id
+      ?? resolveIdByLabel(props.ejecucionesDisponibles, props.initialData.carga?.ejecucion)
+    ) || defaultEjecucionId.value
+    const ejecucionValidacion = normalizeCatalogId(
+      props.initialData.validacion?.ejecucionId
+      ?? tareaValidacion?.ejecucion?.id
+      ?? resolveIdByLabel(props.ejecucionesDisponibles, props.initialData.validacion?.ejecucion)
+    ) || defaultEjecucionId.value
+    const ejecucionEnvio = normalizeCatalogId(
+      props.initialData.envio?.ejecucionId
+      ?? tareaEnvio?.ejecucion?.id
+      ?? resolveIdByLabel(props.ejecucionesDisponibles, props.initialData.envio?.ejecucion)
+    ) || defaultEjecucionId.value
 
     return {
       idABCCatLineaNegocio: props.initialData.idABCCatLineaNegocio ?? '',
       idABCCatCampana: props.initialData.idABCCatCampana ?? '',
+      idMapeo: resolveMapeoIdFromInitialData(props.initialData),
       ingesta: props.initialData.ingesta ?? '',
       carga: 'Carga',
-      ejecucionIngesta: props.initialData.carga?.ejecucion ?? 'Automatica',
+      ejecucionIngesta,
       diaIngesta,
       horaIngesta,
       cargaSlots,
-      validacion: 'Validacion',
-      ejecucionValidacion: props.initialData.validacion?.ejecucion ?? 'Automatica',
+      validacion: 'Validación',
+      ejecucionValidacion,
       diaValidacion,
       horaValidacion,
       validacionSlots,
-      envio: 'Envio',
-      ejecucionEnvio: props.initialData.envio?.ejecucion ?? 'Automatica',
+      envio: 'Envío',
+      ejecucionEnvio,
       diaEnvio,
       horaEnvio,
       envioSlots,
@@ -362,19 +483,20 @@ function initializeFormData(): TareaCampanaFormData {
   return {
     idABCCatLineaNegocio: '',
     idABCCatCampana: '',
+    idMapeo: '',
     ingesta: '',
     carga: 'Carga',
-    ejecucionIngesta: 'Automatica',
+    ejecucionIngesta: defaultEjecucionId.value,
     diaIngesta: '',
     horaIngesta: '',
     cargaSlots: [],
-    validacion: 'Validacion',
-    ejecucionValidacion: 'Automatica',
+    validacion: 'Validación',
+    ejecucionValidacion: defaultEjecucionId.value,
     diaValidacion: '',
     horaValidacion: '',
     validacionSlots: [],
-    envio: 'Envio',
-    ejecucionEnvio: 'Automatica',
+    envio: 'Envío',
+    ejecucionEnvio: defaultEjecucionId.value,
     diaEnvio: '',
     horaEnvio: '',
     envioSlots: [],
@@ -390,12 +512,20 @@ function handleSave() {
 </script>
 <template>
   <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh] ">
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh] ">
       
       <div class="px-5 py-3 bg-[#00357F] border-b border-white/10 flex justify-between items-center shrink-0">
         <h3 class="text-base font-semibold text-white/95 flex items-center gap-2 tracking-wide">
           {{ mode === 'add' ? 'Nuevo Registro' : 'Editar Registro' }}
         </h3>
+        <button
+          type="button"
+          class="h-8 w-8 inline-flex items-center justify-center rounded-md text-white/90 hover:bg-white/15 transition-colors"
+          :disabled="isLoading || showActionConfirm"
+          @click="requestCancel"
+        >
+          <X class="w-4 h-4" />
+        </button>
       </div>
 
       <form @submit.prevent="handleSave" class="flex flex-col min-h-0 flex-1">
@@ -457,52 +587,48 @@ function handleSave() {
           <TareaScheduleConfigurator
             v-model="scheduleModel"
             :mode="mode"
+            :day-options="diasDisponibles"
+            :hour-options="horasDisponibles"
+            :execution-options="ejecucionesDisponibles"
             @update:schedule-ready="isScheduleReady = $event"
+            @toggle-slot="handleToggleSlot"
           />
 
-          </div>
-        </div>
-
-        <div class="shrink-0 flex items-center justify-between gap-3 p-4 border-t border-gray-100 bg-white">
-          <div>
+          <div class="flex justify-end">
             <button
-              v-if="mode === 'add'"
               type="button"
-              title="Restaurar todo"
-              aria-label="Restaurar todo"
-              class="h-[42px] w-[42px] inline-flex items-center justify-center rounded-lg text-slate-500 bg-white border border-slate-200 hover:text-[#00357F] hover:border-[#00357F]/30 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed"
-              :disabled="isLoading"
-              @click="resetAllForm"
+              :title="mode === 'edit' ? 'Restaurar información' : 'Restaurar todo'"
+              :aria-label="mode === 'edit' ? 'Restaurar información' : 'Restaurar todo'"
+              class="group relative h-[42px] w-[42px] inline-flex items-center justify-center rounded-lg text-[#00357F] bg-gray-100 hover:bg-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              :disabled="isLoading || showActionConfirm"
+              @click="mode === 'edit' ? restoreInitialInformation() : resetAllForm()"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M19 9a7 7 0 00-12-3M5 15a7 7 0 0012 3" />
               </svg>
-            </button>
-
-            <button
-              v-else
-              type="button"
-              class="px-4 py-2.5 text-sm font-bold text-[#00357F] bg-white border border-[#00357F]/20 hover:bg-slate-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#00357F]/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              :disabled="isLoading"
-              @click="restoreInitialInformation"
-            >
-              Restaurar información
+              <span class="pointer-events-none absolute z-[9999] right-0 -top-9 whitespace-nowrap rounded-md bg-[#00357F] px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">
+                {{ mode === 'edit' ? 'Restaurar información' : 'Restaurar todo' }}
+              </span>
             </button>
           </div>
 
+          </div>
+        </div>
+
+        <div class="shrink-0 flex items-center justify-end gap-3 p-4 border-t border-gray-100 bg-white">
           <div class="flex items-center gap-3">
             <button
               type="button"
               class="px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-4 focus:ring-gray-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
               @click="requestCancel"
-              :disabled="isLoading"
+              :disabled="isLoading || showActionConfirm"
             >
               Cancelar
             </button>
             <button
               type="submit"
               class="px-8 py-3 text-sm font-bold text-[#00357F] bg-[#FFD100] hover:bg-yellow-400 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-4 focus:ring-yellow-300/50 disabled:opacity-50 disabled:transform-none disabled:cursor-not-allowed flex items-center gap-3"
-              :disabled="isLoading || !canSave"
+              :disabled="isLoading || !canSave || showActionConfirm"
             >
               <svg v-if="isLoading" class="animate-spin h-5 w-5 text-[#00357F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -512,13 +638,15 @@ function handleSave() {
             </button>
           </div>
         </div>
+
       </form>
 
-      <FormActionConfirmModal
+      <ModalActionConfirmOverlay
         :show="showActionConfirm"
         :title="confirmTitle"
         :message="confirmMessage"
         :confirm-text="confirmText"
+        :cancel-text="confirmCancelText"
         :is-loading="isLoading"
         @confirm="confirmAction"
         @cancel="closeActionConfirm"

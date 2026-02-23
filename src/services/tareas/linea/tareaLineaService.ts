@@ -1,5 +1,9 @@
 import { api } from '../../api'
-import type { TareaLineaData } from '@/types/tareas/linea'
+import type {
+  TareaLineaData,
+  TareaLineaHorarioPostItem,
+  TareaLineaHorariosPostPayload
+} from '@/types/tareas/linea'
 import { normalizeTareasLinea } from '@/adapters/tareas/linea/tareaLinea.adapter'
 
 interface ApiClient {
@@ -7,7 +11,7 @@ interface ApiClient {
   getTareasLineaByLinea(lineaId: string | number): Promise<TareaLineaData[]>
   createTareaLinea(lineaId: string | number, payload: any): Promise<TareaLineaData>
   getHorariosTareaLinea(tareaId: string | number): Promise<any[]>
-  postHorariosTareaLinea(tareaId: string | number, payload: any): Promise<any>
+  postHorariosTareaLinea(tareaId: string | number, payload: TareaLineaHorariosPostPayload): Promise<any>
   patchActivarHorarioTareaLinea(tareaId: string | number, payload: any): Promise<any>
   patchDesactivarHorarioTareaLinea(tareaId: string | number, payload: any): Promise<any>
   updateTareaLinea(payload: any): Promise<TareaLineaData>
@@ -26,11 +30,75 @@ function resolveTareaLineaId(response: any): number {
   return Number(raw ?? 0)
 }
 
+function normalizeText(value: unknown): string {
+  return String(value ?? '').trim().toLowerCase()
+}
+
+function resolveDayToken(horario: any): string {
+  const dayId = Number(
+    horario?.dia?.id
+    ?? horario?.diaId
+    ?? horario?.diaSemana?.id
+    ?? horario?.idABCCatDia
+    ?? 0
+  )
+  if (dayId > 0) return `d:${dayId}`
+
+  const dayName = normalizeText(
+    horario?.dia?.nombre
+    ?? horario?.dia
+    ?? horario?.diaSemana?.nombre
+    ?? horario?.nombreDia
+    ?? ''
+  )
+  return dayName ? `dn:${dayName}` : 'd:0'
+}
+
+function resolveHourToken(horario: any): string {
+  const hourId = Number(
+    horario?.dia?.hora?.id
+    ?? horario?.hora?.id
+    ?? horario?.horaId
+    ?? horario?.idABCCatHora
+    ?? 0
+  )
+  if (hourId > 0) return `h:${hourId}`
+
+  const hourName = normalizeText(
+    horario?.dia?.hora?.nombre
+    ?? horario?.hora?.nombre
+    ?? horario?.hora
+    ?? horario?.nombreHora
+    ?? ''
+  )
+  return hourName ? `hn:${hourName}` : 'h:0'
+}
+
 function horarioSignature(horario: any): string {
-  const typeId = Number(horario?.tipoHorario?.id ?? horario?.tipo?.id ?? horario?.idABCCatTipoHorario ?? 0)
+  return `${resolveDayToken(horario)}|${resolveHourToken(horario)}`
+}
+
+function toHorarioPostItem(horario: any): TareaLineaHorarioPostItem | null {
   const dayId = Number(horario?.dia?.id ?? 0)
   const hourId = Number(horario?.dia?.hora?.id ?? horario?.hora?.id ?? 0)
-  return `${typeId}|${dayId}|${hourId}`
+  if (!dayId || !hourId) return null
+
+  return {
+    dia: {
+      id: dayId,
+      hora: { id: hourId }
+    }
+  }
+}
+
+function normalizeHorariosForPost(horarios: any[]): TareaLineaHorarioPostItem[] {
+  return uniqueHorariosBySignature(horarios)
+    .map(toHorarioPostItem)
+    .filter((item): item is TareaLineaHorarioPostItem => Boolean(item))
+}
+
+function resolveHorarioLineaId(horario: any): number {
+  return Number(horario?.idABCConfigHorarioTareaLinea ?? horario?.horarioId ?? horario?.id ?? 0)
 }
 
 function uniqueHorariosBySignature(horarios: any[]): any[] {
@@ -47,13 +115,126 @@ function uniqueHorariosBySignature(horarios: any[]): any[] {
   return result
 }
 
+function isHorarioActive(horario: any): boolean {
+  return (horario?.activo ?? horario?.bolActivo ?? true) !== false
+}
+
+function extractArrayResponse(raw: unknown): any[] {
+  if (Array.isArray(raw)) return raw
+  const data = (raw as { data?: unknown } | null | undefined)?.data
+  return Array.isArray(data) ? data : []
+}
+
+async function syncHorariosByTareaId(
+  tareaId: number,
+  payload: {
+    horarios: any[]
+    idUsuario: number
+    horariosDesactivarIds: number[]
+    horariosActivarIds: number[]
+  }
+) {
+  if (!tareaId || tareaId <= 0) return
+
+  const requiresExistingHorarios =
+    (Array.isArray(payload.horarios) && payload.horarios.length > 0)
+    || payload.horariosActivarIds.length > 0
+    || payload.horariosDesactivarIds.length > 0
+
+  const existingHorarios = requiresExistingHorarios
+    ? await apiClient.getHorariosTareaLinea(tareaId).catch(() => [])
+    : []
+
+  let horariosActivarIds = Array.isArray(payload.horariosActivarIds)
+    ? payload.horariosActivarIds.map(Number).filter((id) => !Number.isNaN(id) && id > 0)
+    : []
+  let horariosDesactivarIds = Array.isArray(payload.horariosDesactivarIds)
+    ? payload.horariosDesactivarIds.map(Number).filter((id) => !Number.isNaN(id) && id > 0)
+    : []
+
+  if (Array.isArray(payload.horarios)) {
+    const requestedHorarios = uniqueHorariosBySignature(payload.horarios)
+    const requestedSignatures = new Set(requestedHorarios.map(horarioSignature))
+    const inferredActivarIds: number[] = []
+    const inferredDesactivarIds: number[] = []
+
+    for (const existing of Array.isArray(existingHorarios) ? existingHorarios : []) {
+      const horarioId = resolveHorarioLineaId(existing)
+      if (horarioId <= 0) continue
+
+      const signature = horarioSignature(existing)
+      const existsInRequested = requestedSignatures.has(signature)
+      const active = isHorarioActive(existing)
+
+      if (existsInRequested && !active) {
+        inferredActivarIds.push(horarioId)
+      }
+
+      if (!existsInRequested && active) {
+        inferredDesactivarIds.push(horarioId)
+      }
+    }
+
+    horariosActivarIds = Array.from(new Set([...horariosActivarIds, ...inferredActivarIds]))
+    horariosDesactivarIds = Array.from(new Set([...horariosDesactivarIds, ...inferredDesactivarIds]))
+
+  }
+
+  if (Array.isArray(payload.horarios) && payload.horarios.length) {
+    const existingSignatures = new Set(
+      (Array.isArray(existingHorarios) ? existingHorarios : []).map(horarioSignature)
+    )
+    const pending = uniqueHorariosBySignature(payload.horarios)
+      .filter(h => !existingSignatures.has(horarioSignature(h)))
+
+    const horarios = normalizeHorariosForPost(pending)
+    if (horarios.length) {
+      await apiClient.postHorariosTareaLinea(tareaId, {
+        horarios,
+        idUsuario: payload.idUsuario
+      })
+    }
+  }
+
+  if (horariosActivarIds.length) {
+    const uniqueIds = Array.from(new Set(horariosActivarIds))
+
+    for (const horarioId of uniqueIds) {
+      await apiClient.patchActivarHorarioTareaLinea(tareaId, {
+        horario: { id: horarioId },
+        idUsuario: payload.idUsuario
+      })
+    }
+  }
+
+  if (horariosDesactivarIds.length) {
+    const uniqueIds = Array.from(new Set(horariosDesactivarIds))
+
+    for (const horarioId of uniqueIds) {
+      await apiClient.patchDesactivarHorarioTareaLinea(tareaId, {
+        horario: { id: horarioId },
+        idUsuario: payload.idUsuario
+      })
+    }
+  }
+}
+
 export const tareaLineaService = {
-  getAll() {
-    return apiClient.getTareasLinea().then(normalizeTareasLinea)
+  async getAll() {
+    const raw = await apiClient.getTareasLinea()
+    const list = extractArrayResponse(raw)
+    return normalizeTareasLinea(list)
   },
 
-  getByLinea(lineaId: string | number) {
-    return apiClient.getTareasLineaByLinea(lineaId).then(normalizeTareasLinea)
+  async getByLinea(lineaId: string | number) {
+    const raw = await apiClient.getTareasLineaByLinea(lineaId)
+    const list = extractArrayResponse(raw)
+    return normalizeTareasLinea(list)
+  },
+
+  async getHorariosByTarea(tareaId: string | number) {
+    const raw = await apiClient.getHorariosTareaLinea(tareaId).catch(() => [])
+    return extractArrayResponse(raw)
   },
 
   async create(lineaId: string | number, payload: any) {
@@ -71,9 +252,10 @@ export const tareaLineaService = {
     const tareaId = resolveTareaLineaId(tareaResponse)
 
     if (tareaId && Array.isArray(normalized.horarios) && normalized.horarios.length) {
-      for (const horario of normalized.horarios) {
+      const horarios = normalizeHorariosForPost(normalized.horarios)
+      if (horarios.length) {
         await apiClient.postHorariosTareaLinea(tareaId, {
-          horario,
+          horarios,
           idUsuario: normalized.idUsuario
         })
       }
@@ -115,41 +297,7 @@ export const tareaLineaService = {
     const tareaResponse = await apiClient.updateTareaLinea(tareaPayload)
     const tareaId = resolveTareaLineaId(tareaResponse)
 
-    if (tareaId && Array.isArray(normalized.horarios) && normalized.horarios.length) {
-      const existing = await apiClient.getHorariosTareaLinea(tareaId).catch(() => [])
-      const existingSignatures = new Set(
-        (Array.isArray(existing) ? existing : []).map(horarioSignature)
-      )
-      const pending = uniqueHorariosBySignature(normalized.horarios)
-        .filter(h => !existingSignatures.has(horarioSignature(h)))
-
-      for (const horario of pending) {
-        await apiClient.postHorariosTareaLinea(tareaId, {
-          horario,
-          idUsuario: normalized.idUsuario
-        })
-      }
-    }
-
-    if (tareaId && normalized.horariosActivarIds.length) {
-      const uniqueIds = Array.from(new Set(normalized.horariosActivarIds))
-      for (const horarioId of uniqueIds) {
-        await apiClient.patchActivarHorarioTareaLinea(tareaId, {
-          horario: { id: horarioId },
-          idUsuario: normalized.idUsuario
-        })
-      }
-    }
-
-    if (tareaId && normalized.horariosDesactivarIds.length) {
-      const uniqueIds = Array.from(new Set(normalized.horariosDesactivarIds))
-      for (const horarioId of uniqueIds) {
-        await apiClient.patchDesactivarHorarioTareaLinea(tareaId, {
-          horario: { id: horarioId },
-          idUsuario: normalized.idUsuario
-        })
-      }
-    }
+    await syncHorariosByTareaId(tareaId, normalized)
 
     api
       .postBitacoraByContext(
@@ -162,6 +310,21 @@ export const tareaLineaService = {
       .catch(() => {})
 
     return tareaResponse
+  },
+
+  async syncHorarios(tareaId: number, payload: any) {
+    const normalized = {
+      horarios: payload?.horarios ?? [],
+      idUsuario: Number(payload?.idUsuario ?? payload?.idABCUsuario ?? 1),
+      horariosDesactivarIds: Array.isArray(payload?.horariosDesactivarIds)
+        ? payload.horariosDesactivarIds.map(Number).filter((id: number) => !Number.isNaN(id) && id > 0)
+        : [],
+      horariosActivarIds: Array.isArray(payload?.horariosActivarIds)
+        ? payload.horariosActivarIds.map(Number).filter((id: number) => !Number.isNaN(id) && id > 0)
+        : []
+    }
+
+    await syncHorariosByTareaId(Number(tareaId ?? 0), normalized)
   },
 
   delete(lineaId: string | number, tareaId: string | number) {
@@ -197,6 +360,48 @@ export const tareaLineaService = {
         )
         .catch(() => {})
       return res
+    })
+  },
+
+  patchActivarHorario(tareaId: number, horarioId: number, idUsuario: number) {
+    return apiClient.patchActivarHorarioTareaLinea(tareaId, {
+      horario: { id: horarioId },
+      idUsuario
+    })
+  },
+
+  patchDesactivarHorario(tareaId: number, horarioId: number, idUsuario: number) {
+    return apiClient.patchDesactivarHorarioTareaLinea(tareaId, {
+      horario: { id: horarioId },
+      idUsuario
+    })
+  },
+
+  patchActivarHorarioBySlot(tareaId: number, slot: { dia: number; hora: number }, idUsuario: number) {
+    return apiClient.patchActivarHorarioTareaLinea(tareaId, {
+      horarios: [
+        {
+          dia: {
+            id: Number(slot?.dia ?? 0),
+            hora: { id: Number(slot?.hora ?? 0) }
+          }
+        }
+      ],
+      idUsuario
+    })
+  },
+
+  patchDesactivarHorarioBySlot(tareaId: number, slot: { dia: number; hora: number }, idUsuario: number) {
+    return apiClient.patchDesactivarHorarioTareaLinea(tareaId, {
+      horarios: [
+        {
+          dia: {
+            id: Number(slot?.dia ?? 0),
+            hora: { id: Number(slot?.hora ?? 0) }
+          }
+        }
+      ],
+      idUsuario
     })
   }
 }

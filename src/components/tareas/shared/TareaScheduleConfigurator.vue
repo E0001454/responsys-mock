@@ -8,63 +8,119 @@ import {
   compareWeekdayTime,
   formatHourToAmPm,
   getWeekdayOrder,
-  horaOptions,
-  removeScheduleSlot as deleteScheduleSlot,
-  weekdayOptions,
-  type ScheduleSlot,
-  type WeekdayValue
+  normalizeWeekdayInputValue,
+  toHoraLabel,
+  type Option,
+  type ScheduleSlot
 } from '@/composables/tareas/tareaScheduleUtils'
+import { normalizeCatalogId } from '@/composables/tareas/tareaFormUtils'
+
+type CatalogIdValue = number | ''
+
+const normalizeCatalogIdValue = (value: unknown): CatalogIdValue => normalizeCatalogId(value)
 
 export interface TareaScheduleModel {
   carga: string
-  ejecucionIngesta: string
-  diaIngesta: WeekdayValue
-  horaIngesta: string
+  ejecucionIngesta: CatalogIdValue
+  diaIngesta: CatalogIdValue
+  horaIngesta: CatalogIdValue
   cargaSlots?: ScheduleSlot[]
   validacion: string
-  ejecucionValidacion: string
-  diaValidacion: WeekdayValue
-  horaValidacion: string
+  ejecucionValidacion: CatalogIdValue
+  diaValidacion: CatalogIdValue
+  horaValidacion: CatalogIdValue
   validacionSlots?: ScheduleSlot[]
   envio: string
-  ejecucionEnvio: string
-  diaEnvio: WeekdayValue
-  horaEnvio: string
+  ejecucionEnvio: CatalogIdValue
+  diaEnvio: CatalogIdValue
+  horaEnvio: CatalogIdValue
   envioSlots?: ScheduleSlot[]
   horariosDesactivarIds?: number[]
   horariosActivarIds?: number[]
 }
 
+export interface TareaToggleSlotPayload {
+  kind: 'carga' | 'validacion' | 'envio'
+  index: number
+  slot: ScheduleSlot
+  nextActive: boolean
+}
+
 interface Props {
   modelValue: TareaScheduleModel
   mode: 'add' | 'edit'
+  dayOptions: Option[]
+  hourOptions: Option[]
+  executionOptions: Option[]
 }
 
 interface Emits {
   (e: 'update:modelValue', value: TareaScheduleModel): void
   (e: 'update:scheduleReady', value: boolean): void
+  (e: 'toggle-slot', value: TareaToggleSlotPayload): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const ejecucionOptions = ['Automatica', 'Manual', 'Hibrida']
+const hasValue = (value: unknown) => String(value ?? '').trim() !== ''
+const sameValue = (left: unknown, right: unknown) => String(left ?? '') === String(right ?? '')
+
+const resolveDefaultExecution = (): CatalogIdValue => normalizeCatalogIdValue(props.executionOptions?.[0]?.value)
+
+const dayLabelByValue = computed(() => {
+  const map = new Map<string, string>()
+  for (const option of props.dayOptions ?? []) {
+    const key = String(option?.value ?? '').trim()
+    if (!key) continue
+    map.set(key, normalizeWeekdayInputValue(option?.label) || String(option?.label ?? ''))
+  }
+  return map
+})
+
+const executionOptions = computed(() => props.executionOptions ?? [])
+
+const hourLabelByValue = computed(() => {
+  const map = new Map<string, string>()
+  for (const option of props.hourOptions ?? []) {
+    const key = String(option?.value ?? '').trim()
+    if (!key) continue
+    map.set(key, toHoraLabel(option?.label))
+  }
+  return map
+})
+
+const toDayLabel = (value: unknown) => dayLabelByValue.value.get(String(value ?? '').trim()) || ''
+const toHourLabel = (value: unknown) => hourLabelByValue.value.get(String(value ?? '').trim()) || ''
+
+const validDayOptions = computed(() =>
+  (props.dayOptions ?? []).filter(option => getWeekdayOrder(normalizeWeekdayInputValue(option?.label)) > 0)
+)
+
+const toMinutesOfDay = (value: unknown) => {
+  const label = toHoraLabel(value)
+  const [hoursRaw, minutesRaw] = String(label ?? '').split(':')
+  const hours = Number(hoursRaw)
+  const minutes = Number(minutesRaw)
+  if ([hours, minutes].some(Number.isNaN)) return Number.POSITIVE_INFINITY
+  return (hours * 60) + minutes
+}
 
 const normalizeScheduleData = (value?: Partial<TareaScheduleModel>): TareaScheduleModel => ({
   carga: value?.carga ?? 'Carga',
-  ejecucionIngesta: value?.ejecucionIngesta ?? 'Automatica',
-  diaIngesta: value?.diaIngesta ?? '',
-  horaIngesta: value?.horaIngesta ?? '',
+  ejecucionIngesta: normalizeCatalogIdValue(value?.ejecucionIngesta ?? resolveDefaultExecution()),
+  diaIngesta: normalizeCatalogIdValue(value?.diaIngesta),
+  horaIngesta: normalizeCatalogIdValue(value?.horaIngesta),
   cargaSlots: [...(value?.cargaSlots ?? [])],
-  validacion: value?.validacion ?? 'Validacion',
-  ejecucionValidacion: value?.ejecucionValidacion ?? 'Automatica',
-  diaValidacion: value?.diaValidacion ?? '',
-  horaValidacion: value?.horaValidacion ?? '',
+  validacion: value?.validacion ?? 'Validación',
+  ejecucionValidacion: normalizeCatalogIdValue(value?.ejecucionValidacion ?? resolveDefaultExecution()),
+  diaValidacion: normalizeCatalogIdValue(value?.diaValidacion),
+  horaValidacion: normalizeCatalogIdValue(value?.horaValidacion),
   validacionSlots: [...(value?.validacionSlots ?? [])],
-  envio: value?.envio ?? 'Envio',
-  ejecucionEnvio: value?.ejecucionEnvio ?? 'Automatica',
-  diaEnvio: value?.diaEnvio ?? '',
-  horaEnvio: value?.horaEnvio ?? '',
+  envio: value?.envio ?? 'Envío',
+  ejecucionEnvio: normalizeCatalogIdValue(value?.ejecucionEnvio ?? resolveDefaultExecution()),
+  diaEnvio: normalizeCatalogIdValue(value?.diaEnvio),
+  horaEnvio: normalizeCatalogIdValue(value?.horaEnvio),
   envioSlots: [...(value?.envioSlots ?? [])],
   horariosDesactivarIds: [...(value?.horariosDesactivarIds ?? [])],
   horariosActivarIds: [...(value?.horariosActivarIds ?? [])]
@@ -72,7 +128,7 @@ const normalizeScheduleData = (value?: Partial<TareaScheduleModel>): TareaSchedu
 
 const sortSlots = (slots?: ScheduleSlot[]) =>
   [...(slots ?? [])]
-    .filter(slot => Boolean(slot?.dia && slot?.hora))
+    .filter(slot => hasValue(slot?.dia) && hasValue(slot?.hora))
     .sort((a, b) => `${a.dia}-${a.hora}`.localeCompare(`${b.dia}-${b.hora}`))
 
 const scheduleFingerprint = (value?: Partial<TareaScheduleModel>) => {
@@ -95,12 +151,34 @@ const syncingFromParent = ref(false)
 
 const isSlotActive = (slot?: ScheduleSlot) => (slot?.activo ?? true) !== false
 
+const compareSlotsForDisplay = (left: ScheduleSlot, right: ScheduleSlot) => {
+  const leftActive = isSlotActive(left) ? 0 : 1
+  const rightActive = isSlotActive(right) ? 0 : 1
+  if (leftActive !== rightActive) return leftActive - rightActive
+
+  const leftDay = getWeekdayOrder(normalizeWeekdayInputValue(toDayLabel(left?.dia)))
+  const rightDay = getWeekdayOrder(normalizeWeekdayInputValue(toDayLabel(right?.dia)))
+  if (leftDay !== rightDay) return leftDay - rightDay
+
+  const leftMinutes = toMinutesOfDay(left?.hora)
+  const rightMinutes = toMinutesOfDay(right?.hora)
+  if (leftMinutes !== rightMinutes) return leftMinutes - rightMinutes
+
+  return 0
+}
+
+const sortSlotsForDisplay = (slots?: ScheduleSlot[]) => [...(slots ?? [])].sort(compareSlotsForDisplay)
+
 const getSlotsByKind = (kind: 'carga' | 'validacion' | 'envio') =>
   kind === 'carga'
     ? localData.value.cargaSlots ?? []
     : kind === 'validacion'
       ? localData.value.validacionSlots ?? []
       : localData.value.envioSlots ?? []
+
+const cargaSlotsSorted = computed(() => sortSlotsForDisplay(localData.value.cargaSlots))
+const validacionSlotsSorted = computed(() => sortSlotsForDisplay(localData.value.validacionSlots))
+const envioSlotsSorted = computed(() => sortSlotsForDisplay(localData.value.envioSlots))
 
 const activeSlotsCountByKind = (kind: 'carga' | 'validacion' | 'envio') =>
   getSlotsByKind(kind).filter(isSlotActive).length
@@ -121,64 +199,101 @@ const hasValidacionSlots = computed(() => activeSlotsCountByKind('validacion') >
 const isValidacionSectionEnabled = computed(() => hasCargaSlots.value)
 const isEnvioSectionEnabled = computed(() => hasValidacionSlots.value)
 
-const primaryCargaSlot = computed(() => (localData.value.cargaSlots ?? []).find(isSlotActive) ?? null)
-const primaryValidacionSlot = computed(() => (localData.value.validacionSlots ?? []).find(isSlotActive) ?? null)
-const primaryEnvioSlot = computed(() => (localData.value.envioSlots ?? []).find(isSlotActive) ?? null)
-const validacionHoraOptions = computed(() => {
-  const cargaBase = primaryCargaSlot.value
-  if (cargaBase && localData.value.diaValidacion && localData.value.diaValidacion === cargaBase.dia && cargaBase.hora) {
-    const diff = (option: string) => compareWeekdayTime(cargaBase.dia, cargaBase.hora, localData.value.diaValidacion, option)
-    return horaOptions.filter(option => {
-      const delta = diff(option)
-      return delta !== null && delta > 0
+const primaryCargaSlot = computed(() => cargaSlotsSorted.value.find(isSlotActive) ?? null)
+const primaryValidacionSlot = computed(() => validacionSlotsSorted.value.find(isSlotActive) ?? null)
+const primaryEnvioSlot = computed(() => envioSlotsSorted.value.find(isSlotActive) ?? null)
+
+const toSlotSchedule = (slot?: ScheduleSlot | null) => {
+  if (!slot) return null
+  const day = normalizeWeekdayInputValue(toDayLabel(slot.dia))
+  const hour = toHourLabel(slot.hora)
+  if (!day || !hour) return null
+  return { day, hour }
+}
+
+const cargaDayOptions = computed(() => validDayOptions.value)
+const validacionDayOptions = computed(() => validDayOptions.value)
+const envioDayOptions = computed(() => validDayOptions.value)
+
+const hourOptionsOrdered = computed(() =>
+  [...(props.hourOptions ?? [])]
+    .filter(option => Boolean(toHourLabel(option?.label) || toHourLabel(option?.value)))
+    .sort((left, right) => {
+      const leftMinutes = toMinutesOfDay(left?.label)
+      const rightMinutes = toMinutesOfDay(right?.label)
+      return leftMinutes - rightMinutes
     })
-  }
-  return horaOptions
+)
+
+const getTakenHoursByDay = (selectedDay: CatalogIdValue) => {
+  const dayKey = String(selectedDay ?? '').trim()
+  if (!dayKey) return new Set<string>()
+
+  const allSlots = [
+    ...(localData.value.cargaSlots ?? []),
+    ...(localData.value.validacionSlots ?? []),
+    ...(localData.value.envioSlots ?? [])
+  ]
+
+  return new Set(
+    allSlots
+      .filter(slot => String(slot?.dia ?? '').trim() === dayKey)
+      .map(slot => String(slot?.hora ?? '').trim())
+      .filter(Boolean)
+  )
+}
+
+const filterHourOptionsBySelectedDay = (selectedDay: CatalogIdValue) => {
+  const taken = getTakenHoursByDay(selectedDay)
+  if (!taken.size) return hourOptionsOrdered.value
+  return hourOptionsOrdered.value.filter(option => !taken.has(String(option?.value ?? '').trim()))
+}
+
+const validacionHoraOptions = computed(() => {
+  return filterHourOptionsBySelectedDay(localData.value.diaValidacion)
 })
 
+const cargaHoraOptions = computed(() => filterHourOptionsBySelectedDay(localData.value.diaIngesta))
+
 const horaOptionsAmPm = computed(() =>
-  horaOptions.map(option => ({ label: formatHourToAmPm(option), value: option }))
+  cargaHoraOptions.value.map(option => ({ label: formatHourToAmPm(toHourLabel(option?.value)), value: option.value }))
 )
 
 const validacionHoraOptionsAmPm = computed(() =>
-  validacionHoraOptions.value.map(option => ({ label: formatHourToAmPm(option), value: option }))
+  validacionHoraOptions.value.map(option => ({ label: formatHourToAmPm(toHourLabel(option?.value)), value: option.value }))
 )
 
 const envioHoraOptionsAmPm = computed(() =>
-  envioHoraOptions.value.map(option => ({ label: formatHourToAmPm(option), value: option }))
+  envioHoraOptions.value.map(option => ({ label: formatHourToAmPm(toHourLabel(option?.value)), value: option.value }))
 )
 const envioHoraOptions = computed(() => {
-  const validacionBase = primaryValidacionSlot.value
-  if (validacionBase && localData.value.diaEnvio && localData.value.diaEnvio === validacionBase.dia && validacionBase.hora) {
-    const diff = (option: string) => compareWeekdayTime(validacionBase.dia, validacionBase.hora, localData.value.diaEnvio, option)
-    return horaOptions.filter(option => {
-      const delta = diff(option)
-      return delta !== null && delta > 0
-    })
-  }
-  return horaOptions
+  return filterHourOptionsBySelectedDay(localData.value.diaEnvio)
 })
-const scheduleValidationError = computed(() => {
-  const carga = primaryCargaSlot.value
-  const validacion = primaryValidacionSlot.value
-  const envio = primaryEnvioSlot.value
 
-  if (validacion && carga && getWeekdayOrder(validacion.dia) < getWeekdayOrder(carga.dia)) {
+const formatSlotDay = (value: unknown) => toDayLabel(value)
+const formatSlotHour = (value: unknown) => formatHourToAmPm(toHourLabel(value))
+
+const scheduleValidationError = computed(() => {
+  const carga = toSlotSchedule(primaryCargaSlot.value)
+  const validacion = toSlotSchedule(primaryValidacionSlot.value)
+  const envio = toSlotSchedule(primaryEnvioSlot.value)
+
+  if (validacion && carga && getWeekdayOrder(validacion.day) < getWeekdayOrder(carga.day)) {
     return 'El día de validación no puede ser anterior al día de carga.'
   }
-  if (envio && validacion && getWeekdayOrder(envio.dia) < getWeekdayOrder(validacion.dia)) {
+  if (envio && validacion && getWeekdayOrder(envio.day) < getWeekdayOrder(validacion.day)) {
     return 'El día de envío no puede ser anterior al día de validación.'
   }
 
   if (carga && validacion) {
-    const delta = compareWeekdayTime(carga.dia, carga.hora, validacion.dia, validacion.hora)
+    const delta = compareWeekdayTime(carga.day, carga.hour, validacion.day, validacion.hour)
     if (delta !== null && delta <= 0) {
       return 'Validación debe programarse después de carga.'
     }
   }
 
   if (validacion && envio) {
-    const delta = compareWeekdayTime(validacion.dia, validacion.hora, envio.dia, envio.hora)
+    const delta = compareWeekdayTime(validacion.day, validacion.hour, envio.day, envio.hour)
     if (delta !== null && delta <= 0) {
       return 'Envío debe programarse después de validación.'
     }
@@ -186,34 +301,49 @@ const scheduleValidationError = computed(() => {
 
   return ''
 })
-const scheduleRecommendationMessages = computed(() => {
-  const messages: string[] = []
-  const carga = primaryCargaSlot.value
-  const validacion = primaryValidacionSlot.value
-  const envio = primaryEnvioSlot.value
 
-  if (carga && validacion) {
-    const diff = compareWeekdayTime(carga.dia, carga.hora, validacion.dia, validacion.hora)
-    if (diff !== null && diff >= 0 && diff < 60 * 60_000) {
-      const suggested = addMinutes(carga.dia, carga.hora, 60)
-      if (suggested) {
-        messages.push(`Recomendación: programa Validación al menos 1 hora después de Carga (ej. ${suggested.date} a las ${suggested.time}).`)
-      }
-    }
+const validacionRecommendationMessage = computed(() => {
+  const shouldShow =
+    isValidacionSectionEnabled.value
+    && !hasValidacionConfig.value
+    && !hasValue(localData.value.horaValidacion)
+
+  if (!shouldShow) return ''
+
+  const carga = toSlotSchedule(primaryCargaSlot.value)
+  if (!carga) {
+    return 'Recomendación: programa Validación al menos 1 hora después de Carga.'
   }
 
-  if (validacion && envio) {
-    const diff = compareWeekdayTime(validacion.dia, validacion.hora, envio.dia, envio.hora)
-    if (diff !== null && diff >= 0 && diff < 60 * 60_000) {
-      const suggested = addMinutes(validacion.dia, validacion.hora, 60)
-      if (suggested) {
-        messages.push(`Recomendación: programa Envío al menos 1 hora después de Validación (ej. ${suggested.date} a las ${suggested.time}).`)
-      }
-    }
+  const suggested = addMinutes(carga.day, carga.hour, 60)
+  if (!suggested) {
+    return 'Recomendación: programa Validación al menos 1 hora después de Carga.'
   }
 
-  return messages
+  return `Recomendación: programa Validación al menos 1 hora después de Carga (ej. ${suggested.date} a las ${formatHourToAmPm(suggested.time)}).`
 })
+
+const envioRecommendationMessage = computed(() => {
+  const shouldShow =
+    isEnvioSectionEnabled.value
+    && !hasEnvioConfig.value
+    && !hasValue(localData.value.horaEnvio)
+
+  if (!shouldShow) return ''
+
+  const validacion = toSlotSchedule(primaryValidacionSlot.value)
+  if (!validacion) {
+    return 'Recomendación: programa Envío al menos 1 hora después de Validación.'
+  }
+
+  const suggested = addMinutes(validacion.day, validacion.hour, 60)
+  if (!suggested) {
+    return 'Recomendación: programa Envío al menos 1 hora después de Validación.'
+  }
+
+  return `Recomendación: programa Envío al menos 1 hora después de Validación (ej. ${suggested.date} a las ${formatHourToAmPm(suggested.time)}).`
+})
+
 const scheduleReady = computed(() =>
   hasCargaConfig.value &&
   !scheduleValidationError.value
@@ -221,18 +351,45 @@ const scheduleReady = computed(() =>
 const duplicateScheduleError = ref('')
 
 const clearEnvioConfig = () => {
-  localData.value.ejecucionEnvio = 'Automatica'
+  localData.value.ejecucionEnvio = resolveDefaultExecution()
   localData.value.diaEnvio = ''
   localData.value.horaEnvio = ''
   localData.value.envioSlots = []
 }
 
 const clearValidacionConfig = () => {
-  localData.value.ejecucionValidacion = 'Automatica'
+  localData.value.ejecucionValidacion = resolveDefaultExecution()
   localData.value.diaValidacion = ''
   localData.value.horaValidacion = ''
   localData.value.validacionSlots = []
   clearEnvioConfig()
+}
+
+const stageLabelByKind: Record<'carga' | 'validacion' | 'envio', string> = {
+  carga: 'Carga',
+  validacion: 'Validación',
+  envio: 'Envío'
+}
+
+const hasOverlappingSlot = (kind: 'carga' | 'validacion' | 'envio', slot: ScheduleSlot) => {
+  const dayKey = String(slot?.dia ?? '').trim()
+  const hourKey = String(slot?.hora ?? '').trim()
+  if (!dayKey || !hourKey) return null
+
+  const allKinds: Array<'carga' | 'validacion' | 'envio'> = ['carga', 'validacion', 'envio']
+  for (const currentKind of allKinds) {
+    const found = getSlotsByKind(currentKind)
+      .filter(isSlotActive)
+      .find(existing => String(existing?.dia ?? '').trim() === dayKey && String(existing?.hora ?? '').trim() === hourKey)
+    if (found) {
+      return {
+        stage: stageLabelByKind[currentKind],
+        sameStage: currentKind === kind
+      }
+    }
+  }
+
+  return null
 }
 
 const addScheduleSlot = (kind: 'carga' | 'validacion' | 'envio') => {
@@ -251,9 +408,11 @@ const addScheduleSlot = (kind: 'carga' | 'validacion' | 'envio') => {
         : localData.value.envioSlots ?? []
 
   const duplicateExists = currentSlots.some(existing => existing.dia === slot.dia && existing.hora === slot.hora)
-  if (duplicateExists) {
-    const etapa = kind === 'carga' ? 'Carga' : kind === 'validacion' ? 'Validación' : 'Envío'
-    duplicateScheduleError.value = `Ese horario ya existe en ${etapa}.`
+  const overlap = duplicateExists ? { stage: stageLabelByKind[kind], sameStage: true } : hasOverlappingSlot(kind, slot)
+  if (overlap) {
+    duplicateScheduleError.value = overlap.sameStage
+      ? `Ese horario ya existe en ${overlap.stage}.`
+      : `Ese horario se traslapa con ${overlap.stage}.`
     addToast(duplicateScheduleError.value, 'warning', 3000)
     return
   }
@@ -262,16 +421,38 @@ const addScheduleSlot = (kind: 'carga' | 'validacion' | 'envio') => {
 
   if (kind === 'carga') {
     localData.value.cargaSlots = appendScheduleSlot(localData.value.cargaSlots, slot)
+    localData.value.diaIngesta = ''
+    localData.value.horaIngesta = ''
   } else if (kind === 'validacion') {
     localData.value.validacionSlots = appendScheduleSlot(localData.value.validacionSlots, slot)
+    localData.value.diaValidacion = ''
+    localData.value.horaValidacion = ''
   } else {
     localData.value.envioSlots = appendScheduleSlot(localData.value.envioSlots, slot)
+    localData.value.diaEnvio = ''
+    localData.value.horaEnvio = ''
   }
 }
 
-const removeScheduleSlot = (kind: 'carga' | 'validacion' | 'envio', index: number) => {
+const resolveSlotIndex = (kind: 'carga' | 'validacion' | 'envio', slotToToggle: ScheduleSlot) => {
   const currentList = getSlotsByKind(kind)
+  const targetHorarioId = Number(slotToToggle?.horarioId ?? 0)
+  if (targetHorarioId > 0) {
+    const indexById = currentList.findIndex(slot => Number(slot?.horarioId ?? 0) === targetHorarioId)
+    if (indexById >= 0) return indexById
+  }
 
+  return currentList.findIndex(slot =>
+    String(slot?.dia ?? '') === String(slotToToggle?.dia ?? '')
+    && String(slot?.hora ?? '') === String(slotToToggle?.hora ?? '')
+  )
+}
+
+const removeScheduleSlot = (kind: 'carga' | 'validacion' | 'envio', slotToToggle: ScheduleSlot) => {
+  const currentList = getSlotsByKind(kind)
+  const index = resolveSlotIndex(kind, slotToToggle)
+
+  if (index < 0) return
   const slot = currentList[index]
   if (!slot) return
 
@@ -282,34 +463,19 @@ const removeScheduleSlot = (kind: 'carga' | 'validacion' | 'envio', index: numbe
     return
   }
 
-  const isPersistedEditSlot = props.mode === 'edit' && Boolean(slot.persisted && slot.horarioId)
-  if (isPersistedEditSlot) {
-    const horarioId = Number(slot.horarioId)
-    const activateIds = new Set(localData.value.horariosActivarIds ?? [])
-    const deactivateIds = new Set(localData.value.horariosDesactivarIds ?? [])
+  const nextActive = !isSlotActive(slot)
+  slot.activo = nextActive
 
-    if (isSlotActive(slot)) {
-      slot.activo = false
-      activateIds.delete(horarioId)
-      deactivateIds.add(horarioId)
-    } else {
-      slot.activo = true
-      deactivateIds.delete(horarioId)
-      activateIds.add(horarioId)
-    }
+  emit('toggle-slot', {
+    kind,
+    index,
+    slot: { ...slot },
+    nextActive
+  })
+}
 
-    localData.value.horariosActivarIds = Array.from(activateIds)
-    localData.value.horariosDesactivarIds = Array.from(deactivateIds)
-    return
-  }
-
-  if (kind === 'carga') {
-    localData.value.cargaSlots = deleteScheduleSlot(localData.value.cargaSlots, index)
-  } else if (kind === 'validacion') {
-    localData.value.validacionSlots = deleteScheduleSlot(localData.value.validacionSlots, index)
-  } else {
-    localData.value.envioSlots = deleteScheduleSlot(localData.value.envioSlots, index)
-  }
+const getSlotActionLabel = (slot: ScheduleSlot) => {
+  return isSlotActive(slot) ? 'Desactivar' : 'Activar'
 }
 
 watch(
@@ -332,7 +498,7 @@ watch(
     if (isSameScheduleData(normalized, props.modelValue)) return
     emit('update:modelValue', normalized)
   },
-  { deep: true }
+  { deep: true, flush: 'sync' }
 )
 
 watch(scheduleReady, (ready) => emit('update:scheduleReady', ready), { immediate: true })
@@ -381,7 +547,11 @@ watch(
   () => {
     duplicateScheduleError.value = ''
 
-    if (localData.value.diaValidacion && localData.value.diaIngesta && getWeekdayOrder(localData.value.diaValidacion) < getWeekdayOrder(localData.value.diaIngesta)) {
+    const diaIngesta = normalizeWeekdayInputValue(toDayLabel(localData.value.diaIngesta))
+    const diaValidacion = normalizeWeekdayInputValue(toDayLabel(localData.value.diaValidacion))
+    const diaEnvio = normalizeWeekdayInputValue(toDayLabel(localData.value.diaEnvio))
+
+    if (diaValidacion && diaIngesta && getWeekdayOrder(diaValidacion) < getWeekdayOrder(diaIngesta)) {
       localData.value.diaValidacion = ''
       localData.value.horaValidacion = ''
       localData.value.diaEnvio = ''
@@ -389,7 +559,7 @@ watch(
       return
     }
 
-    if (localData.value.diaEnvio && localData.value.diaValidacion && getWeekdayOrder(localData.value.diaEnvio) < getWeekdayOrder(localData.value.diaValidacion)) {
+    if (diaEnvio && diaValidacion && getWeekdayOrder(diaEnvio) < getWeekdayOrder(diaValidacion)) {
       localData.value.diaEnvio = ''
       localData.value.horaEnvio = ''
     }
@@ -397,14 +567,38 @@ watch(
 )
 
 watch(validacionHoraOptions, (options) => {
-  if (localData.value.horaValidacion && !options.includes(localData.value.horaValidacion)) {
+  if (localData.value.horaValidacion && !options.some(option => sameValue(option.value, localData.value.horaValidacion))) {
     localData.value.horaValidacion = ''
   }
 })
 
 watch(envioHoraOptions, (options) => {
-  if (localData.value.horaEnvio && !options.includes(localData.value.horaEnvio)) {
+  if (localData.value.horaEnvio && !options.some(option => sameValue(option.value, localData.value.horaEnvio))) {
     localData.value.horaEnvio = ''
+  }
+})
+
+watch(cargaHoraOptions, (options) => {
+  if (localData.value.horaIngesta && !options.some(option => sameValue(option.value, localData.value.horaIngesta))) {
+    localData.value.horaIngesta = ''
+  }
+})
+
+watch(cargaDayOptions, (options) => {
+  if (localData.value.diaIngesta && !options.some(option => sameValue(option.value, localData.value.diaIngesta))) {
+    localData.value.diaIngesta = ''
+  }
+})
+
+watch(validacionDayOptions, (options) => {
+  if (localData.value.diaValidacion && !options.some(option => sameValue(option.value, localData.value.diaValidacion))) {
+    localData.value.diaValidacion = ''
+  }
+})
+
+watch(envioDayOptions, (options) => {
+  if (localData.value.diaEnvio && !options.some(option => sameValue(option.value, localData.value.diaEnvio))) {
+    localData.value.diaEnvio = ''
   }
 })
 </script>
@@ -421,7 +615,7 @@ watch(envioHoraOptions, (options) => {
             <span v-else class="font-bold text-sm">1</span>
           </div>
 
-          <div class="relative flex-grow bg-white p-5 rounded-xl shadow-sm border border-gray-200 group hover:border-[#00357F]/30 transition-all">
+          <div class="relative flex-grow bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:border-[#00357F]/30 transition-all">
             <span v-if="hasCargaConfig" class="absolute -top-2.5 right-4 text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold border border-blue-200 shadow-sm">Configurado</span>
 
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -431,7 +625,7 @@ watch(envioHoraOptions, (options) => {
                   <div class="flex items-center gap-3">
                   <span class="shrink-0 text-[10px] font-bold text-gray-500 uppercase">Ejecución</span>
                   <div class="flex-1">
-                    <ConfigField label="Ejecución" v-model="localData.ejecucionIngesta" :options="ejecucionOptions" :hide-label="true" required />
+                    <ConfigField label="Ejecución" v-model="localData.ejecucionIngesta" :options="executionOptions" :hide-label="true" required />
                   </div>
                   </div>
               </div>
@@ -445,7 +639,7 @@ watch(envioHoraOptions, (options) => {
 
               <div class="flex flex-col md:flex-row items-end gap-3 mb-3">
                 <div class="flex-grow w-full">
-                  <ConfigField label="Día" v-model="localData.diaIngesta" :options="weekdayOptions" required />
+                  <ConfigField label="Día" v-model="localData.diaIngesta" :options="cargaDayOptions" required />
                 </div>
                 <div class="w-full md:w-1/3">
                   <ConfigField
@@ -458,10 +652,11 @@ watch(envioHoraOptions, (options) => {
                 </div>
                 <div class="w-full md:w-auto flex-shrink-0">
                   <button type="button" 
-                    class="h-[42px] w-full md:w-auto px-4 py-2 text-sm font-semibold rounded-md border border-[#00357F] text-[#00357F] bg-white hover:bg-[#00357F]/5 transition-colors disabled:opacity-50 disabled:border-slate-300 disabled:text-slate-400 mb-[1px]" 
+                    class="group relative h-[42px] w-full md:w-auto px-3 py-2 text-sm font-bold rounded-md border border-[#FFD100] text-[#00357F] bg-[#FFD100] hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:border-slate-300 disabled:text-slate-400 disabled:bg-slate-200 mb-[1px] inline-flex items-center justify-center" 
                     :disabled="!localData.diaIngesta || !localData.horaIngesta" 
                     @click="addScheduleSlot('carga')">
-                    Agregar horario
+                    <span class="text-base leading-none">+</span>
+                    <span class="pointer-events-none absolute z-[120] left-1/2 -translate-x-1/2 -top-9 whitespace-nowrap rounded-md bg-[#00357F] px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">Agregar horario</span>
                   </button>
                 </div>
               </div>
@@ -469,16 +664,29 @@ watch(envioHoraOptions, (options) => {
               <div class="min-h-[24px]">
                  <p v-if="!localData.cargaSlots?.length" class="text-[11px] text-slate-400 italic">Agrega al menos un horario para habilitar Validación.</p>
                  
-                 <div v-else class="flex flex-wrap gap-2">
-                    <span v-for="(slot, index) in localData.cargaSlots" :key="`carga-${slot.dia}-${slot.hora}-${index}`" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border"
-                      :class="slot.persisted
-                        ? (isSlotActive(slot)
+                  <div v-else class="flex flex-wrap gap-2">
+                    <span v-for="(slot, index) in cargaSlotsSorted" :key="`carga-${slot.dia}-${slot.hora}-${slot.horarioId ?? index}`" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border"
+                      :class="isSlotActive(slot)
+                        ? (slot.persisted
                           ? 'bg-blue-50 text-blue-700 border-blue-200'
-                          : 'bg-slate-100 text-slate-500 border-slate-200 opacity-60')
-                        : 'bg-slate-100 text-slate-700 border-slate-200'">
-                      {{ slot.dia }} {{ formatHourToAmPm(slot.hora) }}
-                      <button type="button" class="ml-1 text-slate-400 hover:text-red-600 font-bold text-[11px] leading-none" @click="removeScheduleSlot('carga', index)">
-                        {{ slot.persisted && mode === 'edit' ? (isSlotActive(slot) ? 'Desactivar' : 'Activar') : '×' }}
+                          : 'bg-slate-100 text-slate-700 border-slate-200')
+                        : 'bg-slate-100 text-slate-500 border-slate-200 opacity-60'">
+                      {{ formatSlotDay(slot.dia) }} {{ formatSlotHour(slot.hora) }}
+                      <button
+                        type="button"
+                        class="group relative ml-1 h-5 w-5 inline-flex items-center justify-center rounded-full text-slate-400 hover:text-[#00357F] hover:bg-white/80 transition-colors"
+                        :aria-label="getSlotActionLabel(slot)"
+                        :title="getSlotActionLabel(slot)"
+                        @click="removeScheduleSlot('carga', slot)"
+                      >
+                        <svg v-if="isSlotActive(slot)" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                          <rect x="3.5" y="3.5" width="13" height="13" rx="2" />
+                          <path d="M6.8 10.2l2.1 2.1 4.3-4.3" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <svg v-else class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                          <rect x="3.5" y="3.5" width="13" height="13" rx="2" />
+                        </svg>
+                        <span class="pointer-events-none absolute z-[120] left-1/2 -translate-x-1/2 -top-8 whitespace-nowrap rounded-md bg-[#00357F] px-2 py-1 text-[10px] font-semibold text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">{{ getSlotActionLabel(slot) }}</span>
                       </button>
                     </span>
                  </div>
@@ -511,10 +719,17 @@ watch(envioHoraOptions, (options) => {
                 <div class="flex items-center gap-3">
                   <span class="shrink-0 text-[10px] font-bold text-gray-500 uppercase">Ejecución</span>
                   <div class="flex-1">
-                    <ConfigField label="Ejecución" v-model="localData.ejecucionValidacion" :options="ejecucionOptions" :disabled="!isValidacionSectionEnabled" :hide-label="true" required />
+                    <ConfigField label="Ejecución" v-model="localData.ejecucionValidacion" :options="executionOptions" :disabled="!isValidacionSectionEnabled" :hide-label="true" required />
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div
+              v-if="validacionRecommendationMessage"
+              class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800"
+            >
+              {{ validacionRecommendationMessage }}
             </div>
 
             <div class="rounded-lg border border-slate-300 bg-white p-4">
@@ -525,7 +740,7 @@ watch(envioHoraOptions, (options) => {
 
               <div class="flex flex-col md:flex-row items-end gap-3 mb-3">
                 <div class="flex-grow w-full">
-                   <ConfigField label="Día" v-model="localData.diaValidacion" :options="weekdayOptions" :disabled="!isValidacionSectionEnabled" required />
+                   <ConfigField label="Día" v-model="localData.diaValidacion" :options="validacionDayOptions" :disabled="!isValidacionSectionEnabled" required />
                 </div>
                 <div class="w-full md:w-1/3">
                   <ConfigField
@@ -538,26 +753,40 @@ watch(envioHoraOptions, (options) => {
                 </div>
                 <div class="w-full md:w-auto flex-shrink-0">
                   <button type="button" 
-                    class="h-[42px] w-full md:w-auto px-4 py-2 text-sm font-semibold rounded-md border border-[#00357F] text-[#00357F] bg-white hover:bg-[#00357F]/5 transition-colors disabled:opacity-50 disabled:border-slate-300 disabled:text-slate-400 mb-[1px]" 
+                    class="group relative h-[42px] w-full md:w-auto px-3 py-2 text-sm font-bold rounded-md border border-[#FFD100] text-[#00357F] bg-[#FFD100] hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:border-slate-300 disabled:text-slate-400 disabled:bg-slate-200 mb-[1px] inline-flex items-center justify-center" 
                     :disabled="!isValidacionSectionEnabled || !localData.diaValidacion || !localData.horaValidacion" 
                     @click="addScheduleSlot('validacion')">
-                    Agregar horario
+                    <span class="text-base leading-none">+</span>
+                    <span class="pointer-events-none absolute z-[120] left-1/2 -translate-x-1/2 -top-9 whitespace-nowrap rounded-md bg-[#00357F] px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">Agregar horario</span>
                   </button>
                 </div>
               </div>
 
               <div class="min-h-[24px]">
                  <p v-if="!localData.validacionSlots?.length" class="text-[11px] text-slate-400 italic">Agrega al menos un horario para habilitar Envío.</p>
-                 <div v-else class="flex flex-wrap gap-2">
-                    <span v-for="(slot, index) in localData.validacionSlots" :key="`validacion-${slot.dia}-${slot.hora}-${index}`" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border"
-                      :class="slot.persisted
-                        ? (isSlotActive(slot)
+                  <div v-else class="flex flex-wrap gap-2">
+                    <span v-for="(slot, index) in validacionSlotsSorted" :key="`validacion-${slot.dia}-${slot.hora}-${slot.horarioId ?? index}`" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border"
+                      :class="isSlotActive(slot)
+                        ? (slot.persisted
                           ? 'bg-blue-50 text-blue-700 border-blue-200'
-                          : 'bg-slate-100 text-slate-500 border-slate-200 opacity-60')
-                        : 'bg-slate-100 text-slate-700 border-slate-200'">
-                      {{ slot.dia }} {{ formatHourToAmPm(slot.hora) }}
-                      <button type="button" class="ml-1 text-slate-400 hover:text-red-600 font-bold text-[11px] leading-none" @click="removeScheduleSlot('validacion', index)">
-                        {{ slot.persisted && mode === 'edit' ? (isSlotActive(slot) ? 'Desactivar' : 'Activar') : '×' }}
+                          : 'bg-slate-100 text-slate-700 border-slate-200')
+                        : 'bg-slate-100 text-slate-500 border-slate-200 opacity-60'">
+                      {{ formatSlotDay(slot.dia) }} {{ formatSlotHour(slot.hora) }}
+                      <button
+                        type="button"
+                        class="group relative ml-1 h-5 w-5 inline-flex items-center justify-center rounded-full text-slate-400 hover:text-[#00357F] hover:bg-white/80 transition-colors"
+                        :aria-label="getSlotActionLabel(slot)"
+                        :title="getSlotActionLabel(slot)"
+                        @click="removeScheduleSlot('validacion', slot)"
+                      >
+                        <svg v-if="isSlotActive(slot)" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                          <rect x="3.5" y="3.5" width="13" height="13" rx="2" />
+                          <path d="M6.8 10.2l2.1 2.1 4.3-4.3" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <svg v-else class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                          <rect x="3.5" y="3.5" width="13" height="13" rx="2" />
+                        </svg>
+                        <span class="pointer-events-none absolute z-[120] left-1/2 -translate-x-1/2 -top-8 whitespace-nowrap rounded-md bg-[#00357F] px-2 py-1 text-[10px] font-semibold text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">{{ getSlotActionLabel(slot) }}</span>
                       </button>
                     </span>
                  </div>
@@ -589,10 +818,17 @@ watch(envioHoraOptions, (options) => {
                 <div class="flex items-center gap-3">
                   <span class="shrink-0 text-[10px] font-bold text-gray-500 uppercase">Ejecución</span>
                   <div class="flex-1">
-                    <ConfigField label="Ejecución" v-model="localData.ejecucionEnvio" :options="ejecucionOptions" :disabled="!isEnvioSectionEnabled" :hide-label="true" required />
+                    <ConfigField label="Ejecución" v-model="localData.ejecucionEnvio" :options="executionOptions" :disabled="!isEnvioSectionEnabled" :hide-label="true" required />
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div
+              v-if="envioRecommendationMessage"
+              class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800"
+            >
+              {{ envioRecommendationMessage }}
             </div>
 
              <div class="rounded-lg border border-slate-300 bg-white p-4">
@@ -603,7 +839,7 @@ watch(envioHoraOptions, (options) => {
 
               <div class="flex flex-col md:flex-row items-end gap-3 mb-3">
                 <div class="flex-grow w-full">
-                  <ConfigField label="Día" v-model="localData.diaEnvio" :options="weekdayOptions" :disabled="!isEnvioSectionEnabled" required />
+                  <ConfigField label="Día" v-model="localData.diaEnvio" :options="envioDayOptions" :disabled="!isEnvioSectionEnabled" required />
                 </div>
                 <div class="w-full md:w-1/3">
                   <ConfigField
@@ -616,25 +852,39 @@ watch(envioHoraOptions, (options) => {
                 </div>
                 <div class="w-full md:w-auto flex-shrink-0">
                   <button type="button" 
-                    class="h-[42px] w-full md:w-auto px-4 py-2 text-sm font-semibold rounded-md border border-[#00357F] text-[#00357F] bg-white hover:bg-[#00357F]/5 transition-colors disabled:opacity-50 disabled:border-slate-300 disabled:text-slate-400 mb-[1px]" 
+                    class="group relative h-[42px] w-full md:w-auto px-3 py-2 text-sm font-bold rounded-md border border-[#FFD100] text-[#00357F] bg-[#FFD100] hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:border-slate-300 disabled:text-slate-400 disabled:bg-slate-200 mb-[1px] inline-flex items-center justify-center" 
                     :disabled="!isEnvioSectionEnabled || !localData.diaEnvio || !localData.horaEnvio" 
                     @click="addScheduleSlot('envio')">
-                    Agregar horario
+                    <span class="text-base leading-none">+</span>
+                    <span class="pointer-events-none absolute z-[120] left-1/2 -translate-x-1/2 -top-9 whitespace-nowrap rounded-md bg-[#00357F] px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">Agregar horario</span>
                   </button>
                 </div>
               </div>
 
               <div class="min-h-[24px]">
-                 <div v-if="localData.envioSlots?.length" class="flex flex-wrap gap-2">
-                    <span v-for="(slot, index) in localData.envioSlots" :key="`envio-${slot.dia}-${slot.hora}-${index}`" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border"
-                      :class="slot.persisted
-                        ? (isSlotActive(slot)
+                  <div v-if="localData.envioSlots?.length" class="flex flex-wrap gap-2">
+                    <span v-for="(slot, index) in envioSlotsSorted" :key="`envio-${slot.dia}-${slot.hora}-${slot.horarioId ?? index}`" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border"
+                      :class="isSlotActive(slot)
+                        ? (slot.persisted
                           ? 'bg-blue-50 text-blue-700 border-blue-200'
-                          : 'bg-slate-100 text-slate-500 border-slate-200 opacity-60')
-                        : 'bg-slate-100 text-slate-700 border-slate-200'">
-                      {{ slot.dia }} {{ formatHourToAmPm(slot.hora) }}
-                      <button type="button" class="ml-1 text-slate-400 hover:text-red-600 font-bold text-[11px] leading-none" @click="removeScheduleSlot('envio', index)">
-                        {{ slot.persisted && mode === 'edit' ? (isSlotActive(slot) ? 'Desactivar' : 'Activar') : '×' }}
+                          : 'bg-slate-100 text-slate-700 border-slate-200')
+                        : 'bg-slate-100 text-slate-500 border-slate-200 opacity-60'">
+                      {{ formatSlotDay(slot.dia) }} {{ formatSlotHour(slot.hora) }}
+                      <button
+                        type="button"
+                        class="group relative ml-1 h-5 w-5 inline-flex items-center justify-center rounded-full text-slate-400 hover:text-[#00357F] hover:bg-white/80 transition-colors"
+                        :aria-label="getSlotActionLabel(slot)"
+                        :title="getSlotActionLabel(slot)"
+                        @click="removeScheduleSlot('envio', slot)"
+                      >
+                        <svg v-if="isSlotActive(slot)" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                          <rect x="3.5" y="3.5" width="13" height="13" rx="2" />
+                          <path d="M6.8 10.2l2.1 2.1 4.3-4.3" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <svg v-else class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                          <rect x="3.5" y="3.5" width="13" height="13" rx="2" />
+                        </svg>
+                        <span class="pointer-events-none absolute z-[120] left-1/2 -translate-x-1/2 -top-8 whitespace-nowrap rounded-md bg-[#00357F] px-2 py-1 text-[10px] font-semibold text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">{{ getSlotActionLabel(slot) }}</span>
                       </button>
                     </span>
                  </div>
@@ -645,10 +895,9 @@ watch(envioHoraOptions, (options) => {
       </div>
     </div>
 
-    <div v-if="scheduleValidationError || duplicateScheduleError || scheduleRecommendationMessages.length" class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 space-y-1 mt-6">
+    <div v-if="scheduleValidationError || duplicateScheduleError" class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 space-y-1 mt-6">
       <p v-if="scheduleValidationError" class="font-semibold text-red-700">{{ scheduleValidationError }}</p>
       <p v-if="duplicateScheduleError" class="font-semibold text-amber-700">{{ duplicateScheduleError }}</p>
-      <p v-for="message in scheduleRecommendationMessages" :key="message">{{ message }}</p>
     </div>
   </div>
 </template>
