@@ -138,7 +138,7 @@ export function toCreateTareaLineaPayloads(
   return stages
     .filter(stage => stage.slots.length > 0)
     .map(stage => ({
-      tarea: {
+      actividad: {
         mapeo: { id: mapeoId },
         tipo: { id: stage.typeId },
         ejecucion: { id: resolveExecutionId(stage.execution) }
@@ -160,7 +160,7 @@ export function toUpdateTareaLineaPayload(
 ): UpdateTareaLineaPayload {
   const ops = toUpdateTareaLineaOperations(form, { carga: tareaId })
   return ops.update[0]?.payload ?? {
-    tarea: {
+    actividad: {
       id: tareaId,
       linea: { id: Number(form.idABCCatLineaNegocio ?? 0) },
       tipo: { id: 1 },
@@ -244,7 +244,7 @@ export function toUpdateTareaLineaOperations(
       update.push({
         stage: stage.stage,
         payload: {
-          tarea: {
+          actividad: {
             id: existingTaskId,
             ...commonTarea
           },
@@ -262,7 +262,7 @@ export function toUpdateTareaLineaOperations(
     create.push({
       stage: stage.stage,
       payload: {
-        tarea: commonTarea,
+        actividad: commonTarea,
         horarios: stage.slots.map(slot => toHorarioByType(stage.typeId, slot.dia, slot.hora)),
         idABCUsuario: idUsuario,
         idUsuario

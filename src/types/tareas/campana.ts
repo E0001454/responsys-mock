@@ -102,7 +102,13 @@ export interface TareaCampanaData {
 }
 
 export interface CreateTareaCampanaPayload {
-  tarea: {
+  tarea?: {
+    mapeo?: { id: number }
+    tipo: { id: number }
+    ejecucion: { id: number }
+    bolActivo?: boolean
+  }
+  actividad?: {
     mapeo?: { id: number }
     tipo: { id: number }
     ejecucion: { id: number }
@@ -126,7 +132,23 @@ export interface TareaCampanaHorariosPostPayload {
 }
 
 export interface UpdateTareaCampanaPayload {
-  tarea: {
+  tarea?: {
+    id: number
+    mapeo?: { id: number }
+    linea?: {
+      id: number
+      catCampana?: {
+        id: number
+      }
+      campana?: {
+        id: number
+      }
+    }
+    tipo: { id: number }
+    ejecucion: { id: number }
+    bolActivo?: boolean
+  }
+  actividad?: {
     id: number
     mapeo?: { id: number }
     linea?: {
@@ -149,7 +171,10 @@ export interface UpdateTareaCampanaPayload {
 }
 
 export interface PatchTareaCampanaPayload {
-  tarea: {
+  tarea?: {
+    idABCConfigTareaCampana: string | number
+  }
+  actividad?: {
     idABCConfigTareaCampana: string | number
   }
   idABCUsuario: number

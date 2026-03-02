@@ -156,7 +156,7 @@ export function useMapeoCampanaModal(
             ? ''
             : Number(props.initialData.porcentajeError),
         dictaminar:
-          props.initialData.dictaminar ?? props.initialData.bolDictaminacion ?? false,
+          props.initialData.dictaminar ?? props.initialData.bolDictaminacion ?? true,
         idUsuario: props.initialData.idUsuario ?? props.initialData.idABCUsuario ?? 1
       }
     }
@@ -169,7 +169,7 @@ export function useMapeoCampanaModal(
       validar: true,
       enviar: true,
       porcentajeError: '',
-      dictaminar: false,
+      dictaminar: true,
       idUsuario: 1
     }
   }

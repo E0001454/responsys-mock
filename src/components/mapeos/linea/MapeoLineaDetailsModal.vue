@@ -34,7 +34,7 @@ function formatTimestamp(value?: string) {
 function getMapeoStageVisual(configured: boolean) {
   return {
     configured,
-    label: configured ? 'Activo' : 'Inactivo',
+    label: configured ? '' : '',
     containerClass: configured
       ? 'bg-emerald-50/80 border-emerald-200 text-emerald-700'
       : 'bg-rose-50/70 border-rose-200 text-rose-700',
@@ -47,13 +47,13 @@ function getMapeoStageVisual(configured: boolean) {
 function getDictaminarVisual(configured: boolean) {
   return {
     configured,
-    label: configured ? 'Activo' : 'Inactivo',
+    label: configured ? '' : '',
     containerClass: configured
-      ? 'bg-blue-50 border-blue-200 text-[#00357F]'
-      : 'bg-amber-50 border-amber-200 text-amber-700',
+      ? 'bg-emerald-50 border-emerald-200 text-[#00357F]'
+      : 'bg-rose-50 border-rose-200 text-rose-700',
     iconWrapClass: configured
-      ? 'bg-blue-100 text-[#00357F]'
-      : 'bg-amber-100 text-amber-700'
+      ? 'bg-emerald-100 text-[#00357F]'
+      : 'bg-rose-100 text-rose-700'
   }
 }
 </script>
@@ -80,19 +80,20 @@ function getDictaminarVisual(configured: boolean) {
             <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Mapeo</span>
             <p class="mt-1 font-semibold text-slate-700">{{ item.nombre }}</p>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-2 gap-3">
+
+          <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Descripcion</span>
+            <p class="mt-1 text-slate-600 whitespace-pre-wrap">{{ item.descripcion }}</p>
+          </div>
+
+          <div class="grid grid-cols-3 sm:grid-cols-3 gap-3">
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Estatus</span>
               <p class="mt-1 font-semibold" :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'">
                 {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
               </p>
             </div>
-            <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
-              <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">% Error</span>
-              <p class="mt-1 font-semibold text-slate-700">
-                {{ item.porcentajeError === null || item.porcentajeError === undefined ? '-' : `${item.porcentajeError}%` }}
-              </p>
-            </div>
+
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Validar</span>
               <template v-for="stage in [getMapeoStageVisual(Boolean(item.validar ?? false))]" :key="`validar-detail-${item.idABCConfigMapeoLinea}`">
@@ -131,25 +132,16 @@ function getDictaminarVisual(configured: boolean) {
             </div>
           </div>
 
-          <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Descripcion</span>
-            <p class="mt-1 text-slate-600 whitespace-pre-wrap">{{ item.descripcion }}</p>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
-              <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Creado</span>
-              <p class="mt-1 text-slate-600">{{ formatTimestamp(item.fechaCreacion) }}</p>
-            </div>
-            <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
-              <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Modificado</span>
-              <p class="mt-1 text-slate-600">{{ formatTimestamp(item.fechaUltimaModificacion) }}</p>
-            </div>
+          <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Porcentaje de Error permitido</span>
+            <p class="mt-1 font-semibold text-slate-700">
+              {{ item.porcentajeError === null || item.porcentajeError === undefined ? '-' : `${item.porcentajeError}%` }}
+            </p>
           </div>
           
-          <div class="mt-2 grid grid-cols-1 sm:grid-cols-1 gap-3">
-            <div class="bg-white rounded-lg p-2 border border-amber-200 flex flex-col items-start max-w-[220px]">
-              <span class="text-[10px] uppercase tracking-widest text-amber-700 font-bold">Dictaminar</span>
+          <div class="mt-2 grid grid-cols-3 sm:grid-cols-3 gap-3">
+            <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col">
+              <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Dictaminar</span>
               <template v-for="dictaminarStage in [getDictaminarVisual(Boolean(item.dictaminar ?? item.bolDictaminacion ?? false))]" :key="`dictaminar-detail-${item.idABCConfigMapeoLinea}`">
                 <div class="inline-flex items-center justify-center w-28 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="dictaminarStage.containerClass">
                   <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="dictaminarStage.iconWrapClass">
@@ -165,6 +157,17 @@ function getDictaminarVisual(configured: boolean) {
                   <span>{{ dictaminarStage.label }}</span>
                 </div>
               </template>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+              <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Creado</span>
+              <p class="mt-1 text-slate-600">{{ formatTimestamp(item.fechaCreacion) }}</p>
+            </div>
+            <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+              <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Modificado</span>
+              <p class="mt-1 text-slate-600">{{ formatTimestamp(item.fechaUltimaModificacion) }}</p>
             </div>
           </div>
         </div>

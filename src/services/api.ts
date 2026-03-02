@@ -28,11 +28,11 @@ function parseEnvBoolean(value: unknown): boolean | undefined {
 
 function getEndpointDomain(endpoint: string): ApiDomain {
   const path = String(endpoint || '').toLowerCase()
-  if (path.includes('/monitor/tareas')) return 'monitor'
+  if (path.includes('/monitor/tareas') || path.includes('/monitor/actividades')) return 'monitor'
   if (path.includes('/horarios')) return 'horarios'
   if (path.includes('/catalogos')) return 'catalogos'
   if (path.includes('/columnas')) return 'columnas'
-  if (path.includes('/tareas')) return 'tareas'
+  if (path.includes('/tareas') || path.includes('/actividades')) return 'tareas'
   if (path.includes('/mapeos')) return 'mapeos'
   return 'default'
 }
@@ -258,117 +258,117 @@ export const api = {
   patchDesactivarMapeoCampana: (payload: any) =>
     http.patch('/lineas/campanas/mapeos/desactivar', payload),
 
-  // Tareas linea
-  getTareasLinea: () => http.get('/lineas/tareas'),
+  // Actividades linea
+  getTareasLinea: () => http.get('/lineas/actividades'),
   getTareasLineaByLinea: (lineaId: string | number) =>
-    http.get(`/lineas/${lineaId}/tareas`),
+    http.get(`/lineas/${lineaId}/actividades`),
   createTareaLinea: (lineaId: string | number, payload: any) =>
-    request(`/lineas/${lineaId}/tareas`, {
+    request(`/lineas/${lineaId}/actividades`, {
       method: 'POST',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
-  updateTareaLinea: (payload: any) => request('/lineas/tareas', {
+  updateTareaLinea: (payload: any) => request('/lineas/actividades', {
     method: 'PUT',
     headers: { 'X-Suppress-Toast': 'true' },
     body: JSON.stringify(payload)
   }),
   deleteTareaLinea: (lineaId: string | number, tareaId: string | number) =>
-    http.delete(`/lineas/${lineaId}/tareas/${tareaId}`),
+    http.delete(`/lineas/${lineaId}/actividades/${tareaId}`),
   patchActivarTareaLinea: (payload: any) =>
-    request('/lineas/tareas/activar', {
+    request('/lineas/actividades/activar', {
       method: 'PATCH',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
   patchDesactivarTareaLinea: (payload: any) =>
-    request('/lineas/tareas/desactivar', {
+    request('/lineas/actividades/desactivar', {
       method: 'PATCH',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
   getHorariosTareaLinea: (tareaId: string | number) =>
-    http.get(`/lineas/tareas/${tareaId}/horarios`),
+    http.get(`/lineas/actividades/${tareaId}/horarios`),
   postHorariosTareaLinea: (tareaId: string | number, payload: any) =>
-    request(`/lineas/tareas/${tareaId}/horarios`, {
+    request(`/lineas/actividades/${tareaId}/horarios`, {
       method: 'POST',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
   patchActivarHorarioTareaLinea: (tareaId: string | number, payload: any) =>
-    request(`/lineas/tareas/${tareaId}/horarios/activar`, {
+    request(`/lineas/actividades/${tareaId}/horarios/activar`, {
       method: 'PATCH',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
   patchDesactivarHorarioTareaLinea: (tareaId: string | number, payload: any) =>
-    request(`/lineas/tareas/${tareaId}/horarios/desactivar`, {
+    request(`/lineas/actividades/${tareaId}/horarios/desactivar`, {
       method: 'PATCH',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
 
-  // Tareas campana
-  getTareasCampana: () => http.get('/lineas/campanas/tareas'),
+  // Actividades campana
+  getTareasCampana: () => http.get('/lineas/campanas/actividades'),
   getTareasCampanaByLineaCampana: (lineaId: string | number, campanaId: string | number) =>
-    http.get(`/lineas/${lineaId}/campanas/${campanaId}/tareas`),
+    http.get(`/lineas/${lineaId}/campanas/${campanaId}/actividades`),
   createTareaCampana: (lineaId: string | number, campanaId: string | number, payload: any) =>
-    request(`/lineas/${lineaId}/campanas/${campanaId}/tareas`, {
+    request(`/lineas/${lineaId}/campanas/${campanaId}/actividades`, {
       method: 'POST',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
-  updateTareaCampana: (payload: any) => request('/lineas/campanas/tareas', {
+  updateTareaCampana: (payload: any) => request('/lineas/campanas/actividades', {
     method: 'PUT',
     headers: { 'X-Suppress-Toast': 'true' },
     body: JSON.stringify(payload)
   }),
   deleteTareaCampana: (lineaId: string | number, campanaId: string | number, tareaId: string | number) =>
-    http.delete(`/lineas/${lineaId}/campanas/${campanaId}/tareas/${tareaId}`),
+    http.delete(`/lineas/${lineaId}/campanas/${campanaId}/actividades/${tareaId}`),
   patchActivarTareaCampana: (payload: any) =>
-    request('/lineas/campanas/tareas/activar', {
+    request('/lineas/campanas/actividades/activar', {
       method: 'PATCH',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
   patchDesactivarTareaCampana: (payload: any) =>
-    request('/lineas/campanas/tareas/desactivar', {
+    request('/lineas/campanas/actividades/desactivar', {
       method: 'PATCH',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
   getHorariosTareaCampana: (tareaId: string | number) =>
-    http.get(`/campanas/tareas/${tareaId}/horarios`),
+    http.get(`/campanas/actividades/${tareaId}/horarios`),
   postHorariosTareaCampana: (tareaId: string | number, payload: any) =>
-    request(`/campanas/tareas/${tareaId}/horarios`, {
+    request(`/campanas/actividades/${tareaId}/horarios`, {
       method: 'POST',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
   patchActivarHorarioTareaCampana: (tareaId: string | number, payload: any) =>
-    request(`/campanas/tareas/${tareaId}/horarios/activar`, {
+    request(`/campanas/actividades/${tareaId}/horarios/activar`, {
       method: 'PATCH',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
   patchDesactivarHorarioTareaCampana: (tareaId: string | number, payload: any) =>
-    request(`/campanas/tareas/${tareaId}/horarios/desactivar`, {
+    request(`/campanas/actividades/${tareaId}/horarios/desactivar`, {
       method: 'PATCH',
       headers: { 'X-Suppress-Toast': 'true' },
       body: JSON.stringify(payload)
     }),
 
-  // Monitor de tareas (solo lectura)
-  getTareasMonitorLinea: () => http.get('/monitor/tareas/linea'),
-  getTareasMonitorCampana: () => http.get('/monitor/tareas/campana'),
+  // Monitor de actividades (solo lectura)
+  getTareasMonitorLinea: () => http.get('/monitor/actividades/linea'),
+  getTareasMonitorCampana: () => http.get('/monitor/actividades/campana'),
   patchActivarTareaMonitorLinea: (payload: any) =>
-    http.patch('/monitor/tareas/linea/activar', payload),
+    http.patch('/monitor/actividades/linea/activar', payload),
   patchDesactivarTareaMonitorLinea: (payload: any) =>
-    http.patch('/monitor/tareas/linea/desactivar', payload),
+    http.patch('/monitor/actividades/linea/desactivar', payload),
   patchActivarTareaMonitorCampana: (payload: any) =>
-    http.patch('/monitor/tareas/campana/activar', payload),
+    http.patch('/monitor/actividades/campana/activar', payload),
   patchDesactivarTareaMonitorCampana: (payload: any) =>
-    http.patch('/monitor/tareas/campana/desactivar', payload),
+    http.patch('/monitor/actividades/campana/desactivar', payload),
 
   // Columna mapeo (línea)
   getColumnasLinea: () => http.get('/lineas/mapeos/0/columnas'),

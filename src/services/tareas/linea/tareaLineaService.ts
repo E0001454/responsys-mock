@@ -25,6 +25,8 @@ const apiClient = api as ApiClient
 function resolveTareaLineaId(response: any): number {
   const raw = response?.idABCConfigTareaLinea
     ?? response?.id
+    ?? response?.actividad?.idABCConfigTareaLinea
+    ?? response?.actividad?.id
     ?? response?.tarea?.idABCConfigTareaLinea
     ?? response?.tarea?.id
   return Number(raw ?? 0)
@@ -239,13 +241,13 @@ export const tareaLineaService = {
 
   async create(lineaId: string | number, payload: any) {
     const normalized = {
-      tarea: payload.tarea ?? payload ?? {},
-      horarios: payload.horarios ?? payload?.tarea?.horarios ?? [],
+      actividad: payload.actividad ?? payload.tarea ?? payload ?? {},
+      horarios: payload.horarios ?? payload?.actividad?.horarios ?? payload?.tarea?.horarios ?? [],
       idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
 
     const tareaPayload = {
-      tarea: normalized.tarea,
+      actividad: normalized.actividad,
       idUsuario: normalized.idUsuario
     }
     const tareaResponse = await apiClient.createTareaLinea(lineaId, tareaPayload)
@@ -264,9 +266,9 @@ export const tareaLineaService = {
     api
       .postBitacoraByContext(
         'POST',
-        `/lineas/${lineaId}/tareas`,
+        `/lineas/${lineaId}/actividades`,
         normalized,
-        `Crear tarea linea ${lineaId}`,
+        `Crear actividad linea ${lineaId}`,
         normalized.idUsuario
       )
       .catch(() => {})
@@ -275,7 +277,7 @@ export const tareaLineaService = {
   },
 
   async update(payload: any) {
-    const tareaData = payload.tarea ?? payload ?? {}
+    const actividadData = payload.actividad ?? payload.tarea ?? payload ?? {}
     const horariosDesactivarIds = Array.isArray(payload.horariosDesactivarIds)
       ? payload.horariosDesactivarIds.map(Number).filter((id: number) => !Number.isNaN(id) && id > 0)
       : []
@@ -283,15 +285,15 @@ export const tareaLineaService = {
       ? payload.horariosActivarIds.map(Number).filter((id: number) => !Number.isNaN(id) && id > 0)
       : []
     const normalized = {
-      tarea: tareaData,
-      horarios: payload.horarios ?? payload?.tarea?.horarios ?? [],
+      actividad: actividadData,
+      horarios: payload.horarios ?? payload?.actividad?.horarios ?? payload?.tarea?.horarios ?? [],
       idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1,
       horariosDesactivarIds,
       horariosActivarIds
     }
 
     const tareaPayload = {
-      tarea: normalized.tarea,
+      actividad: normalized.actividad,
       idUsuario: normalized.idUsuario
     }
     const tareaResponse = await apiClient.updateTareaLinea(tareaPayload)
@@ -302,9 +304,9 @@ export const tareaLineaService = {
     api
       .postBitacoraByContext(
         'PUT',
-        '/lineas/tareas',
+        '/lineas/actividades',
         normalized,
-        'Actualizar tarea linea',
+        'Actualizar actividad linea',
         normalized.idUsuario
       )
       .catch(() => {})
@@ -332,14 +334,14 @@ export const tareaLineaService = {
   },
 
   patchActivar(tareaId: number, idUsuario: number) {
-    const payload = { tarea: { id: tareaId }, idUsuario }
+    const payload = { actividad: { id: tareaId }, idUsuario }
     return apiClient.patchActivarTareaLinea(payload).then(res => {
       api
         .postBitacoraByContext(
           'PATCH',
-          '/lineas/tareas/activar',
+          '/lineas/actividades/activar',
           payload,
-          `Activar tarea ${tareaId}`,
+          `Activar actividad ${tareaId}`,
           idUsuario
         )
         .catch(() => {})
@@ -348,14 +350,14 @@ export const tareaLineaService = {
   },
 
   patchDesactivar(tareaId: number, idUsuario: number) {
-    const payload = { tarea: { id: tareaId }, idUsuario }
+    const payload = { actividad: { id: tareaId }, idUsuario }
     return apiClient.patchDesactivarTareaLinea(payload).then(res => {
       api
         .postBitacoraByContext(
           'PATCH',
-          '/lineas/tareas/desactivar',
+          '/lineas/actividades/desactivar',
           payload,
-          `Desactivar tarea ${tareaId}`,
+          `Desactivar actividad ${tareaId}`,
           idUsuario
         )
         .catch(() => {})

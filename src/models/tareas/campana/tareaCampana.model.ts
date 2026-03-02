@@ -139,7 +139,7 @@ export function toCreateTareaCampanaPayloads(
   return stages
     .filter(stage => stage.slots.length > 0)
     .map(stage => ({
-      tarea: {
+      actividad: {
         mapeo: { id: mapeoId },
         tipo: { id: stage.typeId },
         ejecucion: { id: resolveExecutionId(stage.execution) }
@@ -161,7 +161,7 @@ export function toUpdateTareaCampanaPayload(
 ): UpdateTareaCampanaPayload {
   const ops = toUpdateTareaCampanaOperations(form, { carga: tareaId })
   return ops.update[0]?.payload ?? {
-    tarea: {
+    actividad: {
       id: tareaId,
       linea: {
         id: Number(form.idABCCatLineaNegocio ?? 0),
@@ -253,7 +253,7 @@ export function toUpdateTareaCampanaOperations(
       update.push({
         stage: stage.stage,
         payload: {
-          tarea: {
+          actividad: {
             id: existingTaskId,
             ...commonTarea
           },
@@ -271,7 +271,7 @@ export function toUpdateTareaCampanaOperations(
     create.push({
       stage: stage.stage,
       payload: {
-        tarea: commonTarea,
+        actividad: commonTarea,
         horarios: stage.slots.map(slot => toHorarioByType(stage.typeId, slot.dia, slot.hora)),
         idABCUsuario: idUsuario,
         idUsuario

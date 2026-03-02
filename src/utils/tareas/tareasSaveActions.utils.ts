@@ -98,7 +98,7 @@ function shouldUpdateStageTask(item: StageAwareItem, stage: StageKey, nextExecut
 
 function toTaskOnlyUpdatePayload(payloadByStage: any) {
   return {
-    tarea: payloadByStage?.tarea ?? {},
+    actividad: payloadByStage?.actividad ?? payloadByStage?.tarea ?? {},
     idUsuario: Number(payloadByStage?.idUsuario ?? payloadByStage?.idABCUsuario ?? 1)
   }
 }
@@ -180,7 +180,7 @@ export function buildCampanaSaveActions(params: {
   if (mode === 'add') {
     const payloads = toCreateTareaCampanaPayloads(payload, actividadTipoIds)
     for (const record of payloads) {
-      const stageId = Number(record?.tarea?.tipo?.id ?? 0)
+      const stageId = Number(record?.actividad?.tipo?.id ?? record?.tarea?.tipo?.id ?? 0)
       const stage = stageId === 1 ? 'carga' : stageId === 2 ? 'validacion' : 'envio'
       actions.push({
         label: `Agregando ${stageActionLabel(stage)}`,
@@ -197,7 +197,8 @@ export function buildCampanaSaveActions(params: {
     for (const entry of operations.update) {
       const payloadByStage = entry.payload
       const stageTaskId = Number(
-        payloadByStage?.tarea?.id
+        payloadByStage?.actividad?.id
+        ?? payloadByStage?.tarea?.id
         ?? stageTaskIds[entry.stage]
         ?? 0
       )
@@ -205,7 +206,7 @@ export function buildCampanaSaveActions(params: {
       const requiresTaskPut = shouldUpdateStageTask(
         selectedItem,
         entry.stage,
-        Number(payloadByStage?.tarea?.ejecucion?.id ?? 0)
+        Number(payloadByStage?.actividad?.ejecucion?.id ?? payloadByStage?.tarea?.ejecucion?.id ?? 0)
       )
 
       if (requiresTaskPut) {
@@ -280,7 +281,7 @@ export function buildLineaSaveActions(params: {
   if (mode === 'add') {
     const payloads = toCreateTareaLineaPayloads(payload, actividadTipoIds)
     for (const record of payloads) {
-      const stageId = Number(record?.tarea?.tipo?.id ?? 0)
+      const stageId = Number(record?.actividad?.tipo?.id ?? record?.tarea?.tipo?.id ?? 0)
       const stage = stageId === 1 ? 'carga' : stageId === 2 ? 'validacion' : 'envio'
       actions.push({
         label: `Agregando ${stageActionLabel(stage)}`,
@@ -297,7 +298,8 @@ export function buildLineaSaveActions(params: {
     for (const entry of operations.update) {
       const payloadByStage = entry.payload
       const stageTaskId = Number(
-        payloadByStage?.tarea?.id
+        payloadByStage?.actividad?.id
+        ?? payloadByStage?.tarea?.id
         ?? stageTaskIds[entry.stage]
         ?? 0
       )
@@ -305,7 +307,7 @@ export function buildLineaSaveActions(params: {
       const requiresTaskPut = shouldUpdateStageTask(
         selectedItem,
         entry.stage,
-        Number(payloadByStage?.tarea?.ejecucion?.id ?? 0)
+        Number(payloadByStage?.actividad?.ejecucion?.id ?? payloadByStage?.tarea?.ejecucion?.id ?? 0)
       )
 
       if (requiresTaskPut) {

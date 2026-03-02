@@ -104,7 +104,7 @@ export const tareaMonitorService = {
   },
 
   async patchDictaminarLinea(id: number, bolActivo: boolean, idUsuario = 1) {
-    const payload = { tarea: { id, idUsuario } }
+    const payload = { actividad: { id }, idUsuario }
     const raw = bolActivo
       ? await apiClient.patchActivarTareaMonitorLinea(payload)
       : await apiClient.patchDesactivarTareaMonitorLinea(payload)
@@ -112,7 +112,7 @@ export const tareaMonitorService = {
   },
 
   async patchDictaminarCampana(id: number, bolActivo: boolean, idUsuario = 1) {
-    const payload = { tarea: { id, idUsuario } }
+    const payload = { actividad: { id }, idUsuario }
     const raw = bolActivo
       ? await apiClient.patchActivarTareaMonitorCampana(payload)
       : await apiClient.patchDesactivarTareaMonitorCampana(payload)

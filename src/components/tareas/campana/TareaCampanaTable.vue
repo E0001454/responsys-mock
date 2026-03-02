@@ -119,9 +119,9 @@ const {
           <col class="w-[14%]" />
           <col class="w-[16%]" />
           <col class="w-[20%]" />
-          <col class="w-[11%]" />
-          <col class="w-[11%]" />
-          <col class="w-[11%]" />
+          <col class="w-[13%]" />
+          <col class="w-[13%]" />
+          <col class="w-[13%]" />
           <col class="w-[8%]" />
           <col class="w-[9%]" />
         </colgroup>

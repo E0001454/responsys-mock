@@ -126,13 +126,13 @@ const statusIsActive = computed(() => {
 function getRequiredVisual(required: boolean) {
 	return {
 		required,
-		label: required ? 'Requerido' : 'No requerido',
+		label: required ? '' : '',
 		containerClass: required
-			? 'bg-blue-50 border-blue-200 text-[#00357F]'
-			: 'bg-slate-50 border-slate-200 text-slate-600',
+			? 'bg-emerald-50 border-emerald-200 text-[#00357F]'
+			: 'bg-rose-50 border-rose-200 text-rose-600',
 		iconWrapClass: required
-			? 'bg-blue-100 text-[#00357F]'
-			: 'bg-slate-200 text-slate-600'
+			? 'bg-emerald-100 text-[#00357F]'
+			: 'bg-rose-200 text-rose-600'
 	}
 }
 
@@ -280,18 +280,17 @@ function mapFechaTipoName(id: number | null | undefined) {
 						</div>
 
 						<div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
-							<span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Obligatorio</span>
-							<template v-for="requiredStage in [getRequiredVisual(Boolean(props.item.columna?.esRequerido ?? props.item.columna?.obligatorio ?? props.item.esRequerido ?? props.item.obligatorio))]" :key="`obligatorio-detalle-${requiredStage.label}`">
+							<span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Requerido</span>
+							<template v-for="requiredStage in [getRequiredVisual(Boolean(props.item.columna?.esRequerido ?? props.item.columna?.obligatorio ?? props.item.columna.esRequerido ?? props.item.obligatorio))]" :key="`obligatorio-detalle-${requiredStage.label}`">
 								<div class="inline-flex items-center justify-center w-full max-w-full min-w-0 gap-2 px-2.5 py-1.5 mt-3 rounded-lg border text-xs font-semibold" :class="requiredStage.containerClass">
 									<span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="requiredStage.iconWrapClass">
-										<svg v-if="requiredStage.required" class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-											<path d="M10 3.5V16.5"></path>
-											<path d="M4.2 6.8L15.8 13.2"></path>
-											<path d="M15.8 6.8L4.2 13.2"></path>
+										<svg v-if="requiredStage.required" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+											<path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
 										</svg>
 										<svg v-else class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-											<path d="M6 10H14"></path>
 											<circle cx="10" cy="10" r="6.5"></circle>
+											<path d="M10 6.7V10.3"></path>
+											<circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
 										</svg>
 									</span>
 									<span>{{ requiredStage.label }}</span>

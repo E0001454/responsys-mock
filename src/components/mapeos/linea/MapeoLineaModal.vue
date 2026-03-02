@@ -136,19 +136,12 @@ const {
             />
             <p v-if="showPorcentajeErrorValidation" class="text-xs text-red-500 mt-1">{{ porcentajeErrorValidationMessage }}</p>
           </div>
-
-          <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Dictaminar</p>
-                <p class="mt-1 text-xs text-slate-600">Esta opción se administra de forma independiente al flujo principal.</p>
-              </div>
-              <label class="inline-flex items-center gap-2 mt-1">
-                <input type="checkbox" v-model="formData.dictaminar" class="w-4 h-4" />
-                <span class="text-sm font-medium text-gray-700">Dictaminar</span>
-              </label>
-            </div>
-          </div>
+          
+          <label class="inline-flex items-center gap-2 mt-1">
+            <input type="checkbox" v-model="formData.dictaminar" class="w-4 h-4" />
+            <span class="text-sm font-medium text-gray-700">Dictaminar</span>
+          </label>
+          
 
           <div v-if="mode === 'edit'" class="flex justify-end">
             <button

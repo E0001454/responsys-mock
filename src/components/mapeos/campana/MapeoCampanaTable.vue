@@ -87,7 +87,7 @@ const thSmallClass = 'px-4 py-3'
 function getMapeoStageVisual(configured: boolean) {
   return {
     configured,
-    label: configured ? 'Activo' : 'Inactivo',
+    label: configured ? '' : '',
     containerClass: configured
       ? 'bg-emerald-50/80 border-emerald-200 text-emerald-700'
       : 'bg-rose-50/70 border-rose-200 text-rose-700',
@@ -100,13 +100,13 @@ function getMapeoStageVisual(configured: boolean) {
 function getDictaminarVisual(configured: boolean) {
   return {
     configured,
-    label: configured ? 'Activo' : 'Inactivo',
+    label: configured ? '' : '',
     containerClass: configured
-      ? 'bg-blue-50 border-blue-200 text-[#00357F]'
-      : 'bg-amber-50 border-amber-200 text-amber-700',
+      ? 'bg-emerald-50 border-emerald-200 text-[#00357F]'
+      : 'bg-rose-50 border-rose-200 text-rose-700',
     iconWrapClass: configured
-      ? 'bg-blue-100 text-[#00357F]'
-      : 'bg-amber-100 text-amber-700'
+      ? 'bg-emerald-100 text-[#00357F]'
+      : 'bg-rose-100 text-rose-700'
   }
 }
 

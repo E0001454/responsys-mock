@@ -110,6 +110,8 @@ function resolveIngestaName(tarea: any, item: any): string {
 function normalizeHorarios(item: any) {
   const rawHorarios = Array.isArray(item?.horarios)
     ? item.horarios
+    : Array.isArray(item?.actividad?.horarios)
+      ? item.actividad.horarios
     : Array.isArray(item?.tarea?.horarios)
       ? item.tarea.horarios
       : []
@@ -177,7 +179,7 @@ export function normalizeTareasCampana(data: any): TareaCampanaData[] {
   const grouped = new Map<string, TareaCampanaData>()
 
   for (const item of list) {
-    const tarea = item?.tarea ?? item ?? {}
+    const tarea = item?.actividad ?? item?.tarea ?? item ?? {}
     const stageType = tarea?.tipo ?? item?.tipo ?? {}
     const stageTypeId = Number(stageType?.id ?? 0)
     const stageKey = getStageKeyByType(stageType)

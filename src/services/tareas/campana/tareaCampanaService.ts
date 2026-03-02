@@ -25,6 +25,8 @@ const apiClient = api as ApiClient
 function resolveTareaCampanaId(response: any): number {
   const raw = response?.idABCConfigTareaCampana
     ?? response?.id
+    ?? response?.actividad?.idABCConfigTareaCampana
+    ?? response?.actividad?.id
     ?? response?.tarea?.idABCConfigTareaCampana
     ?? response?.tarea?.id
   return Number(raw ?? 0)
@@ -239,13 +241,13 @@ export const tareaCampanaService = {
 
   async create(lineaId: string | number, campanaId: string | number, payload: any) {
     const normalized = {
-      tarea: payload.tarea ?? payload ?? {},
-      horarios: payload.horarios ?? payload?.tarea?.horarios ?? [],
+      actividad: payload.actividad ?? payload.tarea ?? payload ?? {},
+      horarios: payload.horarios ?? payload?.actividad?.horarios ?? payload?.tarea?.horarios ?? [],
       idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
 
     const tareaPayload = {
-      tarea: normalized.tarea,
+      actividad: normalized.actividad,
       idUsuario: normalized.idUsuario
     }
     const tareaResponse = await apiClient.createTareaCampana(lineaId, campanaId, tareaPayload)
@@ -264,9 +266,9 @@ export const tareaCampanaService = {
     api
       .postBitacoraByContext(
         'POST',
-        `/lineas/${lineaId}/campanas/${campanaId}/tareas`,
+        `/lineas/${lineaId}/campanas/${campanaId}/actividades`,
         normalized,
-        `Crear tarea campana ${campanaId} de linea ${lineaId}`,
+        `Crear actividad campana ${campanaId} de linea ${lineaId}`,
         normalized.idUsuario
       )
       .catch(() => {})
@@ -275,7 +277,7 @@ export const tareaCampanaService = {
   },
 
   async update(payload: any) {
-    const tareaData = payload.tarea ?? payload ?? {}
+    const actividadData = payload.actividad ?? payload.tarea ?? payload ?? {}
     const horariosDesactivarIds = Array.isArray(payload.horariosDesactivarIds)
       ? payload.horariosDesactivarIds.map(Number).filter((id: number) => !Number.isNaN(id) && id > 0)
       : []
@@ -283,15 +285,15 @@ export const tareaCampanaService = {
       ? payload.horariosActivarIds.map(Number).filter((id: number) => !Number.isNaN(id) && id > 0)
       : []
     const normalized = {
-      tarea: tareaData,
-      horarios: payload.horarios ?? payload?.tarea?.horarios ?? [],
+      actividad: actividadData,
+      horarios: payload.horarios ?? payload?.actividad?.horarios ?? payload?.tarea?.horarios ?? [],
       idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1,
       horariosDesactivarIds,
       horariosActivarIds
     }
 
     const tareaPayload = {
-      tarea: normalized.tarea,
+      actividad: normalized.actividad,
       idUsuario: normalized.idUsuario
     }
     const tareaResponse = await apiClient.updateTareaCampana(tareaPayload)
@@ -302,9 +304,9 @@ export const tareaCampanaService = {
     api
       .postBitacoraByContext(
         'PUT',
-        '/lineas/campanas/tareas',
+        '/lineas/campanas/actividades',
         normalized,
-        'Actualizar tarea campana',
+        'Actualizar actividad campana',
         normalized.idUsuario
       )
       .catch(() => {})
@@ -332,14 +334,14 @@ export const tareaCampanaService = {
   },
 
   patchActivar(tareaId: number, idUsuario: number) {
-    const payload = { tarea: { id: tareaId }, idUsuario }
+    const payload = { actividad: { id: tareaId }, idUsuario }
     return apiClient.patchActivarTareaCampana(payload).then(res => {
       api
         .postBitacoraByContext(
           'PATCH',
-          '/lineas/campanas/tareas/activar',
+          '/lineas/campanas/actividades/activar',
           payload,
-          `Activar tarea campana ${tareaId}`,
+          `Activar actividad campana ${tareaId}`,
           idUsuario
         )
         .catch(() => {})
@@ -348,14 +350,14 @@ export const tareaCampanaService = {
   },
 
   patchDesactivar(tareaId: number, idUsuario: number) {
-    const payload = { tarea: { id: tareaId }, idUsuario }
+    const payload = { actividad: { id: tareaId }, idUsuario }
     return apiClient.patchDesactivarTareaCampana(payload).then(res => {
       api
         .postBitacoraByContext(
           'PATCH',
-          '/lineas/campanas/tareas/desactivar',
+          '/lineas/campanas/actividades/desactivar',
           payload,
-          `Desactivar tarea campana ${tareaId}`,
+          `Desactivar actividad campana ${tareaId}`,
           idUsuario
         )
         .catch(() => {})

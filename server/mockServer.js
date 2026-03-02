@@ -404,7 +404,13 @@ function parseBody(req) {
     req.on('end', () => {
       if (!body) return resolve({})
       try {
-        resolve(JSON.parse(body))
+        const parsed = JSON.parse(body)
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          if (!parsed.tarea && parsed.actividad) {
+            parsed.tarea = parsed.actividad
+          }
+        }
+        resolve(parsed)
       } catch (err) {
         reject(err)
       }
@@ -985,7 +991,8 @@ const server = http.createServer(async (req, res) => {
       return send(res, 404, { message: 'Not found', hint: 'Try /api or /health.' })
     }
 
-    const pathOnly = pathname.slice(API_PREFIX.length)
+    const pathOnlyRaw = pathname.slice(API_PREFIX.length)
+    const pathOnly = pathOnlyRaw.replace(/\/actividades/gi, '/tareas')
 
     if (req.method === 'GET') {
       if (pathOnly === '/catalogos') {

@@ -96,7 +96,13 @@ export interface TareaLineaData {
 }
 
 export interface CreateTareaLineaPayload {
-  tarea: {
+  tarea?: {
+    mapeo?: { id: number }
+    tipo: { id: number }
+    ejecucion: { id: number }
+    bolActivo?: boolean
+  }
+  actividad?: {
     mapeo?: { id: number }
     tipo: { id: number }
     ejecucion: { id: number }
@@ -120,7 +126,15 @@ export interface TareaLineaHorariosPostPayload {
 }
 
 export interface UpdateTareaLineaPayload {
-  tarea: {
+  tarea?: {
+    id: number
+    mapeo?: { id: number }
+    linea?: { id: number }
+    tipo: { id: number }
+    ejecucion: { id: number }
+    bolActivo?: boolean
+  }
+  actividad?: {
     id: number
     mapeo?: { id: number }
     linea?: { id: number }
@@ -135,7 +149,10 @@ export interface UpdateTareaLineaPayload {
 }
 
 export interface PatchTareaLineaPayload {
-  tarea: {
+  tarea?: {
+    idABCConfigTareaLinea: string | number
+  }
+  actividad?: {
     idABCConfigTareaLinea: string | number
   }
   idABCUsuario: number
