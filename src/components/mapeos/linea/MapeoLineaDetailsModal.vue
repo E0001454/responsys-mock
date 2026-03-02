@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import BaseModalActions from '@/components/shared/modal/BaseModalActions.vue'
+import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
 import type { MapeoLineaData } from '@/types/mapeos/linea'
 
 interface Props {
@@ -28,30 +30,42 @@ function formatTimestamp(value?: string) {
     timeStyle: 'short'
   }).format(date)
 }
+
+function getMapeoStageVisual(configured: boolean) {
+  return {
+    configured,
+    label: configured ? 'Activo' : 'Inactivo',
+    containerClass: configured
+      ? 'bg-emerald-50/80 border-emerald-200 text-emerald-700'
+      : 'bg-rose-50/70 border-rose-200 text-rose-700',
+    iconWrapClass: configured
+      ? 'bg-emerald-100 text-emerald-700'
+      : 'bg-rose-100 text-rose-700'
+  }
+}
+
+function getDictaminarVisual(configured: boolean) {
+  return {
+    configured,
+    label: configured ? 'Activo' : 'Inactivo',
+    containerClass: configured
+      ? 'bg-blue-50 border-blue-200 text-[#00357F]'
+      : 'bg-amber-50 border-amber-200 text-amber-700',
+    iconWrapClass: configured
+      ? 'bg-blue-100 text-[#00357F]'
+      : 'bg-amber-100 text-amber-700'
+  }
+}
 </script>
 
 <template>
-  <div
-    v-if="show"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity"
-    @click.self="emit('close')"
+  <BaseModalShell
+    :show="show"
+    title="Detalle de Mapeo"
+    max-width-class="max-w-lg"
+    @close="emit('close')"
   >
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
-      <div class="px-4 py-2.5 bg-[#00357F] border-b border-white/10 flex items-center shrink-0">
-        <h3 class="text-base font-semibold text-white/95 flex items-center gap-2 tracking-wide">
-          Detalle de Mapeo
-        </h3>
-        <button
-          type="button"
-          class="ml-auto h-8 w-8 inline-flex items-center justify-center rounded-md text-white/90 hover:bg-white/15 transition-colors"
-          @click="emit('close')"
-        >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
-      </div>
-
+    <template #body>
       <div class="p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
         <div v-if="!item" class="text-sm text-slate-500">
           Sin informacion para mostrar.
@@ -66,26 +80,54 @@ function formatTimestamp(value?: string) {
             <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Mapeo</span>
             <p class="mt-1 font-semibold text-slate-700">{{ item.nombre }}</p>
           </div>
-          <div class="grid grid-cols-3 sm:grid-cols-3 gap-3">
+          <div class="grid grid-cols-2 sm:grid-cols-2 gap-3">
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Estatus</span>
               <p class="mt-1 font-semibold" :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'">
                 {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
               </p>
             </div>
+            <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+              <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">% Error</span>
+              <p class="mt-1 font-semibold text-slate-700">
+                {{ item.porcentajeError === null || item.porcentajeError === undefined ? '-' : `${item.porcentajeError}%` }}
+              </p>
+            </div>
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Validar</span>
-
-              <label class="inline-flex items-center gap-2 mt-3">
-                <input type="checkbox" :checked="Boolean(item.validar)" disabled class="h-4 w-4 accent-[#00357F]" />
-              </label>
+              <template v-for="stage in [getMapeoStageVisual(Boolean(item.validar ?? false))]" :key="`validar-detail-${item.idABCConfigMapeoLinea}`">
+                <div class="inline-flex items-center justify-center w-28 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
+                  <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
+                    <svg v-if="stage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <svg v-else class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <circle cx="10" cy="10" r="6.5"></circle>
+                      <path d="M10 6.7V10.3"></path>
+                      <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
+                    </svg>
+                  </span>
+                  <span>{{ stage.label }}</span>
+                </div>
+              </template>
             </div>
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Enviar</span>
-
-              <label class="inline-flex items-center gap-2 mt-3">
-                <input type="checkbox" :checked="Boolean((item as any).enviar ?? (item as any).envio)" disabled class="h-4 w-4 accent-[#00357F]" />
-              </label>
+              <template v-for="stage in [getMapeoStageVisual(Boolean((item as any).enviar ?? (item as any).envio ?? false))]" :key="`enviar-detail-${item.idABCConfigMapeoLinea}`">
+                <div class="inline-flex items-center justify-center w-28 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
+                  <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
+                    <svg v-if="stage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <svg v-else class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <circle cx="10" cy="10" r="6.5"></circle>
+                      <path d="M10 6.7V10.3"></path>
+                      <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
+                    </svg>
+                  </span>
+                  <span>{{ stage.label }}</span>
+                </div>
+              </template>
             </div>
           </div>
 
@@ -104,20 +146,38 @@ function formatTimestamp(value?: string) {
               <p class="mt-1 text-slate-600">{{ formatTimestamp(item.fechaUltimaModificacion) }}</p>
             </div>
           </div>
+          
+          <div class="mt-2 grid grid-cols-1 sm:grid-cols-1 gap-3">
+            <div class="bg-white rounded-lg p-2 border border-amber-200 flex flex-col items-start max-w-[220px]">
+              <span class="text-[10px] uppercase tracking-widest text-amber-700 font-bold">Dictaminar</span>
+              <template v-for="dictaminarStage in [getDictaminarVisual(Boolean(item.dictaminar ?? item.bolDictaminacion ?? false))]" :key="`dictaminar-detail-${item.idABCConfigMapeoLinea}`">
+                <div class="inline-flex items-center justify-center w-28 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="dictaminarStage.containerClass">
+                  <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="dictaminarStage.iconWrapClass">
+                    <svg v-if="dictaminarStage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <svg v-else class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <circle cx="10" cy="10" r="6.5"></circle>
+                      <path d="M10 6.7V10.3"></path>
+                      <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
+                    </svg>
+                  </span>
+                  <span>{{ dictaminarStage.label }}</span>
+                </div>
+              </template>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div class="shrink-0 flex justify-end gap-3 p-3 border-t border-gray-100 bg-white">
-        <button
-          type="button"
-          class="px-5 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-          @click="emit('close')"
-        >
-          Aceptar
-        </button>
-      </div>
-    </div>
-  </div>
+    </template>
+    <template #footer>
+      <BaseModalActions
+        confirm-text="Aceptar"
+        :show-cancel="false"
+        @confirm="emit('close')"
+      />
+    </template>
+  </BaseModalShell>
 </template>
 
 <style scoped>

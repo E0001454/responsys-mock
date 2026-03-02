@@ -72,6 +72,37 @@ const { isRowGlowing } = useFirstRowNewGlow(
 
 const thClass = 'px-4 py-3'
 const thSmallClass = 'px-4 py-3'
+
+function getMapeoStageVisual(configured: boolean) {
+  return {
+    configured,
+    label: configured ? 'Activo' : 'Inactivo',
+    containerClass: configured
+      ? 'bg-emerald-50/80 border-emerald-200 text-emerald-700'
+      : 'bg-rose-50/70 border-rose-200 text-rose-700',
+    iconWrapClass: configured
+      ? 'bg-emerald-100 text-emerald-700'
+      : 'bg-rose-100 text-rose-700'
+  }
+}
+
+function getDictaminarVisual(configured: boolean) {
+  return {
+    configured,
+    label: configured ? 'Activo' : 'Inactivo',
+    containerClass: configured
+      ? 'bg-blue-50 border-blue-200 text-[#00357F]'
+      : 'bg-amber-50 border-amber-200 text-amber-700',
+    iconWrapClass: configured
+      ? 'bg-blue-100 text-[#00357F]'
+      : 'bg-amber-100 text-amber-700'
+  }
+}
+
+function formatPorcentajeError(value?: number | null) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '-'
+  return `${Number(value)}%`
+}
 </script>
 
 <template>
@@ -79,13 +110,15 @@ const thSmallClass = 'px-4 py-3'
     <div class="overflow-y-auto overflow-x-auto flex-1" style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;">
       <table class="w-full text-left border-collapse table-fixed">
         <colgroup>
-          <col class="w-[22%]" />
-          <col class="w-[28%]" />
-          <col class="w-[12%]" />
-          <col class="w-[8%]" />
-          <col class="w-[8%]" />
+          <col class="w-[16%]" />
+          <col class="w-[20%]" />
+          <col class="w-[9%]" />
           <col class="w-[10%]" />
-          <col class="w-[12%]" />
+          <col class="w-[10%]" />
+          <col class="w-[11%]" />
+          <col class="w-[10%]" />
+          <col class="w-[6%]" />
+          <col class="w-[8%]" />
         </colgroup>
         <thead>
           <tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
@@ -125,6 +158,8 @@ const thSmallClass = 'px-4 py-3'
             <th :class="thClass">Columnas</th>
             <th :class="thSmallClass + ' text-center'">Validar</th>
             <th :class="thSmallClass + ' text-center'">Enviar</th>
+            <th :class="thSmallClass + ' text-center'">Dictaminar</th>
+            <th :class="thSmallClass + ' text-center'">% Error</th>
             <th :class="thSmallClass + ' relative'">
               <FilterDropdown
                 label="Estado"
@@ -180,25 +215,61 @@ const thSmallClass = 'px-4 py-3'
               </td>
 
               <td class="px-4 py-2.5 text-center">
-                <div class="flex justify-center">
-                  <input
-                    type="checkbox"
-                    :checked="(m as any).validar ?? false"
-                    disabled
-                    class="h-4 w-4 rounded border-slate-300 text-[#00357F] bg-slate-100"
-                  />
-                </div>
+                <template v-for="stage in [getMapeoStageVisual(Boolean((m as any).validar ?? false))]" :key="`validar-${m.idABCConfigMapeoLinea}`">
+                  <div class="inline-flex items-center justify-center w-24 gap-2 px-2.5 py-1 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
+                    <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
+                      <svg v-if="stage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                      <svg v-else class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <circle cx="10" cy="10" r="6.5"></circle>
+                        <path d="M10 6.7V10.3"></path>
+                        <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
+                      </svg>
+                    </span>
+                    <span>{{ stage.label }}</span>
+                  </div>
+                </template>
               </td>
 
               <td class="px-4 py-2.5 text-center">
-                <div class="flex justify-center">
-                  <input
-                    type="checkbox"
-                    :checked="(m as any).enviar ?? (m as any).envio ?? false"
-                    disabled
-                    class="h-4 w-4 rounded border-slate-300 text-[#00357F] bg-slate-100"
-                  />
-                </div>
+                <template v-for="stage in [getMapeoStageVisual(Boolean((m as any).enviar ?? (m as any).envio ?? false))]" :key="`enviar-${m.idABCConfigMapeoLinea}`">
+                  <div class="inline-flex items-center justify-center w-24 gap-2 px-2.5 py-1 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
+                    <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
+                      <svg v-if="stage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                      <svg v-else class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <circle cx="10" cy="10" r="6.5"></circle>
+                        <path d="M10 6.7V10.3"></path>
+                        <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
+                      </svg>
+                    </span>
+                    <span>{{ stage.label }}</span>
+                  </div>
+                </template>
+              </td>
+
+              <td class="px-4 py-2.5 text-center">
+                <template v-for="dictaminarStage in [getDictaminarVisual(Boolean(m.dictaminar ?? m.bolDictaminacion ?? false))]" :key="`dictaminar-${m.idABCConfigMapeoLinea}`">
+                  <div class="inline-flex items-center justify-center w-24 gap-2 px-2.5 py-1 rounded-lg border text-[11px] font-semibold" :class="dictaminarStage.containerClass">
+                    <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="dictaminarStage.iconWrapClass">
+                      <svg v-if="dictaminarStage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                      <svg v-else class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <circle cx="10" cy="10" r="6.5"></circle>
+                        <path d="M10 6.7V10.3"></path>
+                        <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
+                      </svg>
+                    </span>
+                    <span>{{ dictaminarStage.label }}</span>
+                  </div>
+                </template>
+              </td>
+
+              <td class="px-4 py-2.5 text-center text-slate-700 font-semibold" @dblclick="emit('viewDetails', m)">
+                {{ formatPorcentajeError(m.porcentajeError) }}
               </td>
 
               <td class="px-4 py-2.5" @dblclick="emit('viewDetails', m)">

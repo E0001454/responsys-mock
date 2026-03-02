@@ -8,10 +8,13 @@ const catalogosDisponibles = [
     { label: 'Roles', value: 'ROL' },
     { label: 'Líneas de negocio', value: 'LNN' },
     { label: 'Campañas', value: 'CMP' },
-    { label: 'Columnas', value: 'CLM' },
+    { label: 'Columnas línea', value: 'CLI' },
+    { label: 'Columnas campaña', value: 'CCM' },
+    { label: 'Columnas (legacy)', value: 'CLM' },
     { label: 'Valores', value: 'VAL' },
     { label: 'Cadenas', value: 'CDN' },
-    { label: 'Números', value: 'NMR' }
+    { label: 'Números', value: 'NMR' },
+    { label: 'Fechas', value: 'FCH' }
 ] as const
 
 const selectedCodigo = ref<CatalogoCodigo>('ROL')

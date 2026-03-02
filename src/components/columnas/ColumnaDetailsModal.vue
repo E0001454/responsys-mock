@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
+import BaseModalActions from '@/components/shared/modal/BaseModalActions.vue'
+import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
 import { catalogosService } from '@/services/catalogos/catalogosService'
 
 interface Option {
@@ -121,6 +123,19 @@ const statusIsActive = computed(() => {
 	return Boolean(item.columna?.bolActivo)
 })
 
+function getRequiredVisual(required: boolean) {
+	return {
+		required,
+		label: required ? 'Requerido' : 'No requerido',
+		containerClass: required
+			? 'bg-blue-50 border-blue-200 text-[#00357F]'
+			: 'bg-slate-50 border-slate-200 text-slate-600',
+		iconWrapClass: required
+			? 'bg-blue-100 text-[#00357F]'
+			: 'bg-slate-200 text-slate-600'
+	}
+}
+
 // function getBool(v: any) {
 // 	if (v === undefined || v === null) return '—'
 // 	return v ? 'Sí' : 'No'
@@ -129,17 +144,28 @@ const statusIsActive = computed(() => {
 function getValor(item: ColumnaDetailsItem | null) {
 	const valor = item?.columna?.valor ?? item?.valor ?? null
 	if (!valor) return null
+	const cadenaTipoId = Number(valor?.cadena?.tipo?.id ?? valor?.cadena?.tipoId ?? 0) || null
+	const numeroTipoId = Number(valor?.numero?.tipo?.id ?? valor?.numero?.tipoId ?? 0) || null
+	const fechaTipoId = Number(valor?.fecha?.tipo?.id ?? valor?.fecha?.tipoId ?? 0) || null
+	const explicitTipoId = Number(valor?.tipo?.id ?? valor?.tipoId ?? 0) || null
+	const inferredTipoId = explicitTipoId
+		?? (numeroTipoId !== null ? 1 : null)
+		?? (cadenaTipoId !== null ? 2 : null)
+		?? (fechaTipoId !== null ? 3 : null)
 	return {
-		tipoId: valor?.tipo?.id ?? null,
+		tipoId: inferredTipoId,
 		cadena: {
-			tipoId: valor?.cadena?.tipo?.id ?? null,
+			tipoId: cadenaTipoId,
 			minimo: valor?.cadena?.minimo ?? null,
 			maximo: valor?.cadena?.maximo ?? null
 		},
 		numero: {
-			tipoId: valor?.numero?.tipo?.id ?? null,
+			tipoId: numeroTipoId,
 			enteros: valor?.numero?.enteros ?? null,
 			decimales: valor?.numero?.decimales ?? null
+		},
+		fecha: {
+			tipoId: fechaTipoId
 		}
 	}
 }
@@ -149,20 +175,24 @@ const valor = computed(() => getValor(props.item))
 const valMap = ref<Record<number, string>>({})
 const cdnMap = ref<Record<number, string>>({})
 const nmrMap = ref<Record<number, string>>({})
+const fchMap = ref<Record<number, string>>({})
 
 async function fetchValorCatalogs() {
 	try {
 		const catalogos = await catalogosService.getCatalogosAgrupados()
 		const nmr = catalogos.find(group => group.codigo === 'NMR')?.registros ?? []
 		const cdn = catalogos.find(group => group.codigo === 'CDN')?.registros ?? []
+		const fch = catalogos.find(group => group.codigo === 'FCH')?.registros ?? []
 		const val = catalogos.find(group => group.codigo === 'VAL')?.registros ?? []
 		valMap.value = (val || []).reduce((acc: any, it: any) => ({ ...acc, [it.id]: it.nombre }), {})
 		cdnMap.value = (cdn || []).reduce((acc: any, it: any) => ({ ...acc, [it.id]: it.nombre }), {})
 		nmrMap.value = (nmr || []).reduce((acc: any, it: any) => ({ ...acc, [it.id]: it.nombre }), {})
+		fchMap.value = (fch || []).reduce((acc: any, it: any) => ({ ...acc, [it.id]: it.nombre }), {})
 	} catch (e) {
 		valMap.value = {}
 		cdnMap.value = {}
 		nmrMap.value = {}
+		fchMap.value = {}
 	}
 }
 
@@ -184,32 +214,21 @@ function mapNumeroTipoName(id: number | null | undefined) {
 	if (id === null || id === undefined) return '(Sin configuración)'
 	return (nmrMap.value[id] ?? String(id))
 }
+
+function mapFechaTipoName(id: number | null | undefined) {
+	if (id === null || id === undefined) return '(Sin configuración)'
+	return (fchMap.value[id] ?? String(id))
+}
 </script>
 
 <template>
-	<div
-		v-if="props.show"
-		class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity"
-		@click.self="emit('close')"
+	<BaseModalShell
+		:show="props.show"
+		title="Detalle de Columna"
+		max-width-class="max-w-lg"
+		@close="emit('close')"
 	>
-		<div
-			class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]"
-		>
-			<div class="px-4 py-2.5 bg-[#00357F] border-b border-white/10 flex items-center shrink-0">
-				<h3 class="text-base font-semibold text-white/95 flex items-center gap-2 tracking-wide">
-					Detalle de Columna
-				</h3>
-				<button
-					type="button"
-					class="ml-auto h-8 w-8 inline-flex items-center justify-center rounded-md text-white/90 hover:bg-white/15 transition-colors"
-					@click="emit('close')"
-				>
-					<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path stroke-linecap="round" d="M6 6l12 12M18 6L6 18" />
-					</svg>
-				</button>
-			</div>
-
+		<template #body>
 			<div class="p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
 				<div v-if="!props.item" class="text-sm text-slate-500">
 					Sin información para mostrar.
@@ -262,9 +281,22 @@ function mapNumeroTipoName(id: number | null | undefined) {
 
 						<div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
 							<span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Obligatorio</span>
-							<label class="inline-flex items-center gap-2 mt-3">
-								<input type="checkbox" :checked="Boolean(props.item.columna?.obligatorio ?? props.item.obligatorio)" disabled class="h-4 w-4 accent-[#00357F]" />
-							</label>
+							<template v-for="requiredStage in [getRequiredVisual(Boolean(props.item.columna?.esRequerido ?? props.item.columna?.obligatorio ?? props.item.esRequerido ?? props.item.obligatorio))]" :key="`obligatorio-detalle-${requiredStage.label}`">
+								<div class="inline-flex items-center justify-center w-full max-w-full min-w-0 gap-2 px-2.5 py-1.5 mt-3 rounded-lg border text-xs font-semibold" :class="requiredStage.containerClass">
+									<span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="requiredStage.iconWrapClass">
+										<svg v-if="requiredStage.required" class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+											<path d="M10 3.5V16.5"></path>
+											<path d="M4.2 6.8L15.8 13.2"></path>
+											<path d="M15.8 6.8L4.2 13.2"></path>
+										</svg>
+										<svg v-else class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+											<path d="M6 10H14"></path>
+											<circle cx="10" cy="10" r="6.5"></circle>
+										</svg>
+									</span>
+									<span>{{ requiredStage.label }}</span>
+								</div>
+							</template>
 						</div>
 
 						<div v-if="(props.item.columna?.regex ?? props.item.regex)" class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
@@ -321,6 +353,18 @@ function mapNumeroTipoName(id: number | null | undefined) {
 										<p class="text-sm font-semibold text-slate-700 mt-1">{{ mapNumeroTipoName(valor?.numero?.tipoId) }}</p>
 									</div>
 								</div>
+
+									<div class="flex items-center gap-2 pb-2 border-b border-slate-100" v-if="valor?.tipoId === 3">
+										<div class=" bg-gray-50 text-gray-600 rounded-md">
+											<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+											</svg>
+										</div>
+										<div>
+											<p class="text-[10px] text-slate-400 uppercase font-bold leading-none">Subtipo de Fecha</p>
+											<p class="text-sm font-semibold text-slate-700 mt-1">{{ mapFechaTipoName(valor?.fecha?.tipoId) }}</p>
+										</div>
+									</div>
 							</div>
 
 							<div v-if="valor?.tipoId === 2" class="space-y-3">
@@ -376,18 +420,15 @@ function mapNumeroTipoName(id: number | null | undefined) {
 					</div>
 				</div>
 			</div>
-
-			<div class="shrink-0 flex justify-end gap-3 p-3 border-t border-gray-100 bg-white">
-				<button
-					type="button"
-					class="px-5 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-					@click="emit('close')"
-				>
-					Aceptar
-				</button>
-			</div>
-		</div>
-	</div>
+		</template>
+		<template #footer>
+			<BaseModalActions
+				confirm-text="Aceptar"
+				:show-cancel="false"
+				@confirm="emit('close')"
+			/>
+		</template>
+	</BaseModalShell>
 </template>
 
 <style scoped>

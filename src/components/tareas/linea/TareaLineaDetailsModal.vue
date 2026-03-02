@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import {
-  formatHourToAmPm,
-  getWeekdayOrder,
-  normalizeWeekdayInputValue,
-  toHoraLabel,
-  weekdayById,
-  type Option as CatalogOption
-} from '@/composables/tareas/tareaScheduleUtils'
+import BaseModalActions from '@/components/shared/modal/BaseModalActions.vue'
+import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
+import { type Option as CatalogOption } from '@/composables/tareas/tareaScheduleUtils'
+import { useTareaLineaDetails } from '@/composables/tareas/linea/useTareaLineaDetails'
+
+type StageKey = 'carga' | 'validacion' | 'envio'
 
 interface HorarioItem {
   idABCConfigHorarioTareaLinea?: number
@@ -67,269 +64,17 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{ (e: 'close'): void }>()
 
-const horarios = computed(() => props.item?.horarios ?? [])
-
-type StageKey = 'carga' | 'validacion' | 'envio'
-
-const STAGE_CONFIG: Array<{ key: StageKey; label: string }> = [
-  { key: 'carga', label: 'Carga' },
-  { key: 'validacion', label: 'Validación' },
-  { key: 'envio', label: 'Envío' }
-]
-
-const getHorarioActive = (horario: HorarioItem) => horario.activo ?? horario.bolActivo ?? true
-
-const getStageSchedule = (key: StageKey) => {
-  return props.item?.[key] ?? {}
-}
-
-const executionLabelById = computed(() => {
-  return new Map(
-    (props.ejecucionesDisponibles ?? [])
-      .map(option => [Number(option.value), String(option.label ?? '').trim()] as const)
-      .filter(entry => entry[0] > 0 && Boolean(entry[1]))
-  )
-})
-
-const hourLabelById = computed(() => {
-  const normalizeHourLabel = (value: unknown) => {
-    const raw = String(value ?? '').trim()
-    if (!raw) return ''
-
-    const hhmm = raw.match(/^(\d{1,2}):(\d{2})$/)
-    if (hhmm) {
-      const hours = Number(hhmm[1])
-      const minutes = Number(hhmm[2])
-      if (!Number.isNaN(hours) && !Number.isNaN(minutes)) {
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-      }
-    }
-
-    const ampm = raw.match(/^(\d{1,2}):(\d{2})\s*([AaPp][Mm])$/)
-    if (ampm) {
-      let hours = Number(ampm[1])
-      const minutes = Number(ampm[2])
-      const suffix = String(ampm[3]).toUpperCase()
-      if (!Number.isNaN(hours) && !Number.isNaN(minutes)) {
-        if (suffix === 'PM' && hours < 12) hours += 12
-        if (suffix === 'AM' && hours === 12) hours = 0
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-      }
-    }
-
-    const normalized = toHoraLabel(raw)
-    return normalized || ''
-  }
-
-  return new Map(
-    (props.horasDisponibles ?? [])
-      .map(option => [Number(option.value), normalizeHourLabel(option.label)] as const)
-      .filter(entry => entry[0] > 0 && Boolean(entry[1]))
-  )
-})
-
-const resolveStageExecutionId = (key: StageKey) => {
-  const schedule = getStageSchedule(key)
-  return Number(
-    schedule?.ejecucionId
-    ?? props.item?.tareasPorTipo?.[key]?.ejecucion?.id
-    ?? 0
-  )
-}
-
-const getStageExecution = (key: StageKey) => {
-  const executionId = resolveStageExecutionId(key)
-  const executionNameFromCatalog = executionLabelById.value.get(executionId)
-  if (executionNameFromCatalog) return executionNameFromCatalog
-  return String(getStageSchedule(key)?.ejecucion ?? '-').trim() || '-'
-}
-
-const normalizeStageToken = (value: unknown) =>
-  String(value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toUpperCase()
-
-const resolveStageTypeId = (key: StageKey) =>
-  Number(props.item?.tareasPorTipo?.[key]?.tipo?.id ?? 0)
-
-const isHorarioForStage = (horario: HorarioItem, key: StageKey) => {
-  if (horario?.stageKey) {
-    return horario.stageKey === key
-  }
-
-  const stageTypeId = resolveStageTypeId(key)
-  const horarioTypeId = Number(
-    horario?.tipoHorario?.id
-    ?? (horario as any)?.tipo?.id
-    ?? (horario as any)?.idABCCatTipoHorario
-    ?? 0
-  )
-
-  if (stageTypeId > 0 && horarioTypeId > 0) {
-    return horarioTypeId === stageTypeId
-  }
-
-  const horarioTypeCode = normalizeStageToken((horario as any)?.tipoHorario?.codigo ?? (horario as any)?.tipo?.codigo)
-  if (key === 'carga' && horarioTypeCode === 'CAG') return true
-  if (key === 'validacion' && horarioTypeCode === 'VLD') return true
-  if (key === 'envio' && horarioTypeCode === 'ENV') return true
-
-  const horarioTypeName = normalizeStageToken(horario?.tipoHorario?.nombre ?? (horario as any)?.tipo?.nombre)
-  if (key === 'carga' && horarioTypeName === 'CARGA') return true
-  if (key === 'validacion' && horarioTypeName === 'VALIDACION') return true
-  if (key === 'envio' && horarioTypeName === 'ENVIO') return true
-
-  if (horarioTypeId > 0) {
-    if (key === 'carga' && horarioTypeId === 1) return true
-    if (key === 'validacion' && horarioTypeId === 2) return true
-    if (key === 'envio' && horarioTypeId === 3) return true
-  }
-
-  return false
-}
-
-const formatLegacySchedule = (key: StageKey) => {
-  const schedule = getStageSchedule(key)
-  const day = String(schedule?.dia ?? '').trim()
-  const hourRaw = String(schedule?.hora ?? '').trim()
-  if (!day || !hourRaw) return ''
-  return `${day} · ${formatHourToAmPm(hourRaw)}`
-}
-
-type StageHorarioEntry = {
-  label: string
-  active: boolean
-  dayOrder: number
-  hourMinutes: number
-}
-
-const resolveHorarioDayLabel = (horario: HorarioItem) => {
-  const byName = normalizeWeekdayInputValue(horario?.dia?.nombre)
-  if (byName) return byName
-  const byId = weekdayById[Number(horario?.dia?.id ?? 0)]
-  return byId ?? ''
-}
-
-const resolveHorarioHourLabel = (horario: HorarioItem) => {
-  const hourId = Number(
-    horario?.dia?.hora?.id
-    ?? horario?.hora?.id
-    ?? (horario as any)?.idABCCatHora
-    ?? 0
-  )
-  const byCatalog = hourLabelById.value.get(hourId)
-  if (byCatalog) return byCatalog
-
-  const byNameRaw = String(horario?.dia?.hora?.nombre ?? horario?.hora?.nombre ?? '').trim()
-  const byName = toHoraLabel(byNameRaw)
-  if (byName) return byName
-
-  return ''
-}
-
-const toHourMinutes = (hourLabel: string) => {
-  const [hoursRaw, minutesRaw] = hourLabel.split(':')
-  const hours = Number(hoursRaw)
-  const minutes = Number(minutesRaw)
-  if ([hours, minutes].some(Number.isNaN)) return Number.POSITIVE_INFINITY
-  return (hours * 60) + minutes
-}
-
-const toStageHorarioEntry = (horario: HorarioItem): StageHorarioEntry => {
-  const day = resolveHorarioDayLabel(horario)
-  const hour = resolveHorarioHourLabel(horario)
-  const label = [day, hour ? formatHourToAmPm(hour) : ''].filter(Boolean).join(' · ') || '-'
-
-  return {
-    label,
-    active: getHorarioActive(horario),
-    dayOrder: getWeekdayOrder(day),
-    hourMinutes: toHourMinutes(hour)
-  }
-}
-
-const compareStageHorarioEntry = (left: StageHorarioEntry, right: StageHorarioEntry) => {
-  const leftInactive = left.active ? 0 : 1
-  const rightInactive = right.active ? 0 : 1
-  if (leftInactive !== rightInactive) return leftInactive - rightInactive
-  if (left.dayOrder !== right.dayOrder) return left.dayOrder - right.dayOrder
-  return left.hourMinutes - right.hourMinutes
-}
-
-const stageDetails = computed(() => {
-  const source = horarios.value
-
-  return STAGE_CONFIG.map(stage => {
-    const stageHorarios = source
-      .filter(horario => isHorarioForStage(horario, stage.key))
-      .map(toStageHorarioEntry)
-      .sort(compareStageHorarioEntry)
-
-    if (!stageHorarios.length) {
-      const fallback = formatLegacySchedule(stage.key)
-      if (fallback) {
-        stageHorarios.push({
-          label: fallback,
-          active: Boolean(props.item?.bolActivo),
-          dayOrder: Number.POSITIVE_INFINITY,
-          hourMinutes: Number.POSITIVE_INFINITY
-        })
-      }
-    }
-
-    const hasTaskConfigured = Boolean(
-      Number(props.item?.idsTarea?.[stage.key] ?? 0)
-      || Number(props.item?.tareasPorTipo?.[stage.key]?.idABCConfigTareaLinea ?? 0)
-      || Number(props.item?.tareasPorTipo?.[stage.key]?.id ?? 0)
-    )
-
-    const hasExecutionConfigured = resolveStageExecutionId(stage.key) > 0
-    const hasAnySchedule = stageHorarios.length > 0
-    const configured = hasTaskConfigured || hasExecutionConfigured || hasAnySchedule
-
-    return {
-      ...stage,
-      execution: getStageExecution(stage.key),
-      horarios: stageHorarios,
-      activeCount: stageHorarios.filter(entry => entry.active).length,
-      configured
-    }
-  })
-})
-
-function formatTimestamp(value?: string) {
-  if (!value) return '—'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('es-MX', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(date)
-}
+const { formatTimestamp, horarios, stageDetails } = useTareaLineaDetails(props)
 </script>
 
 <template>
-  <div
-    v-if="show"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity"
-    @click.self="emit('close')"
+  <BaseModalShell
+    :show="show"
+    title="Detalle de Tarea"
+    max-width-class="max-w-lg"
+    @close="emit('close')"
   >
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
-      <div class="px-4 py-2.5 bg-[#00357F] border-b border-white/10 flex items-center shrink-0">
-        <h3 class="text-base font-semibold text-white/95 flex items-center gap-2 tracking-wide">Detalle de Tarea</h3>
-        <button
-          type="button"
-          class="ml-auto h-8 w-8 inline-flex items-center justify-center rounded-md text-white/90 hover:bg-white/15 transition-colors"
-          @click="emit('close')"
-        >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
-      </div>
-
+    <template #body>
       <div class="p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
         <div v-if="isLoading" class="text-sm text-slate-500">Cargando detalle...</div>
 
@@ -342,7 +87,7 @@ function formatTimestamp(value?: string) {
           </div>
 
           <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
-            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Nombre de la ingesta</span>
+            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Nombre de ingesta</span>
             <p class="mt-1 font-semibold text-slate-700">{{ item.ingesta || '-' }}</p>
           </div>
 
@@ -416,18 +161,15 @@ function formatTimestamp(value?: string) {
           </div>
         </div>
       </div>
-
-      <div class="shrink-0 flex justify-end gap-3 p-3 border-t border-gray-100 bg-white">
-        <button
-          type="button"
-          class="px-5 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-          @click="emit('close')"
-        >
-          Aceptar
-        </button>
-      </div>
-    </div>
-  </div>
+    </template>
+    <template #footer>
+      <BaseModalActions
+        confirm-text="Aceptar"
+        :show-cancel="false"
+        @confirm="emit('close')"
+      />
+    </template>
+  </BaseModalShell>
 </template>
 
 <style scoped>

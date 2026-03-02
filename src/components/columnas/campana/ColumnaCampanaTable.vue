@@ -67,6 +67,19 @@ const { isRowGlowing } = useFirstRowNewGlow(
 	{ isLoading: () => props.isLoading }
 )
 
+function getRequiredVisual(required: boolean) {
+	return {
+		required,
+		label: required ? 'Requerido' : 'No requerido',
+		containerClass: required
+			? 'bg-blue-50 border-blue-200 text-[#00357F]'
+			: 'bg-slate-50 border-slate-200 text-slate-600',
+		iconWrapClass: required
+			? 'bg-blue-100 text-[#00357F]'
+			: 'bg-slate-200 text-slate-600'
+	}
+}
+
 </script>
 
 <template>
@@ -84,9 +97,9 @@ const { isRowGlowing } = useFirstRowNewGlow(
 			<div class="overflow-y-auto overflow-x-hidden flex-1" style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;">
 					<table class="w-full text-left border-collapse table-fixed">
 						<colgroup>
-							<col class="w-[50%]" />
+							<col class="w-[45%]" />
 							<col class="w-[15%]" />
-							<col class="w-[15%]" />
+							<col class="w-[20%]" />
 							<col class="w-[20%]" />
 						</colgroup>
 						<thead>
@@ -185,12 +198,22 @@ const { isRowGlowing } = useFirstRowNewGlow(
 								</td>
 
 								<td class="px-4 py-2.5 text-center">
-									<input
-										type="checkbox"
-										class="h-4 w-4 accent-[#00357F] cursor-not-allowed"
-										:checked="Boolean(c.obligatorio ?? c.columna?.obligatorio)"
-										disabled
-									/>
+									<template v-for="requiredStage in [getRequiredVisual(Boolean(c.esRequerido ?? c.obligatorio ?? c.columna?.esRequerido ?? c.columna?.obligatorio))]" :key="`obligatorio-${c.mapeoId}-${c.columnaId}`">
+										<div class="inline-flex items-center justify-center w-36 gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold whitespace-nowrap" :class="requiredStage.containerClass">
+											<span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="requiredStage.iconWrapClass">
+												<svg v-if="requiredStage.required" class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+													<path d="M10 3.5V16.5"></path>
+													<path d="M4.2 6.8L15.8 13.2"></path>
+													<path d="M15.8 6.8L4.2 13.2"></path>
+												</svg>
+												<svg v-else class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+													<path d="M6 10H14"></path>
+													<circle cx="10" cy="10" r="6.5"></circle>
+												</svg>
+											</span>
+											<span>{{ requiredStage.label }}</span>
+										</div>
+									</template>
 								</td>
 
 								

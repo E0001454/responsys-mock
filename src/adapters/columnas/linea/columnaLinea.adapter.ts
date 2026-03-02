@@ -33,6 +33,7 @@ function adaptValor(raw: unknown): ColumnaValor | null {
 
   const cadenaRaw = r.cadena as Record<string, unknown> | undefined
   const numeroRaw = r.numero as Record<string, unknown> | undefined
+  const fechaRaw = r.fecha as Record<string, unknown> | undefined
 
   const cadena: ColumnaValorCadena | null = cadenaRaw ? {
     tipo: ((): { id: number } | null => {
@@ -52,10 +53,18 @@ function adaptValor(raw: unknown): ColumnaValor | null {
     decimales: toNumber(numeroRaw.decimales) ?? null
   } : null
 
+  const fecha = fechaRaw ? {
+    tipo: ((): { id: number } | null => {
+      const id = toNumber((fechaRaw.tipo as Record<string, unknown>)?.id ?? (fechaRaw.tipo as Record<string, unknown>)?.idABCCatColumna ?? fechaRaw.id)
+      return id !== null ? { id } : null
+    })()
+  } : null
+
   return {
     tipo,
     cadena,
-    numero
+    numero,
+    fecha
   }
 }
 
@@ -69,17 +78,19 @@ export function adaptColumnasLinea(raw: unknown): ColumnaLineaModel[] {
 
     const columnaRec = asRecord(rec.columna)
     const llaveRec = asRecord(rec.llaveMapeoLineaColumna)
+    const tipoRecRoot = asRecord(rec.tipo)
+    const tipoRecLegacy = asRecord(columnaRec.tipo)
+    const valorRec = rec.valor ?? columnaRec.valor ?? null
 
     const mapeoId = toNumber(columnaRec.idABCConfigMapeoLinea ?? llaveRec.idABCConfigMapeoLinea ?? rec.idABCConfigMapeoLinea)
-    const tipoRec = (columnaRec.tipo as Record<string, unknown>) ?? {}
-    const columnaId = toNumber(tipoRec.id ?? tipoRec.idABCCatColumna ?? llaveRec.idABCCatColumna ?? rec.idABCCatColumna)
+    const columnaId = toNumber(tipoRecRoot.id ?? tipoRecRoot.idABCCatColumna ?? tipoRecLegacy.id ?? tipoRecLegacy.idABCCatColumna ?? llaveRec.idABCCatColumna ?? rec.idABCCatColumna)
 
     if (mapeoId === null || columnaId === null) continue
 
-    const bolActivo = toBoolean(rec.bolActivo ?? columnaRec.bolActivo ?? false)
-    const regex = normalizeRegex(columnaRec.regex ?? rec.regex ?? null)
-    const obligatorio = normalizeObligatorio(columnaRec.obligatorio ?? columnaRec.obligatoria ?? rec.obligatorio ?? null)
-    const valor = adaptValor(columnaRec.valor ?? null)
+    const bolActivo = toBoolean(rec.activo ?? rec.bolActivo ?? columnaRec.activo ?? columnaRec.bolActivo ?? false)
+    const regex = normalizeRegex(rec.regex ?? columnaRec.regex ?? null)
+    const obligatorio = normalizeObligatorio(rec.esRequerido ?? rec.obligatorio ?? columnaRec.esRequerido ?? columnaRec.obligatorio ?? columnaRec.obligatoria ?? null)
+    const valor = adaptValor(valorRec)
 
     out.push({
       tipo: 'linea',
@@ -88,13 +99,15 @@ export function adaptColumnasLinea(raw: unknown): ColumnaLineaModel[] {
       bolActivo,
       regex,
       obligatorio,
+      esRequerido: obligatorio,
       valor,
       idUsuario: toNumber(rec.idUsuario ?? columnaRec.idUsuario ?? null),
       columna: {
         tipo: { id: columnaId ?? undefined, idABCCatColumna: columnaId ?? undefined },
-        bolActivo: toBoolean(columnaRec.bolActivo ?? undefined),
-        obligatorio: normalizeObligatorio(columnaRec.obligatorio ?? columnaRec.obligatoria ?? undefined),
-        regex: normalizeRegex(columnaRec.regex ?? undefined),
+        bolActivo,
+        obligatorio,
+        esRequerido: obligatorio,
+        regex,
         valor: valor
       },
       fechaCreacion: typeof columnaRec.fechaCreacion === 'string' ? columnaRec.fechaCreacion : (typeof rec.fechaCreacion === 'string' ? rec.fechaCreacion : undefined),

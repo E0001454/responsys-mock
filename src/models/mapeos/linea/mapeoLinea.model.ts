@@ -9,6 +9,8 @@ export interface MapeoLineaFormModel {
   descripcion: string
   validar?: boolean
   enviar?: boolean
+  dictaminar?: boolean
+  porcentajeError?: number | ''
   idUsuario?: number | ''
 }
 
@@ -18,10 +20,14 @@ export function toCreateMapeoLineaPayload(form: MapeoLineaFormModel): CreateMape
       nombre: form.nombre,
       descripcion: form.descripcion,
       validar: form.validar ?? true,
-      enviar: form.enviar ?? true
+      enviar: form.enviar ?? true,
+      dictaminar: form.dictaminar,
+      porcentajeError:
+        form.porcentajeError === '' || form.porcentajeError === undefined
+          ? undefined
+          : Number(form.porcentajeError)
     },
-    idABCUsuario: Number(form.idUsuario ?? 1),
-    idUsuario: form.idUsuario === '' ? undefined : Number(form.idUsuario ?? 1)
+    idUsuario: Number(form.idUsuario ?? 1)
   }
 }
 
@@ -35,7 +41,12 @@ export function toUpdateMapeoLineaPayload(
       nombre: form.nombre,
       descripcion: form.descripcion,
       validar: form.validar,
-      enviar: form.enviar
+      enviar: form.enviar,
+      dictaminar: form.dictaminar,
+      porcentajeError:
+        form.porcentajeError === '' || form.porcentajeError === undefined
+          ? undefined
+          : Number(form.porcentajeError)
     },
     idUsuario: Number(form.idUsuario ?? 1)
   }

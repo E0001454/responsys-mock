@@ -2,9 +2,10 @@ import type { MapeoLineaData } from '@/types/mapeos/linea'
 
 export function normalizeMapeoLinea(item: any): MapeoLineaData {
   const rawActivo = item?.bolActivo ?? item?.status ?? false
-  const rawDictaminacion = item?.bolDictaminacion ?? item?.dictaminacion
+  const rawDictaminacion = item?.dictaminar ?? item?.bolDictaminacion ?? item?.dictaminacion
   const rawValidar = item?.validar ?? item?.bolValidacion ?? item?.validar_flag
   const rawEnviar = item?.enviar ?? item?.envio ?? item?.bolEnvio ?? item?.envio_flag
+  const rawPorcentajeError = item?.porcentajeError ?? item?.porcentaje_error ?? item?.pctError
 
   const lineaId = Number(
     item?.linea?.id ?? item?.idABCCatLineaNegocio ?? item?.id_linea ?? item?.idLinea ?? 0
@@ -32,6 +33,14 @@ export function normalizeMapeoLinea(item: any): MapeoLineaData {
       rawDictaminacion === null || rawDictaminacion === undefined
         ? null
         : Boolean(rawDictaminacion),
+    dictaminar:
+      rawDictaminacion === null || rawDictaminacion === undefined
+        ? null
+        : Boolean(rawDictaminacion),
+    porcentajeError:
+      rawPorcentajeError === null || rawPorcentajeError === undefined || Number.isNaN(Number(rawPorcentajeError))
+        ? null
+        : Number(rawPorcentajeError),
     validar: typeof rawValidar === 'boolean'
       ? rawValidar
       : (rawValidar === undefined ? undefined : Number(rawValidar) === 1),

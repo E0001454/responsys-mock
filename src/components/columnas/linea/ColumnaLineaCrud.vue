@@ -40,7 +40,11 @@ import type { CatalogoItem } from '@/types/catalogos/catalogos'
 
 async function fetchCatalogosColumnas() {
 	const catalogos = await catalogosService.getCatalogosAgrupados()
-	const list: CatalogoItem[] = catalogos.find(group => group.codigo === 'CLM')?.registros ?? []
+	const list: CatalogoItem[] = (
+		catalogos.find(group => String(group.codigo).toUpperCase() === 'CLI')?.registros
+		?? catalogos.find(group => String(group.codigo).toUpperCase() === 'CLM')?.registros
+		?? []
+	)
 	columnasCatalogo.value = list
 		.filter((c: CatalogoItem) => c.bolActivo)
 		.map((c: CatalogoItem) => ({
@@ -291,7 +295,7 @@ defineExpose({ openAdd })
 			:show="showStatusConfirmModal"
 			:title="statusConfirmTitle"
 			:message="statusConfirmMessage"
-			confirm-text="Aceptar"
+			confirm-text="Guardar"
 			cancel-text="Cancelar"
 			:is-loading="loading"
 			@confirm="confirmStatusToggle"

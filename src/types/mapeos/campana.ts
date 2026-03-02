@@ -10,6 +10,8 @@ export interface MapeoCampanaData {
   descripcion: string
   bolActivo: boolean
   bolDictaminacion?: boolean | null
+  dictaminar?: boolean | null
+  porcentajeError?: number | null
   idABCUsuarioUltModificacion?: number
   validar?: boolean
   enviar?: boolean
@@ -24,9 +26,10 @@ export interface CreateMapeoCampanaPayload {
     descripcion: string
     validar?: boolean
     enviar?: boolean
+    dictaminar?: boolean
+    porcentajeError?: number
   }
-  idABCUsuario: number
-  idUsuario?: number
+  idUsuario: number
 }
 
 export interface UpdateMapeoCampanaPayload {
@@ -36,6 +39,8 @@ export interface UpdateMapeoCampanaPayload {
     descripcion: string
     validar?: boolean
     enviar?: boolean
+    dictaminar?: boolean
+    porcentajeError?: number
   }
   idUsuario: number
 }

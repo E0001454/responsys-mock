@@ -361,6 +361,14 @@ export const api = {
   // Monitor de tareas (solo lectura)
   getTareasMonitorLinea: () => http.get('/monitor/tareas/linea'),
   getTareasMonitorCampana: () => http.get('/monitor/tareas/campana'),
+  patchActivarTareaMonitorLinea: (payload: any) =>
+    http.patch('/monitor/tareas/linea/activar', payload),
+  patchDesactivarTareaMonitorLinea: (payload: any) =>
+    http.patch('/monitor/tareas/linea/desactivar', payload),
+  patchActivarTareaMonitorCampana: (payload: any) =>
+    http.patch('/monitor/tareas/campana/activar', payload),
+  patchDesactivarTareaMonitorCampana: (payload: any) =>
+    http.patch('/monitor/tareas/campana/desactivar', payload),
 
   // Columna mapeo (línea)
   getColumnasLinea: () => http.get('/lineas/mapeos/0/columnas'),
@@ -409,24 +417,42 @@ export const api = {
     ip: string = '192.178.14.14',
     navegador: string = 'chrome'
   ) => {
-    // void idUsuario
     void resourcePayload
-    const evento = method === 'POST' ? 3 : method === 'PUT' || method === 'PATCH' ? 4 : 0
+    const endpointStr = String(endpoint)
+    const isColumnas = endpointStr.includes('/columnas')
+    const isLineaColumnas = isColumnas && endpointStr.includes('/lineas/')
+    const isCampanaColumnas = isColumnas && endpointStr.includes('/campanas/')
 
-    let objeto = 2 
-    if (String(endpoint).includes('/columnas')) objeto = 4 
+    const evento = isColumnas
+      ? 1
+      : (method === 'POST' ? 3 : method === 'PUT' || method === 'PATCH' ? 4 : 0)
+
+    const objeto = isColumnas ? 1 : 2
 
     const browserInfo = getBrowserInfo()
     const mac = await getClientMac()
     const resolvedIp = ip || (await getClientIp())
-    const resolvedNavegador = navegador || browserInfo.name
-    const resolvedDetalle = detalle ?? `${browserInfo.ua}, ${browserInfo.name}, ${browserInfo.version}, ${mac}`
+    const browserName = browserInfo.name === 'Chrome' ? 'Google Chrome' : browserInfo.name
+    const resolvedNavegador = navegador || browserName
+    const resolvedDetalle = detalle
+      ?? (isColumnas
+        ? `${JSON.stringify({ navegador: { nombre: browserName, version: browserInfo.version } })}\n`
+        : `${browserInfo.ua}, ${browserInfo.name}, ${browserInfo.version}, ${mac}`)
+
+    const columnaId = Number(
+      resourcePayload?.columna?.tipo?.id
+      ?? resourcePayload?.columnaLinea?.id
+      ?? resourcePayload?.columnaCampana?.id
+      ?? 0
+    )
 
     const payload: BitacoraPayload = {
       idUsuario: idUsuario,
       bitacora: {
         evento: { id: evento },
         objeto: { id: objeto },
+        ...(isLineaColumnas && columnaId > 0 ? { columnaLinea: { id: columnaId } } : {}),
+        ...(isCampanaColumnas && columnaId > 0 ? { columnaCampana: { id: columnaId } } : {}),
         detalle: resolvedDetalle,
         ip: resolvedIp,
         navegador: resolvedNavegador

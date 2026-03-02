@@ -7,10 +7,12 @@ export interface ColumnaCampanaModel {
   bolActivo: boolean
   regex: string | null
   obligatorio?: boolean | null
+  esRequerido?: boolean | null
   valor?: {
     tipo?: { id?: number | null } | null
     cadena?: { tipo?: { id?: number | null } | null; minimo?: number | null; maximo?: number | null } | null
     numero?: { tipo?: { id?: number | null } | null; enteros?: number | null; decimales?: number | null } | null
+    fecha?: { tipo?: { id?: number | null } | null } | null
   } | null
   idUsuario?: number | null
 
@@ -21,6 +23,7 @@ export interface ColumnaCampanaModel {
     }
     bolActivo?: boolean
     obligatorio?: boolean | null
+    esRequerido?: boolean | null
     regex?: string | null
     valor?: any | null
   }

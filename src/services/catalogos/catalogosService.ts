@@ -12,7 +12,7 @@ interface ApiClient {
 
 const apiClient = api as ApiClient
 
-const KNOWN_CODIGOS = new Set(['ROL', 'LNN', 'CMP', 'CLM', 'VAL', 'CDN', 'NMR', 'DIA', 'HRS', 'EJE', 'ACT', 'STS'])
+const KNOWN_CODIGOS = new Set(['ROL', 'LNN', 'CMP', 'CLM', 'CLI', 'CCM', 'VAL', 'CDN', 'NMR', 'FCH', 'DIA', 'HRS', 'EJE', 'ACT', 'STS'])
 
 function normalizeCatalogText(value: any): string {
   const clean = String(value ?? '')
@@ -52,12 +52,15 @@ function normalizeCatalogoCodigo(value: any): string {
 function inferCodigoFromName(value: any): string {
   const name = normalizeCatalogoCodigo(value)
   if (!name) return ''
+  if (name.includes('COLUMNA_LINEA') || (name.includes('COLUMNA') && name.includes('LINEA'))) return 'CLI'
+  if (name.includes('COLUMNA_CAMPANA') || (name.includes('COLUMNA') && name.includes('CAMP'))) return 'CCM'
+  if (name.includes('COLUMN')) return 'CLM'
   if (name.includes('LINEA')) return 'LNN'
   if (name.includes('CAMP')) return 'CMP'
-  if (name.includes('COLUMN')) return 'CLM'
   if (name.includes('VAL')) return 'VAL'
   if (name.includes('CADENA')) return 'CDN'
   if (name.includes('NUMER')) return 'NMR'
+  if (name.includes('FECHA')) return 'FCH'
   if (name.includes('ROL')) return 'ROL'
   if (name.includes('DIA')) return 'DIA'
   if (name.includes('HORA')) return 'HRS'

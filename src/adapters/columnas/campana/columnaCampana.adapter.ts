@@ -34,6 +34,7 @@ function adaptValor(raw: unknown) {
 
   const cadenaRaw = r.cadena as Record<string, unknown> | undefined
   const numeroRaw = r.numero as Record<string, unknown> | undefined
+  const fechaRaw = r.fecha as Record<string, unknown> | undefined
 
   const cadena = cadenaRaw ? {
     tipo: ((): { id: number } | null => {
@@ -53,10 +54,18 @@ function adaptValor(raw: unknown) {
     decimales: toNumber(numeroRaw.decimales) ?? null
   } : null
 
+  const fecha = fechaRaw ? {
+    tipo: ((): { id: number } | null => {
+      const id = toNumber((fechaRaw.tipo as Record<string, unknown>)?.id ?? (fechaRaw.tipo as Record<string, unknown>)?.idABCCatColumna ?? fechaRaw.id)
+      return id !== null ? { id } : null
+    })()
+  } : null
+
   return {
     tipo,
     cadena,
-    numero
+    numero,
+    fecha
   }
 }
 
@@ -66,27 +75,33 @@ export function adaptColumnaCampana(
   const r = asRecord(raw)
   const columnaRec = asRecord(r.columna)
   const llave = asRecord(r.llaveMapeoCampanaColumna)
+  const tipoRecRoot = asRecord(r.tipo)
+  const tipoRecLegacy = asRecord(columnaRec.tipo)
 
   const mapeoId = toNumber(columnaRec.idABCConfigMapeoCampana ?? llave.idABCConfigMapeoCampana ?? r.idABCConfigMapeoCampana) ?? 0
-  const tipoRec = (columnaRec.tipo as Record<string, unknown>) ?? {}
-  const columnaId = toNumber(tipoRec.id ?? tipoRec.idABCCatColumna ?? llave.idABCCatColumna ?? r.idABCCatColumna) ?? 0
+  const columnaId = toNumber(tipoRecRoot.id ?? tipoRecRoot.idABCCatColumna ?? tipoRecLegacy.id ?? tipoRecLegacy.idABCCatColumna ?? llave.idABCCatColumna ?? r.idABCCatColumna) ?? 0
 
-  const valor = adaptValor(columnaRec.valor ?? r.valor ?? null)
+  const valor = adaptValor(r.valor ?? columnaRec.valor ?? null)
+  const esRequerido = normalizeObligatorio(r.esRequerido ?? r.obligatorio ?? columnaRec.esRequerido ?? columnaRec.obligatorio ?? columnaRec.obligatoria ?? null)
+  const bolActivo = toBoolean(r.activo ?? r.bolActivo ?? columnaRec.activo ?? columnaRec.bolActivo ?? false)
+  const regex = normalizeRegex(r.regex ?? columnaRec.regex ?? null)
 
   return {
     tipo: 'campana',
     mapeoId,
     columnaId,
-    bolActivo: toBoolean(r.bolActivo ?? columnaRec.bolActivo ?? false),
-    regex: normalizeRegex(columnaRec.regex ?? r.regex ?? null),
-    obligatorio: normalizeObligatorio(columnaRec.obligatorio ?? columnaRec.obligatoria ?? r.obligatorio ?? null),
+    bolActivo,
+    regex,
+    obligatorio: esRequerido,
+    esRequerido,
     valor: valor,
     idUsuario: toNumber(r.idUsuario ?? columnaRec.idUsuario ?? null),
     columna: {
       tipo: { id: columnaId ?? undefined, idABCCatColumna: columnaId ?? undefined },
-      bolActivo: toBoolean(columnaRec.bolActivo ?? undefined),
-      obligatorio: normalizeObligatorio(columnaRec.obligatorio ?? columnaRec.obligatoria ?? undefined),
-      regex: normalizeRegex(columnaRec.regex ?? undefined),
+      bolActivo,
+      obligatorio: esRequerido,
+      esRequerido,
+      regex,
       valor: valor
     },
     fechaCreacion: typeof columnaRec.fechaCreacion === 'string' ? columnaRec.fechaCreacion : (typeof r.fechaCreacion === 'string' ? r.fechaCreacion : undefined),

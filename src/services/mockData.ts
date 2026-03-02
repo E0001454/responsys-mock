@@ -10,28 +10,140 @@ export const mockCatalogosApi = {
 		noopLog()
 		const now = new Date()
 		const makeDate = (i: number) => new Date(now.getTime() - i * 86400000).toISOString()
-
-		const lineas = Array.from({ length: 20 }).map((_, i) => ({
-			id: i + 1,
+		const makeCatalogItem = (id: number, itemCode: string, name: string, dayOffset = 0) => ({
+			id,
 			bolActivo: true,
-			codigo: `LNN-${String(i + 1).padStart(2, '0')}`,
-			nombre: `Línea ${i + 1}`,
-			fecCreacion: makeDate(i + 1),
-			fecUltModificacion: makeDate(i)
-		}))
+			codigo: itemCode,
+			nombre: name,
+			fecCreacion: makeDate(dayOffset + 1),
+			fecUltModificacion: makeDate(dayOffset)
+		})
 
-		const campanas = Array.from({ length: 20 }).map((_, i) => ({
-			id: i + 101,
-			bolActivo: i % 5 !== 0,
-			codigo: `CMP-${String(i + 1).padStart(2, '0')}`,
-			nombre: `Campaña ${i + 1}`,
-			fecCreacion: makeDate(i + 2),
-			fecUltModificacion: makeDate(i)
-		}))
+		const lineas = [
+			makeCatalogItem(1, 'AFR', 'AFORE', 1),
+			makeCatalogItem(2, 'SFM', 'SOFOM', 2),
+			makeCatalogItem(3, 'PNS', 'PENSIONES', 3)
+		]
+
+		const campanas = [
+			makeCatalogItem(1, 'BNV', 'BIENVENIDA', 1),
+			makeCatalogItem(2, 'DES', 'DESCUENTOS', 2),
+			makeCatalogItem(3, 'CUM', 'CUMPLEAÑOS', 3),
+			makeCatalogItem(4, 'PRO', 'PROMOCION', 4),
+			makeCatalogItem(5, 'DAU', 'DESCUENTO SEGURO DE AUTO ', 5),
+			makeCatalogItem(6, 'DAU', 'DESCUENTO SEGURO DE AUTO ', 6),
+			makeCatalogItem(7, 'AFR', 'cujxnajcn', 7),
+			makeCatalogItem(8, 'AFR', 'Afore', 8),
+			makeCatalogItem(9, 'AFR', 'Afore', 9),
+			makeCatalogItem(10, 'AFR', 'Afore', 10)
+		]
+
+		const roles = [
+			makeCatalogItem(2, 'AS', 'SUPER ADMINISTRADOR', 1),
+			makeCatalogItem(3, 'AU', 'ADMINISTRADOR DE USUARIOS', 2),
+			makeCatalogItem(4, 'AS', 'ADMINISTRADOR DE SEGURIDAD', 3),
+			makeCatalogItem(6, 'LV', 'SOLO LECTURA VISOR', 4)
+		]
+
+		const columnasLinea = [
+			makeCatalogItem(1, 'NOM', 'NOMBRE', 1)
+		]
+
+		const columnasCampana = [
+			makeCatalogItem(1, 'NOM', 'NOMBRE', 1)
+		]
+
+		const cadenas = [
+			makeCatalogItem(1, 'NMR', 'NUMERICO', 1),
+			makeCatalogItem(2, 'ALF', 'ALFABETICO', 2),
+			makeCatalogItem(3, 'ALN', 'ALFANUMERICO', 3)
+		]
+
+		const numeros = [
+			makeCatalogItem(1, 'ENT', 'ENTERO', 1),
+			makeCatalogItem(2, 'DEC', 'DECIMALES', 2)
+		]
+
+		const fechas = [
+			makeCatalogItem(1, 'FH1', 'AAAA-MM-DD ', 1)
+		]
+
+		const valores = [
+			makeCatalogItem(1, 'NMR', 'NUMERICO', 1),
+			makeCatalogItem(2, 'CDN', 'CADENA', 2),
+			makeCatalogItem(3, 'FCH', 'FECHA', 3)
+		]
+
+		const dias = [
+			makeCatalogItem(1, 'LNS', 'LUNES', 1),
+			makeCatalogItem(2, 'MTS', 'MARTES', 2),
+			makeCatalogItem(3, 'MCL', 'MIERCOLES', 3),
+			makeCatalogItem(4, 'JVS', 'JUEVES', 4),
+			makeCatalogItem(5, 'VNS', 'VIERNES', 5)
+		]
+
+		const horas = [
+			makeCatalogItem(1, '000', '00:00', 1),
+			makeCatalogItem(2, '001', '00:15', 2),
+			makeCatalogItem(3, '003', '00:30', 3),
+			makeCatalogItem(4, '004', '00:45', 4),
+			makeCatalogItem(5, '010', '01:00', 5),
+			makeCatalogItem(6, '011', '01:15', 6),
+			makeCatalogItem(7, '013', '01:30', 7),
+			makeCatalogItem(8, '014', '01:45', 8),
+			makeCatalogItem(9, '200', '20:00', 9),
+			makeCatalogItem(10, '201', '20:15', 10),
+			makeCatalogItem(11, '203', '20:30', 11),
+			makeCatalogItem(12, '204', '20:45', 12),
+			makeCatalogItem(13, '210', '21:00', 13),
+			makeCatalogItem(14, '211', '21:15', 14),
+			makeCatalogItem(15, '213', '21:30', 15),
+			makeCatalogItem(16, '214', '21:45', 16),
+			makeCatalogItem(17, '220', '22:00', 17),
+			makeCatalogItem(18, '221', '22:15', 18),
+			makeCatalogItem(19, '223', '22:30', 19),
+			makeCatalogItem(20, '224', '22:45', 20),
+			makeCatalogItem(21, '230', '23:00', 21),
+			makeCatalogItem(22, '231', '23:15', 22),
+			makeCatalogItem(23, '233', '23:30', 23),
+			makeCatalogItem(24, '234', '23:45', 24)
+		]
+
+		const ejecuciones = [
+			makeCatalogItem(1, 'ATM', 'Automatico', 1),
+			makeCatalogItem(2, 'MNL', 'Manual', 2),
+			makeCatalogItem(3, 'HBD', 'Hibrido', 3)
+		]
+
+		const actividades = [
+			makeCatalogItem(1, 'CAG', 'CARGA', 1),
+			makeCatalogItem(2, 'VLD', 'VALIDACION', 2),
+			makeCatalogItem(3, 'ENV', 'ENVIO', 3),
+			makeCatalogItem(4, 'RCP', 'RECEPCION', 4)
+		]
+
+		const estatus = [
+			makeCatalogItem(1, 'PEN', 'PENDIENTE', 1),
+			makeCatalogItem(2, 'PRO', 'PROCESANDO', 2),
+			makeCatalogItem(3, 'FIN', 'FINALIZADO', 3)
+		]
 
 		const grouped = [
+			{ codigo: 'ROL', nombre: 'ROL', registros: roles },
 			{ codigo: 'LNN', nombre: 'LINEA_NEGOCIO', registros: lineas },
-			{ codigo: 'CMP', nombre: 'CAMPANA', registros: campanas }
+			{ codigo: 'CMP', nombre: 'CAMPANA', registros: campanas },
+			{ codigo: 'CLI', nombre: 'COLUMNA_LINEA', registros: columnasLinea },
+			{ codigo: 'CCM', nombre: 'COLUMNA_CAMPANA', registros: columnasCampana },
+			{ codigo: 'CLM', nombre: 'COLUMNA', registros: [...columnasLinea, ...columnasCampana] },
+			{ codigo: 'VAL', nombre: 'VALOR', registros: valores },
+			{ codigo: 'CDN', nombre: 'CADENA', registros: cadenas },
+			{ codigo: 'NMR', nombre: 'NUMERO', registros: numeros },
+			{ codigo: 'FCH', nombre: 'FECHA', registros: fechas },
+			{ codigo: 'DIA', nombre: 'DIA', registros: dias },
+			{ codigo: 'HRS', nombre: 'HORA', registros: horas },
+			{ codigo: 'EJE', nombre: 'EJECUCION', registros: ejecuciones },
+			{ codigo: 'ACT', nombre: 'ACTIVIDAD', registros: actividades },
+			{ codigo: 'STS', nombre: 'STATUS', registros: estatus }
 		]
 
 		if (!codigo) return grouped
@@ -51,7 +163,11 @@ export const mockApi = (() => {
 		nombre: `Mapeo Línea ${i + 1}`,
 		descripcion: `Descripción del mapeo de línea ${i + 1}`,
 		bolActivo: i % 4 !== 0,
-		bolDictaminacion: null,
+		validar: i % 2 === 0,
+		enviar: i % 3 !== 0,
+		dictaminar: i % 4 === 0,
+		bolDictaminacion: i % 4 === 0,
+		porcentajeError: (i % 11) * 10,
 		fecCreacion: makeDate(i + 1),
 		idABCUsuarioUltModificacion: 1,
 		fecUltModificacion: makeDate(i)
@@ -64,7 +180,11 @@ export const mockApi = (() => {
 		nombre: `Mapeo Campaña ${i + 1}`,
 		descripcion: `Descripción del mapeo de campaña ${i + 1}`,
 		bolActivo: i % 3 !== 0,
-		bolDictaminacion: null,
+		validar: i % 2 !== 0,
+		enviar: i % 3 !== 0,
+		dictaminar: i % 5 === 0,
+		bolDictaminacion: i % 5 === 0,
+		porcentajeError: (i % 11) * 10,
 		fecCreacion: makeDate(i + 1),
 		idABCUsuarioUltModificacion: 1,
 		fecUltModificacion: makeDate(i)
@@ -104,7 +224,14 @@ export const mockApi = (() => {
 				nombre: data.nombre ?? '',
 				descripcion: data.descripcion ?? '',
 				bolActivo: data.bolActivo === undefined ? true : Boolean(data.bolActivo),
-				bolDictaminacion: data.bolDictaminacion ?? null,
+				validar: data.validar ?? true,
+				enviar: data.enviar ?? data.envio ?? true,
+				dictaminar: data.dictaminar ?? data.bolDictaminacion ?? false,
+				bolDictaminacion: data.dictaminar ?? data.bolDictaminacion ?? false,
+				porcentajeError:
+					data.porcentajeError === null || data.porcentajeError === undefined || Number.isNaN(Number(data.porcentajeError))
+						? null
+						: Number(data.porcentajeError),
 				fecCreacion: new Date().toISOString(),
 				idABCUsuarioUltModificacion: payload?.idUsuario ?? 1,
 				fecUltModificacion: new Date().toISOString()
@@ -124,7 +251,14 @@ export const mockApi = (() => {
 				nombre: data.nombre ?? '',
 				descripcion: data.descripcion ?? '',
 				bolActivo: data.bolActivo === undefined ? true : Boolean(data.bolActivo),
-				bolDictaminacion: data.bolDictaminacion ?? null,
+				validar: data.validar ?? true,
+				enviar: data.enviar ?? data.envio ?? true,
+				dictaminar: data.dictaminar ?? data.bolDictaminacion ?? false,
+				bolDictaminacion: data.dictaminar ?? data.bolDictaminacion ?? false,
+				porcentajeError:
+					data.porcentajeError === null || data.porcentajeError === undefined || Number.isNaN(Number(data.porcentajeError))
+						? null
+						: Number(data.porcentajeError),
 				fecCreacion: new Date().toISOString(),
 				idABCUsuarioUltModificacion: payload?.idUsuario ?? 1,
 				fecUltModificacion: new Date().toISOString()
@@ -144,6 +278,20 @@ export const mockApi = (() => {
 				nombre: data.nombre ?? mapeosLinea[idx].nombre,
 				descripcion: data.descripcion ?? mapeosLinea[idx].descripcion,
 				bolActivo: data.bolActivo === undefined ? mapeosLinea[idx].bolActivo : Boolean(data.bolActivo),
+				validar: data.validar === undefined ? mapeosLinea[idx].validar : Boolean(data.validar),
+				enviar: data.enviar === undefined
+					? mapeosLinea[idx].enviar
+					: Boolean(data.enviar),
+				dictaminar: data.dictaminar === undefined
+					? mapeosLinea[idx].dictaminar
+					: Boolean(data.dictaminar),
+				bolDictaminacion: data.dictaminar === undefined
+					? mapeosLinea[idx].bolDictaminacion
+					: Boolean(data.dictaminar),
+				porcentajeError:
+					data.porcentajeError === undefined
+						? mapeosLinea[idx].porcentajeError
+						: (data.porcentajeError === null || Number.isNaN(Number(data.porcentajeError)) ? null : Number(data.porcentajeError)),
 				fecUltModificacion: new Date().toISOString()
 			}
 			return { ...mapeosLinea[idx] }
@@ -160,6 +308,20 @@ export const mockApi = (() => {
 				nombre: data.nombre ?? mapeosCampana[idx].nombre,
 				descripcion: data.descripcion ?? mapeosCampana[idx].descripcion,
 				bolActivo: data.bolActivo === undefined ? mapeosCampana[idx].bolActivo : Boolean(data.bolActivo),
+				validar: data.validar === undefined ? mapeosCampana[idx].validar : Boolean(data.validar),
+				enviar: data.enviar === undefined
+					? mapeosCampana[idx].enviar
+					: Boolean(data.enviar),
+				dictaminar: data.dictaminar === undefined
+					? mapeosCampana[idx].dictaminar
+					: Boolean(data.dictaminar),
+				bolDictaminacion: data.dictaminar === undefined
+					? mapeosCampana[idx].bolDictaminacion
+					: Boolean(data.dictaminar),
+				porcentajeError:
+					data.porcentajeError === undefined
+						? mapeosCampana[idx].porcentajeError
+						: (data.porcentajeError === null || Number.isNaN(Number(data.porcentajeError)) ? null : Number(data.porcentajeError)),
 				fecUltModificacion: new Date().toISOString()
 			}
 			return { ...mapeosCampana[idx] }

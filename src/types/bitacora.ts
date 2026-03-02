@@ -7,6 +7,12 @@ export interface BitacoraPayload {
     objeto: {
       id: number
     }
+    columnaLinea?: {
+      id: number
+    }
+    columnaCampana?: {
+      id: number
+    }
     detalle?: string
     ip?: string
     navegador?: string

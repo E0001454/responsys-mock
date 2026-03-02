@@ -20,17 +20,24 @@ export interface ColumnaValorNumero {
   decimales?: number | null
 }
 
+export interface ColumnaValorFecha {
+  tipo?: { id?: number | null } | null
+}
+
 export interface ColumnaValor {
   tipo?: any | null
   cadena?: ColumnaValorCadena | null
   numero?: ColumnaValorNumero | null
+  fecha?: ColumnaValorFecha | null
 }
 
 export interface ColumnaBase {
   idABCCatColumna?: number
   regex?: string | null
   obligatorio?: boolean | null
+  esRequerido?: boolean | null
   bolActivo?: boolean
+  activo?: boolean
   valor?: ColumnaValor | null
 
   fechaCreacion?: string
@@ -59,7 +66,7 @@ export interface CreateColumnaLineaPayload {
   columna: {
     tipo: { id: number | null }
     regex?: string | null
-    obligatorio?: boolean | null
+    esRequerido?: boolean | null
     valor?: ColumnaValor | null
   }
 }
@@ -78,7 +85,7 @@ export interface CreateColumnaCampanaPayload {
   columna: {
     tipo: { id: number | null }
     regex?: string | null
-    obligatorio?: boolean | null
+    esRequerido?: boolean | null
     valor?: ColumnaValor | null
   }
 }

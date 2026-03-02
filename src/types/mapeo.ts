@@ -6,6 +6,8 @@ export interface MapeoData {
   descripcion: string
   bolActivo: boolean
   bolDictaminacion?: boolean | null
+  dictaminar?: boolean | null
+  porcentajeError?: number | null
   idABCUsuarioUltModificacion?: number
   
   validar?: boolean
@@ -25,6 +27,8 @@ export interface MapeoCampanaData {
   descripcion: string
   bolActivo: boolean
   bolDictaminacion?: boolean | null
+  dictaminar?: boolean | null
+  porcentajeError?: number | null
   idABCUsuarioUltModificacion?: number
 
   validar?: boolean
@@ -40,9 +44,10 @@ export interface CreateMapeoPayload {
     descripcion: string
     validar?: boolean
     envio?: boolean
+    dictaminar?: boolean
+    porcentajeError?: number
   }
-  idABCUsuario: number
-  idUsuario?: number
+  idUsuario: number
 }
 
 export interface UpdateMapeoPayload {
@@ -52,6 +57,8 @@ export interface UpdateMapeoPayload {
     descripcion: string
     validar?: boolean
     envio?: boolean
+    dictaminar?: boolean
+    porcentajeError?: number
   }
   idUsuario: number
 }

@@ -110,7 +110,11 @@ const statusConfirmMessage = computed(() => {
 
 async function fetchCatalogos() {
 	const catalogos = await catalogosService.getCatalogosAgrupados()
-	const list: CatalogoItem[] = catalogos.find(group => group.codigo === 'CLM')?.registros ?? []
+	const list: CatalogoItem[] = (
+		catalogos.find(group => String(group.codigo).toUpperCase() === 'CCM')?.registros
+		?? catalogos.find(group => String(group.codigo).toUpperCase() === 'CLM')?.registros
+		?? []
+	)
 	columnasCatalogo.value = list
 		.filter(c => c.bolActivo)
 		.map(c => ({ label: c.nombre, value: c.id }))
@@ -295,7 +299,7 @@ defineExpose({ openAdd })
 			:show="showStatusConfirmModal"
 			:title="statusConfirmTitle"
 			:message="statusConfirmMessage"
-			confirm-text="Aceptar"
+			confirm-text="Guardar"
 			cancel-text="Cancelar"
 			:is-loading="loading"
 			@confirm="confirmStatusToggle"

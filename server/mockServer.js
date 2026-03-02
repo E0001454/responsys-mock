@@ -34,9 +34,12 @@ const store = {
 const CATALOGOS_META = {
   CDN: 'CADENA',
   CMP: 'CAMPANA',
+  CLI: 'COLUMNA_LINEA',
+  CCM: 'COLUMNA_CAMPANA',
   CLM: 'COLUMNA',
   ROL: 'ROL',
   NMR: 'NUMERO',
+  FCH: 'FECHA',
   VAL: 'VALOR',
   LNN: 'LINEA_NEGOCIO',
   DIA: 'DIA',
@@ -44,6 +47,45 @@ const CATALOGOS_META = {
   EJE: 'EJECUCION',
   ACT: 'ACTIVIDAD',
   STS: 'STATUS'
+}
+
+function cloneCatalogRecords(registros = []) {
+  return (registros ?? []).map(record => ({ ...record }))
+}
+
+function finalizeCatalogGroups(grouped = []) {
+  const byCode = new Map((grouped ?? [])
+    .filter(group => group && group.codigo)
+    .map(group => [String(group.codigo).toUpperCase(), {
+      codigo: String(group.codigo).toUpperCase(),
+      nombre: normalizeCatalogText(group?.nombre ?? CATALOGOS_META[String(group.codigo).toUpperCase()] ?? String(group.codigo).toUpperCase()),
+      registros: cloneCatalogRecords(group?.registros ?? [])
+    }]))
+
+  const legacy = byCode.get('CLM')
+  if (legacy) {
+    if (!byCode.has('CLI')) {
+      byCode.set('CLI', { codigo: 'CLI', nombre: CATALOGOS_META.CLI, registros: cloneCatalogRecords(legacy.registros) })
+    }
+    if (!byCode.has('CCM')) {
+      byCode.set('CCM', { codigo: 'CCM', nombre: CATALOGOS_META.CCM, registros: cloneCatalogRecords(legacy.registros) })
+    }
+  }
+
+  if (!byCode.has('CLM')) {
+    const source = byCode.get('CLI') ?? byCode.get('CCM')
+    if (source) {
+      byCode.set('CLM', { codigo: 'CLM', nombre: CATALOGOS_META.CLM, registros: cloneCatalogRecords(source.registros) })
+    }
+  }
+
+  for (const [codigo, nombre] of Object.entries(CATALOGOS_META)) {
+    if (!byCode.has(codigo)) {
+      byCode.set(codigo, { codigo, nombre, registros: [] })
+    }
+  }
+
+  return Array.from(byCode.values())
 }
 
 function normalizeCatalogText(value) {
@@ -168,7 +210,7 @@ function normalizeMonitorRecord(item, scope = 'linea') {
 async function loadCatalogos() {
   const base = 'api/catalogos'
   try {
-    const concentrated = await readJson(`${base}/ACT.json`)
+    const concentrated = await readJson(`${base}/catalogos.json`)
     const grouped = Array.isArray(concentrated)
       ? concentrated
           .filter(group => group && typeof group === 'object' && Array.isArray(group?.registros))
@@ -184,13 +226,7 @@ async function loadCatalogos() {
       : []
 
     if (grouped.length) {
-      const byCode = new Map(grouped.map(group => [group.codigo, group]))
-      for (const [codigo, nombre] of Object.entries(CATALOGOS_META)) {
-        if (!byCode.has(codigo)) {
-          byCode.set(codigo, { codigo, nombre, registros: [] })
-        }
-      }
-      store.catalogos = Array.from(byCode.values())
+      store.catalogos = finalizeCatalogGroups(grouped)
       return
     }
   } catch {
@@ -219,7 +255,7 @@ async function loadCatalogos() {
       })
     }
   }
-  store.catalogos = grouped
+  store.catalogos = finalizeCatalogGroups(grouped)
 }
 
 async function loadData() {
@@ -392,6 +428,12 @@ function normalizeMapeoLineaRecord(item, fallbackLineaId = 0) {
   const bolActivo = typeof rawActivo === 'boolean' ? rawActivo : Number(rawActivo ?? 1) === 1
   const rawEnvio = item?.enviar ?? item?.envio
   const envio = typeof rawEnvio === 'boolean' ? rawEnvio : Number(rawEnvio ?? 0) === 1
+  const rawDictaminar = item?.dictaminar ?? item?.bolDictaminacion ?? item?.dictaminacion
+  const dictaminar = typeof rawDictaminar === 'boolean' ? rawDictaminar : Number(rawDictaminar ?? 0) === 1
+  const rawPorcentajeError = item?.porcentajeError ?? item?.porcentaje_error ?? item?.pctError
+  const porcentajeError = rawPorcentajeError === undefined || rawPorcentajeError === null || rawPorcentajeError === '' || Number.isNaN(Number(rawPorcentajeError))
+    ? null
+    : Number(rawPorcentajeError)
 
   return {
     ...item,
@@ -403,6 +445,9 @@ function normalizeMapeoLineaRecord(item, fallbackLineaId = 0) {
       campana: campanaId !== null ? { id: campanaId } : null
     },
     bolActivo,
+    dictaminar,
+    bolDictaminacion: dictaminar,
+    porcentajeError,
     enviar: envio,
     envio,
     fechaCreacion: item?.fechaCreacion ?? now(),
@@ -479,9 +524,9 @@ function normalizeColumnaLineaSeed(item) {
       idUsuario: Number(item?.idUsuario ?? item?.idABCUsuario ?? 1),
       columna: {
         tipo: { id: Number(item?.idABCCatColumna ?? item?.columna?.tipo?.id ?? 0) },
-        bolActivo: item?.bolActivo ?? item?.columna?.bolActivo ?? true,
+        activo: item?.activo ?? item?.columna?.activo ?? item?.bolActivo ?? item?.columna?.bolActivo ?? true,
         regex: item?.regex ?? item?.columna?.regex ?? null,
-        obligatorio: item?.obligatorio ?? item?.columna?.obligatorio ?? null,
+        esRequerido: item?.esRequerido ?? item?.columna?.esRequerido ?? item?.obligatorio ?? item?.columna?.obligatorio ?? null,
         valor: item?.valor ?? item?.columna?.valor ?? null
       }
     }
@@ -504,9 +549,9 @@ function normalizeColumnaCampanaSeed(item) {
       idUsuario: Number(item?.idUsuario ?? item?.idABCUsuario ?? 1),
       columna: {
         tipo: { id: Number(item?.idABCCatColumna ?? item?.columna?.tipo?.id ?? 0) },
-        bolActivo: item?.bolActivo ?? item?.columna?.bolActivo ?? true,
+        activo: item?.activo ?? item?.columna?.activo ?? item?.bolActivo ?? item?.columna?.bolActivo ?? true,
         regex: item?.regex ?? item?.columna?.regex ?? null,
-        obligatorio: item?.obligatorio ?? item?.columna?.obligatorio ?? null,
+        esRequerido: item?.esRequerido ?? item?.columna?.esRequerido ?? item?.obligatorio ?? item?.columna?.obligatorio ?? null,
         valor: item?.valor ?? item?.columna?.valor ?? null
       }
     }
@@ -613,28 +658,38 @@ function resolveMapeoPayload(body) {
   const raw = body?.mapeo ?? body ?? {}
   const validarRaw = raw?.validar ?? body?.validar
   const envioRaw = raw?.enviar ?? raw?.envio ?? body?.enviar ?? body?.envio
+  const dictaminarRaw = raw?.dictaminar ?? raw?.bolDictaminacion ?? raw?.dictaminacion ?? body?.dictaminar
+  const porcentajeErrorRaw = raw?.porcentajeError ?? raw?.porcentaje_error ?? body?.porcentajeError
 
   return {
     ...raw,
     validar: normalizeBooleanFlag(validarRaw, false),
     enviar: normalizeBooleanFlag(envioRaw, false),
-    envio: normalizeBooleanFlag(envioRaw, false)
+    envio: normalizeBooleanFlag(envioRaw, false),
+    dictaminar: normalizeBooleanFlag(dictaminarRaw, false),
+    bolDictaminacion: normalizeBooleanFlag(dictaminarRaw, false),
+    porcentajeError:
+      porcentajeErrorRaw === undefined || porcentajeErrorRaw === null || porcentajeErrorRaw === '' || Number.isNaN(Number(porcentajeErrorRaw))
+        ? null
+        : Number(porcentajeErrorRaw)
   }
 }
 
 function buildColumnaLineaRecord(mapeoId, payload) {
   const columnaId = Number(payload?.columna?.tipo?.id ?? payload?.columnaId ?? 0)
-  const bolActivo = payload?.columna?.bolActivo ?? true
-  const obligatorio = payload?.columna?.obligatorio ?? null
+  const bolActivo = payload?.columna?.activo ?? payload?.columna?.bolActivo ?? payload?.activo ?? true
+  const obligatorio = payload?.columna?.esRequerido ?? payload?.columna?.obligatorio ?? payload?.esRequerido ?? null
   const regex = payload?.columna?.regex ?? null
-  const valor = payload?.columna?.valor ?? null
+  const valor = payload?.columna?.valor ?? payload?.valor ?? null
   const timestamp = now()
   return {
     idABCConfigMapeoLinea: Number(mapeoId),
     idABCCatColumna: columnaId,
     bolActivo,
+    activo: bolActivo,
     regex,
     obligatorio,
+    esRequerido: obligatorio,
     valor,
     idUsuario: Number(payload?.idUsuario ?? payload?.idABCUsuario ?? 1),
     llaveMapeoLineaColumna: {
@@ -645,7 +700,9 @@ function buildColumnaLineaRecord(mapeoId, payload) {
       idABCConfigMapeoLinea: Number(mapeoId),
       tipo: { id: columnaId, idABCCatColumna: columnaId },
       bolActivo,
+      activo: bolActivo,
       obligatorio,
+      esRequerido: obligatorio,
       regex,
       valor,
       fechaCreacion: timestamp,
@@ -658,17 +715,19 @@ function buildColumnaLineaRecord(mapeoId, payload) {
 
 function buildColumnaCampanaRecord(mapeoId, payload) {
   const columnaId = Number(payload?.columna?.tipo?.id ?? payload?.columnaId ?? 0)
-  const bolActivo = payload?.columna?.bolActivo ?? true
-  const obligatorio = payload?.columna?.obligatorio ?? null
+  const bolActivo = payload?.columna?.activo ?? payload?.columna?.bolActivo ?? payload?.activo ?? true
+  const obligatorio = payload?.columna?.esRequerido ?? payload?.columna?.obligatorio ?? payload?.esRequerido ?? null
   const regex = payload?.columna?.regex ?? null
-  const valor = payload?.columna?.valor ?? null
+  const valor = payload?.columna?.valor ?? payload?.valor ?? null
   const timestamp = now()
   return {
     idABCConfigMapeoCampana: Number(mapeoId),
     idABCCatColumna: columnaId,
     bolActivo,
+    activo: bolActivo,
     regex,
     obligatorio,
+    esRequerido: obligatorio,
     valor,
     idUsuario: Number(payload?.idUsuario ?? payload?.idABCUsuario ?? 1),
     llaveMapeoCampanaColumna: {
@@ -679,7 +738,9 @@ function buildColumnaCampanaRecord(mapeoId, payload) {
       idABCConfigMapeoCampana: Number(mapeoId),
       tipo: { id: columnaId, idABCCatColumna: columnaId },
       bolActivo,
+      activo: bolActivo,
       obligatorio,
+      esRequerido: obligatorio,
       regex,
       valor,
       fechaCreacion: timestamp,
@@ -1045,6 +1106,9 @@ const server = http.createServer(async (req, res) => {
           validar: base.validar ?? false,
           enviar: base.enviar ?? base.envio ?? false,
           envio: base.envio ?? base.enviar ?? false,
+          dictaminar: base.dictaminar ?? base.bolDictaminacion ?? false,
+          bolDictaminacion: base.dictaminar ?? base.bolDictaminacion ?? false,
+          porcentajeError: base.porcentajeError ?? null,
           columnas: 0,
           fechaCreacion: now(),
           fechaUltimaModificacion: now()
@@ -1072,6 +1136,9 @@ const server = http.createServer(async (req, res) => {
           validar: base.validar ?? false,
           enviar: base.enviar ?? base.envio ?? false,
           envio: base.envio ?? base.enviar ?? false,
+          dictaminar: base.dictaminar ?? base.bolDictaminacion ?? false,
+          bolDictaminacion: base.dictaminar ?? base.bolDictaminacion ?? false,
+          porcentajeError: base.porcentajeError ?? null,
           columnas: 0,
           fechaCreacion: now(),
           fechaUltimaModificacion: now()
@@ -1339,14 +1406,18 @@ const server = http.createServer(async (req, res) => {
           : store.columnasLinea.find(c => Number(c.idABCConfigMapeoLinea) === mapeoId && Number(c.idABCCatColumna) === columnaId)
         if (!current) return send(res, 404, { message: 'Not found' })
         current.regex = body?.columna?.regex ?? current.regex
-        current.bolActivo = body?.columna?.bolActivo ?? current.bolActivo
-        current.obligatorio = body?.columna?.obligatorio ?? current.obligatorio
-        current.valor = body?.columna?.valor ?? current.valor
+        current.bolActivo = body?.columna?.activo ?? body?.columna?.bolActivo ?? current.bolActivo
+        current.activo = current.bolActivo
+        current.obligatorio = body?.columna?.esRequerido ?? body?.columna?.obligatorio ?? current.obligatorio
+        current.esRequerido = current.obligatorio
+        current.valor = body?.columna?.valor ?? body?.valor ?? current.valor
         current.idUsuario = Number(body?.idUsuario ?? body?.idABCUsuario ?? current.idUsuario ?? 1)
         if (current.columna) {
           current.columna.regex = current.regex
           current.columna.bolActivo = current.bolActivo
+          current.columna.activo = current.bolActivo
           current.columna.obligatorio = current.obligatorio
+          current.columna.esRequerido = current.obligatorio
           current.columna.valor = current.valor
           current.columna.fechaUltimaModificacion = now()
         }
@@ -1360,9 +1431,11 @@ const server = http.createServer(async (req, res) => {
         const current = store.columnasLinea.find(c => Number(c.idABCCatColumna) === columnaId)
         if (!current) return send(res, 404, { message: 'Not found' })
         current.regex = body?.columna?.regex ?? current.regex
-        current.bolActivo = body?.columna?.bolActivo ?? current.bolActivo
-        current.obligatorio = body?.columna?.obligatorio ?? current.obligatorio
-        current.valor = body?.columna?.valor ?? current.valor
+        current.bolActivo = body?.columna?.activo ?? body?.columna?.bolActivo ?? current.bolActivo
+        current.activo = current.bolActivo
+        current.obligatorio = body?.columna?.esRequerido ?? body?.columna?.obligatorio ?? current.obligatorio
+        current.esRequerido = current.obligatorio
+        current.valor = body?.columna?.valor ?? body?.valor ?? current.valor
         current.fechaUltimaModificacion = now()
         return send(res, 200, current)
       }
@@ -1377,14 +1450,18 @@ const server = http.createServer(async (req, res) => {
           : store.columnasCampana.find(c => Number(c.idABCConfigMapeoCampana) === mapeoId && Number(c.idABCCatColumna) === columnaId)
         if (!current) return send(res, 404, { message: 'Not found' })
         current.regex = body?.columna?.regex ?? current.regex
-        current.bolActivo = body?.columna?.bolActivo ?? current.bolActivo
-        current.obligatorio = body?.columna?.obligatorio ?? current.obligatorio
-        current.valor = body?.columna?.valor ?? current.valor
+        current.bolActivo = body?.columna?.activo ?? body?.columna?.bolActivo ?? current.bolActivo
+        current.activo = current.bolActivo
+        current.obligatorio = body?.columna?.esRequerido ?? body?.columna?.obligatorio ?? current.obligatorio
+        current.esRequerido = current.obligatorio
+        current.valor = body?.columna?.valor ?? body?.valor ?? current.valor
         current.idUsuario = Number(body?.idUsuario ?? body?.idABCUsuario ?? current.idUsuario ?? 1)
         if (current.columna) {
           current.columna.regex = current.regex
           current.columna.bolActivo = current.bolActivo
+          current.columna.activo = current.bolActivo
           current.columna.obligatorio = current.obligatorio
+          current.columna.esRequerido = current.obligatorio
           current.columna.valor = current.valor
           current.columna.fechaUltimaModificacion = now()
         }
@@ -1398,9 +1475,11 @@ const server = http.createServer(async (req, res) => {
         const current = store.columnasCampana.find(c => Number(c.idABCCatColumna) === columnaId)
         if (!current) return send(res, 404, { message: 'Not found' })
         current.regex = body?.columna?.regex ?? current.regex
-        current.bolActivo = body?.columna?.bolActivo ?? current.bolActivo
-        current.obligatorio = body?.columna?.obligatorio ?? current.obligatorio
-        current.valor = body?.columna?.valor ?? current.valor
+        current.bolActivo = body?.columna?.activo ?? body?.columna?.bolActivo ?? current.bolActivo
+        current.activo = current.bolActivo
+        current.obligatorio = body?.columna?.esRequerido ?? body?.columna?.obligatorio ?? current.obligatorio
+        current.esRequerido = current.obligatorio
+        current.valor = body?.columna?.valor ?? body?.valor ?? current.valor
         current.fechaUltimaModificacion = now()
         return send(res, 200, current)
       }
@@ -1433,6 +1512,30 @@ const server = http.createServer(async (req, res) => {
         const current = findTareaCampana(id)
         if (!current) return send(res, 404, { message: 'Not found' })
         current.bolActivo = pathOnly.endsWith('/activar')
+        current.fechaUltimaModificacion = now()
+        return send(res, 200, current)
+      }
+
+      if (pathOnly === '/monitor/tareas/linea/activar' || pathOnly === '/monitor/tareas/linea/desactivar') {
+        const body = await parseBody(req)
+        const id = Number(body?.tarea?.id ?? body?.id)
+        const current = store.monitorTareasLinea.find(item => Number(item?.id ?? 0) === id)
+        if (!current) return send(res, 404, { message: 'Not found' })
+        const nextActivo = pathOnly.endsWith('/activar')
+        current.activo = nextActivo
+        current.bolActivo = nextActivo
+        current.fechaUltimaModificacion = now()
+        return send(res, 200, current)
+      }
+
+      if (pathOnly === '/monitor/tareas/campana/activar' || pathOnly === '/monitor/tareas/campana/desactivar') {
+        const body = await parseBody(req)
+        const id = Number(body?.tarea?.id ?? body?.id)
+        const current = store.monitorTareasCampana.find(item => Number(item?.id ?? 0) === id)
+        if (!current) return send(res, 404, { message: 'Not found' })
+        const nextActivo = pathOnly.endsWith('/activar')
+        current.activo = nextActivo
+        current.bolActivo = nextActivo
         current.fechaUltimaModificacion = now()
         return send(res, 200, current)
       }

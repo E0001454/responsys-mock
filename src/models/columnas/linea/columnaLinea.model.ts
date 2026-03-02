@@ -7,6 +7,7 @@ export interface ColumnaLineaModel {
   bolActivo: boolean
   regex: string | null
   obligatorio: boolean | null
+  esRequerido?: boolean | null
   valor: ColumnaValor | null
 
   idUsuario?: number | null
@@ -19,6 +20,7 @@ export interface ColumnaLineaModel {
 
     bolActivo?: boolean
     obligatorio?: boolean | null
+    esRequerido?: boolean | null
     regex?: string | null
     valor?: ColumnaValor | null
   }
@@ -43,4 +45,5 @@ export interface ColumnaValor {
   tipo: { id: number } | null
   cadena: ColumnaValorCadena | null
   numero: ColumnaValorNumero | null
+  fecha?: { tipo: { id: number } | null } | null
 }

@@ -26,7 +26,8 @@ const apiClient = api as ApiClient
 
 function normalizeMapeo(item: any): MapeoData {
   const rawActivo = item?.bolActivo ?? item?.status ?? false
-  const rawDictaminacion = item?.bolDictaminacion ?? item?.dictaminacion
+  const rawDictaminacion = item?.dictaminar ?? item?.bolDictaminacion ?? item?.dictaminacion
+  const rawPorcentajeError = item?.porcentajeError ?? item?.porcentaje_error ?? item?.pctError
 
   const rawValidar = item?.validar ?? item?.bolValidacion ?? item?.validar_flag
     const rawEnvio = item?.envio ?? item?.bolEnvio ?? item?.envio_flag
@@ -46,6 +47,14 @@ function normalizeMapeo(item: any): MapeoData {
       rawDictaminacion === null || rawDictaminacion === undefined
         ? null
         : Boolean(rawDictaminacion),
+    dictaminar:
+      rawDictaminacion === null || rawDictaminacion === undefined
+        ? null
+        : Boolean(rawDictaminacion),
+    porcentajeError:
+      rawPorcentajeError === null || rawPorcentajeError === undefined || Number.isNaN(Number(rawPorcentajeError))
+        ? null
+        : Number(rawPorcentajeError),
     validar: typeof rawValidar === 'boolean' ? rawValidar : (rawValidar === undefined ? undefined : Number(rawValidar) === 1),
       envio: typeof rawEnvio === 'boolean' ? rawEnvio : (rawEnvio === undefined ? undefined : Number(rawEnvio) === 1),
     fechaCreacion: item?.fechaCreacion ?? item?.fec_creacion ?? item?.created_at ?? '',
@@ -100,9 +109,7 @@ export const mapeoService = {
   createMapeo(lineaId: string | number, payload: any) {
     const normalized = {
       mapeo: payload.mapeo ?? payload.mapeos ?? {},
-      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1,
-      validar: payload.validar ?? payload.mapeo?.validar ?? false,
-      envio: payload.envio ?? payload.mapeo?.envio ?? false
+      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
     return apiClient.createMapeoLinea(lineaId, normalized).then(res => {
       api.postBitacoraByContext('POST', `/lineas/${lineaId}/mapeos`, normalized, `Crear mapeo línea ${lineaId}`, normalized.idUsuario).catch(() => {})
@@ -113,9 +120,7 @@ export const mapeoService = {
   createMapeoCampana(lineaId: string | number, campanaId: string | number, payload: any) {
     const normalized = {
       mapeo: payload.mapeo ?? payload.mapeos ?? {},
-      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1,
-      validar: payload.validar ?? payload.mapeo?.validar ?? false,
-      envio: payload.envio ?? payload.mapeo?.envio ?? false
+      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
     return apiClient.createMapeoCampana(lineaId, campanaId, normalized).then(res => {
       api.postBitacoraByContext('POST', `/lineas/${lineaId}/campanas/${campanaId}/mapeos`, normalized, `Crear mapeo campaña ${campanaId} de línea ${lineaId}`, normalized.idUsuario).catch(() => {})
@@ -127,9 +132,7 @@ export const mapeoService = {
     const mapeoData = payload.mapeo ?? payload.mapeos ?? {}
     const normalized = {
       mapeo: mapeoData,
-      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1,
-      validar: payload.validar ?? mapeoData.validar ?? false,
-      envio: payload.envio ?? mapeoData.envio ?? false
+      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
     return apiClient.updateMapeoLinea(normalized).then(res => {
       api.postBitacoraByContext('PUT', '/lineas/mapeos', normalized, `Actualizar mapeo`, normalized.idUsuario).catch(() => {})
@@ -141,9 +144,7 @@ export const mapeoService = {
     const mapeoData = payload.mapeo ?? payload.mapeos ?? {}
     const normalized = {
       mapeo: mapeoData,
-      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1,
-      validar: payload.validar ?? mapeoData.validar ?? false,
-      envio: payload.envio ?? mapeoData.envio ?? false
+      idUsuario: payload.idUsuario ?? payload.idABCUsuario ?? 1
     }
     return apiClient.updateMapeoCampana(normalized).then(res => {
       api.postBitacoraByContext('PUT', '/lineas/campanas/mapeos', normalized, `Actualizar mapeo campaña`, normalized.idUsuario).catch(() => {})

@@ -9,6 +9,8 @@ export interface MapeoLineaData {
   descripcion: string
   bolActivo: boolean
   bolDictaminacion?: boolean | null
+  dictaminar?: boolean | null
+  porcentajeError?: number | null
   idABCUsuarioUltModificacion?: number
   validar?: boolean
   enviar?: boolean
@@ -23,9 +25,10 @@ export interface CreateMapeoLineaPayload {
     descripcion: string
     validar?: boolean
     enviar?: boolean
+    dictaminar?: boolean
+    porcentajeError?: number
   }
-  idABCUsuario: number
-  idUsuario?: number
+  idUsuario: number
 }
 
 export interface UpdateMapeoLineaPayload {
@@ -35,6 +38,8 @@ export interface UpdateMapeoLineaPayload {
     descripcion: string
     validar?: boolean
     enviar?: boolean
+    dictaminar?: boolean
+    porcentajeError?: number
   }
   idUsuario: number
 }
