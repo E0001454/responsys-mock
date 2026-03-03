@@ -239,7 +239,7 @@ const rowGroupMeta = computed(() => {
               />
             </th>
 
-            <th class="text-left px-4 py-3 relative min-w-[190px]">
+            <th class="text-left px-4 py-3 relative min-w-[110px]">
               <FilterDropdown
                 label="Estatus"
                 header-label="Filtrar por estatus"
@@ -252,7 +252,7 @@ const rowGroupMeta = computed(() => {
               />
             </th>
 
-            <th class="text-left px-4 py-3 relative min-w-[130px]">
+            <th class="text-left px-4 py-3 relative min-w-[110px]">
               <FilterDropdown
                 label="Dictaminar"
                 header-label="Filtrar por dictaminar"
@@ -343,14 +343,14 @@ const rowGroupMeta = computed(() => {
                 <span class="text-[11px] text-slate-500 tabular-nums">{{ formatTimeLabel(row.fechaInicio) }}</span>
               </div>
             </td>
-            <td class="px-4 py-2.5 text-slate-600 min-w-[140px]">
+            <td class="px-4 py-2.5 text-slate-600 min-w-[110px]">
               <div class="inline-flex flex-col rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 leading-tight">
                 <span class="text-xs font-semibold text-slate-700 tabular-nums">{{ formatDateLabel(row.fechaFin) }}</span>
                 <span class="text-[11px] text-slate-500 tabular-nums">{{ formatTimeLabel(row.fechaFin) }}</span>
               </div>
             </td>
             <td class="px-4 py-2.5 text-right tabular-nums">
-              <div class="inline-flex min-w-[170px] flex-col items-end gap-1.5 rounded-lg border px-2.5 py-1.5" :class="getProcessedBadgeClass(row)">
+              <div class="inline-flex min-w-[140px] flex-col items-end gap-1.5 rounded-lg border px-2.5 py-1.5" :class="getProcessedBadgeClass(row)">
                 <span class="text-sm font-semibold">
                   {{ formatNumber(row.numeroRegistrosProcesados) }} / {{ formatNumber(row.numeroRegistros) }}
                 </span>
