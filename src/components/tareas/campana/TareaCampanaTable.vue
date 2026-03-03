@@ -118,12 +118,11 @@ const {
         <colgroup>
           <col class="w-[14%]" />
           <col class="w-[16%]" />
-          <col class="w-[20%]" />
-          <col class="w-[13%]" />
-          <col class="w-[13%]" />
-          <col class="w-[13%]" />
+          <col class="w-[24%]" />
+          <col class="w-[14%]" />
+          <col class="w-[14%]" />
           <col class="w-[8%]" />
-          <col class="w-[9%]" />
+          <col class="w-[10%]" />
         </colgroup>
         <thead>
           <tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
@@ -171,8 +170,6 @@ const {
                 @toggle="emit('toggleFilter', 'search')"
               />
             </th>
-
-            <th :class="thSmallClass + ' text-left'">Carga</th>
 
             <th :class="thSmallClass + ' text-left'">Validación</th>
 
@@ -232,24 +229,6 @@ const {
               </td>
 
               <td class="px-4 py-2.5" @dblclick="emit('viewDetails', t)">
-                <template v-for="stage in [getStageVisual(t, 1)]" :key="`carga-${t.idABCConfigTareaCampana}`">
-                  <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
-                    <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
-                      <svg v-if="stage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
-                      </svg>
-                      <svg v-else class="w-3 h-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <circle cx="10" cy="10" r="6.5"></circle>
-                        <path d="M10 6.7V10.3"></path>
-                        <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
-                      </svg>
-                    </span>
-                    <span>{{ stage.label }}</span>
-                  </div>
-                </template>
-              </td>
-
-              <td class="px-4 py-2.5" @dblclick="emit('viewDetails', t)">
                 <template v-for="stage in [getStageVisual(t, 2)]" :key="`validar-${t.idABCConfigTareaCampana}`">
                   <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
                     <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
@@ -262,7 +241,7 @@ const {
                         <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
                       </svg>
                     </span>
-                    <span>{{ stage.label }}</span>
+
                   </div>
                 </template>
               </td>
@@ -280,7 +259,7 @@ const {
                         <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
                       </svg>
                     </span>
-                    <span>{{ stage.label }}</span>
+
                   </div>
                 </template>
               </td>

@@ -40,6 +40,8 @@ function normalizeCatalogo(item: any): CatalogoItem {
     bolActivo,
     codigo: normalizeCatalogText(item?.codigo),
     nombre: normalizeCatalogText(item?.nombre),
+    esRequerido: Boolean(item?.esRequerido ?? item?.esrequerido ?? item?.es_requerido ?? false),
+    obligatorio: Boolean(item?.obligatorio ?? item?.esObligatorio ?? false),
     fechaCreacion: String(item?.fechaCreacion ?? item?.fecCreacion ?? item?.fec_creacion ?? ''),
     fechaUltimaModificacion: String(item?.fechaUltimaModificacion ?? item?.fecUltModificacion ?? item?.fec_ult_modificacion ?? '')
   }

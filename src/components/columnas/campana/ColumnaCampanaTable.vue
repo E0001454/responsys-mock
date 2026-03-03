@@ -199,7 +199,7 @@ function getRequiredVisual(required: boolean) {
 
 								<td class="px-4 py-2.5 text-center">
 									<template v-for="requiredStage in [getRequiredVisual(Boolean(c.esRequerido ?? c.obligatorio ?? c.columna?.esRequerido ?? c.columna?.obligatorio))]" :key="`obligatorio-${c.mapeoId}-${c.columnaId}`">
-										<div class="inline-flex items-center justify-center w-22 gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold whitespace-nowrap" :class="requiredStage.containerClass">
+										<div class="inline-flex items-center px-2.5 py-1 rounded-lg border text-[11px] font-semibold" :class="requiredStage.containerClass">
 											<span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="requiredStage.iconWrapClass">
 												<svg v-if="requiredStage.required" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
 													<path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -210,7 +210,7 @@ function getRequiredVisual(required: boolean) {
 													<circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
 												</svg>
 											</span>
-											<span>{{ requiredStage.label }}</span>
+
 										</div>
 									</template>
 								</td>

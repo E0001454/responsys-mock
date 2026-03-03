@@ -10,6 +10,7 @@ export type SaveAction = {
 }
 
 type StageKey = 'carga' | 'validacion' | 'envio'
+const campanaStageKeys: StageKey[] = ['validacion', 'envio']
 
 type StageTaskIds = {
   carga?: number
@@ -179,6 +180,11 @@ export function buildCampanaSaveActions(params: {
 
   if (mode === 'add') {
     const payloads = toCreateTareaCampanaPayloads(payload, actividadTipoIds)
+      .filter(record => {
+        const stageId = Number(record?.actividad?.tipo?.id ?? record?.tarea?.tipo?.id ?? 0)
+        const stage = stageId === 1 ? 'carga' : stageId === 2 ? 'validacion' : 'envio'
+        return campanaStageKeys.includes(stage)
+      })
     for (const record of payloads) {
       const stageId = Number(record?.actividad?.tipo?.id ?? record?.tarea?.tipo?.id ?? 0)
       const stage = stageId === 1 ? 'carga' : stageId === 2 ? 'validacion' : 'envio'
@@ -194,7 +200,7 @@ export function buildCampanaSaveActions(params: {
     const operations = toUpdateTareaCampanaOperations(payload, stageTaskIds, actividadTipoIds)
     const syncedHorarioStages = new Set<string>()
 
-    for (const entry of operations.update) {
+    for (const entry of operations.update.filter(op => campanaStageKeys.includes(op.stage))) {
       const payloadByStage = entry.payload
       const stageTaskId = Number(
         payloadByStage?.actividad?.id
@@ -229,7 +235,7 @@ export function buildCampanaSaveActions(params: {
       }
     }
 
-    for (const forcedSync of buildForcedHorarioSyncByStage(payload, stageTaskIds)) {
+    for (const forcedSync of buildForcedHorarioSyncByStage(payload, stageTaskIds).filter(item => campanaStageKeys.includes(item.stage))) {
       if (syncedHorarioStages.has(forcedSync.stage)) continue
       actions.push({
         label: `Sincronizando horarios de ${stageActionLabel(forcedSync.stage)}`,
@@ -239,7 +245,7 @@ export function buildCampanaSaveActions(params: {
       })
     }
 
-    for (const entry of operations.create) {
+    for (const entry of operations.create.filter(op => campanaStageKeys.includes(op.stage))) {
       actions.push({
         label: `Agregando ${stageActionLabel(entry.stage)}`,
         run: async () => {

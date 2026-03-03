@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Search } from 'lucide-vue-next'
+import { BadgeCheck, Clock3, Search } from 'lucide-vue-next'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import TableSearch from '@/components/TableSearch.vue'
 import type { TareaMonitorData } from '@/types/tareas/monitor'
@@ -92,6 +92,12 @@ function getProcessedRatio(row: TareaMonitorData) {
   if (!Number.isFinite(total) || total <= 0) return 0
   if (!Number.isFinite(procesados) || procesados <= 0) return 0
   return Math.min(1, Math.max(0, procesados / total))
+}
+
+function isValidacionRow(row: TareaMonitorData) {
+  const actividadId = Number(row?.actividad?.id ?? 0)
+  const actividadCode = String(row?.actividad?.codigo ?? '').trim().toUpperCase()
+  return actividadId === 2 || actividadCode === 'VALIDACION' || actividadCode === 'VALIDACIÓN'
 }
 
 function getProcessedBadgeClass(row: TareaMonitorData) {
@@ -233,7 +239,7 @@ const rowGroupMeta = computed(() => {
               />
             </th>
 
-            <th class="text-left px-4 py-3 relative">
+            <th class="text-left px-4 py-3 relative min-w-[190px]">
               <FilterDropdown
                 label="Estatus"
                 header-label="Filtrar por estatus"
@@ -246,7 +252,7 @@ const rowGroupMeta = computed(() => {
               />
             </th>
 
-            <th class="text-left px-4 py-3 relative">
+            <th class="text-left px-4 py-3 relative min-w-[130px]">
               <FilterDropdown
                 label="Dictaminar"
                 header-label="Filtrar por dictaminar"
@@ -300,38 +306,36 @@ const rowGroupMeta = computed(() => {
               {{ row.nombreMapeo || '-' }}
             </td>
             <td class="px-4 py-2.5 text-slate-700">{{ getActividadLabel(row) }}</td>
-            <td class="px-4 py-2.5">
+            <td class="px-4 py-2.5 min-w-[190px]">
               <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold" :class="getStatusClass(row)">
                 {{ getStatusLabel(row) }}
               </span>
             </td>
-            <td class="px-4 py-2.5">
-              <label
-                class="inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200 cursor-pointer group select-none"
-                :class="row.bolActivo
-                  ? 'bg-blue-50 border-blue-200 hover:border-blue-300'
-                  : 'bg-slate-50 border-slate-200 hover:border-slate-300'"
-              >
-                <input
-                  type="checkbox"
-                  :checked="row.bolActivo"
+            <td class="px-4 py-2.5 min-w-[130px]">
+              <template v-if="isValidacionRow(row)">
+                <button
+                  v-if="!row.bolActivo"
+                  type="button"
+                  class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 text-xs font-bold transition-all duration-200 hover:bg-amber-100 hover:border-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
                   :disabled="isStatusToggleLocked(row)"
-                  @change="emit('toggle-status', row)"
-                  class="sr-only peer"
+                  @click="emit('toggle-status', row)"
                 >
+                  <span class="inline-flex h-5 w-5 items-center justify-center text-amber-700">
+                    <Clock3 class="h-3.5 w-3.5" />
+                  </span>
+                  <span>Pendiente</span>
+                </button>
 
                 <span
-                  class="h-2 w-2 rounded-full transition-colors duration-200 shadow-sm"
-                  :class="row.bolActivo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
-                ></span>
-
-                <span
-                  class="text-xs font-semibold transition-colors duration-200"
-                  :class="row.bolActivo ? 'text-[#00357F]' : 'text-slate-500'"
+                  v-else
+                  class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-lg border border-[#00357F]/25 bg-blue-50 text-[#00357F] text-xs font-bold"
                 >
-                  {{ row.bolActivo ? 'Activo' : 'Inactivo' }}
+                  <span class="inline-flex h-5 w-5 items-center justify-center text-[#00357F]">
+                    <BadgeCheck class="h-3.5 w-3.5" />
+                  </span>
+                  <span>Aprobado</span>
                 </span>
-              </label>
+              </template>
             </td>
             <td class="px-4 py-2.5 text-slate-600 min-w-[140px]">
               <div class="inline-flex flex-col rounded-lg border border-blue-100 bg-blue-50/70 px-2.5 py-1.5 leading-tight">

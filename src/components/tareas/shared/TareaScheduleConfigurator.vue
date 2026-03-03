@@ -14,6 +14,7 @@ interface Props {
   dayOptions: Option[]
   hourOptions: Option[]
   executionOptions: Option[]
+  hideCarga?: boolean
 }
 
 interface Emits {
@@ -61,7 +62,7 @@ const {
     <div class="relative pl-3 md:pl-0">
       <div class="absolute left-3 md:left-[19px] top-3 bottom-8 w-0.5 bg-gray-200 z-0"></div>
 
-      <div class="relative z-10 mb-8">
+      <div v-if="!props.hideCarga" class="relative z-10 mb-8">
         <div class="flex items-start gap-4">
           <div class="flex-shrink-0 w-10 h-10 rounded-full border-4 border-slate-50 flex items-center justify-center shadow-sm transition-colors duration-300 z-10"
             :class="hasCargaConfig ? 'bg-blue-500 text-white' : 'bg-[#00357F] text-white'">
@@ -138,7 +139,7 @@ const {
             :class="hasValidacionConfig ? 'bg-blue-500 text-white' : (isValidacionSectionEnabled ? 'bg-white border-[#00357F] text-[#00357F]' : 'bg-gray-200 text-gray-400')">
             <svg v-if="hasValidacionConfig" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
             <svg v-else-if="!isValidacionSectionEnabled" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-            <span v-else class="font-bold text-sm">2</span>
+            <span v-else class="font-bold text-sm">{{ props.hideCarga ? '1' : '2' }}</span>
           </div>
 
           <div class="flex-grow bg-white p-5 rounded-xl shadow-sm border border-gray-200 relative">
@@ -148,7 +149,7 @@ const {
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <h4 class="text-base font-bold text-[#00357F] uppercase tracking-wide">Validación</h4>
-                <span v-if="!isValidacionSectionEnabled" class="text-[10px] text-slate-500 block mt-1">Se habilita al agregar Carga</span>
+                <span v-if="!props.hideCarga && !isValidacionSectionEnabled" class="text-[10px] text-slate-500 block mt-1">Se habilita al agregar Carga</span>
               </div>
               <div class="w-full md:w-[320px]">
                 <div class="flex items-center gap-3">
@@ -219,7 +220,7 @@ const {
             :class="hasEnvioConfig ? 'bg-blue-500 text-white' : (isEnvioSectionEnabled ? 'bg-white border-[#00357F] text-[#00357F]' : 'bg-gray-200 text-gray-400')">
             <svg v-if="hasEnvioConfig" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
             <svg v-else-if="!isEnvioSectionEnabled" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-            <span v-else class="font-bold text-sm">3</span>
+            <span v-else class="font-bold text-sm">{{ props.hideCarga ? '2' : '3' }}</span>
           </div>
 
           <div class="flex-grow bg-white p-5 rounded-xl shadow-sm border border-gray-200 relative">

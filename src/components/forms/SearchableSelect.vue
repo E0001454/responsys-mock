@@ -4,6 +4,7 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 interface Option {
 	label: string
 	value: number | string
+	isRequired?: boolean
 }
 
 const props = defineProps<{
@@ -135,10 +136,12 @@ onUnmounted(() => {
 					v-for="opt in filteredOptions"
 					:key="opt.value"
 					type="button"
-					class="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 transition-colors"
+					class="w-full text-left px-4 py-2 text-sm transition-colors flex items-center justify-between gap-2"
+					:class="opt.isRequired ? 'bg-amber-50/60 text-amber-800 hover:bg-amber-100/60' : 'hover:bg-blue-50'"
 					@click.stop="selectOption(opt)"
 				>
-					{{ opt.label }}
+					<span class="truncate">{{ opt.label }}</span>
+					<span v-if="opt.isRequired" class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 border border-amber-200">Obligatoria</span>
 				</button>
 				<div v-if="filteredOptions.length === 0" class="px-4 py-3 text-xs text-slate-400">
 					Sin resultados

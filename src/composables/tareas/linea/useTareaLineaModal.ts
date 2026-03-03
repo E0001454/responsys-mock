@@ -107,7 +107,7 @@ export function useTareaLineaModal(
       ? '¿Estás seguro de guardar los cambios de este registro?'
       : 'Se detectaron cambios sin guardar. ¿Deseas cancelar y descartar la información modificada?'
   )
-  const confirmText = computed(() => (pendingAction.value === 'save' ? 'Guardar' : 'Aceptar'))
+  const confirmText = computed(() => (pendingAction.value === 'save' ? 'Aceptar' : 'Aceptar'))
   const confirmCancelText = computed(() => (pendingAction.value === 'save' ? 'Cancelar' : 'Cancelar'))
 
   const scheduleModel = computed<TareaScheduleModel>({

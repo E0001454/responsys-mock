@@ -5,6 +5,8 @@ export interface CatalogoItem {
   bolActivo: boolean
   codigo: string
   nombre: string
+  esRequerido?: boolean
+  obligatorio?: boolean
   fechaCreacion: string
   fechaUltimaModificacion: string
 }

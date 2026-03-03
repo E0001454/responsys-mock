@@ -50,6 +50,7 @@ export interface UseTareaScheduleConfiguratorProps {
   dayOptions: Option[]
   hourOptions: Option[]
   executionOptions: Option[]
+  hideCarga?: boolean
 }
 
 interface UseTareaScheduleConfiguratorEmit {
@@ -65,6 +66,7 @@ export function useTareaScheduleConfigurator(
   props: UseTareaScheduleConfiguratorProps,
   emit: UseTareaScheduleConfiguratorEmit
 ) {
+  const hideCarga = computed(() => Boolean(props.hideCarga))
   const resolveDefaultExecution = (): CatalogIdValue => normalizeCatalogIdValue(props.executionOptions?.[0]?.value)
 
   const dayLabelByValue = computed(() => {
@@ -182,17 +184,18 @@ export function useTareaScheduleConfigurator(
   const activeSlotsCountByKind = (kind: 'carga' | 'validacion' | 'envio') =>
     getSlotsByKind(kind).filter(isSlotActive).length
 
-  const mustKeepAtLeastOneActive = (kind: 'carga' | 'validacion' | 'envio') => kind === 'carga' || kind === 'validacion'
+  const mustKeepAtLeastOneActive = (kind: 'carga' | 'validacion' | 'envio') =>
+    kind === 'validacion' || (!hideCarga.value && kind === 'carga')
 
   const cargaSlotsCount = computed(() => (localData.value.cargaSlots ?? []).filter(isSlotActive).length)
   const validacionSlotsCount = computed(() => (localData.value.validacionSlots ?? []).filter(isSlotActive).length)
   const envioSlotsCount = computed(() => (localData.value.envioSlots ?? []).filter(isSlotActive).length)
 
-  const hasCargaConfig = computed(() => cargaSlotsCount.value > 0)
+  const hasCargaConfig = computed(() => hideCarga.value || cargaSlotsCount.value > 0)
   const hasValidacionConfig = computed(() => validacionSlotsCount.value > 0)
   const hasEnvioConfig = computed(() => envioSlotsCount.value > 0)
 
-  const hasCargaSlots = computed(() => activeSlotsCountByKind('carga') > 0)
+  const hasCargaSlots = computed(() => hideCarga.value || activeSlotsCountByKind('carga') > 0)
   const hasValidacionSlots = computed(() => activeSlotsCountByKind('validacion') > 0)
 
   const isValidacionSectionEnabled = computed(() => hasCargaSlots.value)
@@ -278,14 +281,14 @@ export function useTareaScheduleConfigurator(
     const validacion = toSlotSchedule(primaryValidacionSlot.value)
     const envio = toSlotSchedule(primaryEnvioSlot.value)
 
-    if (validacion && carga && getWeekdayOrder(validacion.day) < getWeekdayOrder(carga.day)) {
+    if (!hideCarga.value && validacion && carga && getWeekdayOrder(validacion.day) < getWeekdayOrder(carga.day)) {
       return 'El día de validación no puede ser anterior al día de carga.'
     }
     if (envio && validacion && getWeekdayOrder(envio.day) < getWeekdayOrder(validacion.day)) {
       return 'El día de envío no puede ser anterior al día de validación.'
     }
 
-    if (carga && validacion) {
+    if (!hideCarga.value && carga && validacion) {
       const delta = compareWeekdayTime(carga.day, carga.hour, validacion.day, validacion.hour)
       if (delta !== null && delta <= 0) {
         return 'Validación debe programarse después de carga.'
@@ -303,6 +306,7 @@ export function useTareaScheduleConfigurator(
   })
 
   const validacionRecommendationMessage = computed(() => {
+    if (hideCarga.value) return ''
     const shouldShow =
       isValidacionSectionEnabled.value
       && !hasValidacionConfig.value
@@ -345,7 +349,7 @@ export function useTareaScheduleConfigurator(
   })
 
   const scheduleReady = computed(() =>
-    hasCargaConfig.value
+    (hideCarga.value ? hasValidacionConfig.value : hasCargaConfig.value)
     && !scheduleValidationError.value
   )
   const duplicateScheduleError = ref('')
@@ -500,6 +504,7 @@ export function useTareaScheduleConfigurator(
   watch(scheduleReady, (ready) => emit.updateScheduleReady(ready), { immediate: true })
 
   watch(hasCargaSlots, (ready) => {
+    if (hideCarga.value) return
     if (!ready) {
       clearValidacionConfig()
     }
@@ -547,7 +552,7 @@ export function useTareaScheduleConfigurator(
       const diaValidacion = normalizeWeekdayInputValue(toDayLabel(localData.value.diaValidacion))
       const diaEnvio = normalizeWeekdayInputValue(toDayLabel(localData.value.diaEnvio))
 
-      if (diaValidacion && diaIngesta && getWeekdayOrder(diaValidacion) < getWeekdayOrder(diaIngesta)) {
+      if (!hideCarga.value && diaValidacion && diaIngesta && getWeekdayOrder(diaValidacion) < getWeekdayOrder(diaIngesta)) {
         localData.value.diaValidacion = ''
         localData.value.horaValidacion = ''
         localData.value.diaEnvio = ''

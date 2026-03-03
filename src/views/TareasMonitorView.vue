@@ -117,7 +117,7 @@ const {
         :show="showStatusConfirmModal"
         :title="statusConfirmTitle"
         :message="statusConfirmMessage"
-        confirm-text="Guardar"
+        confirm-text="Aceptar"
         cancel-text="Cancelar"
         :is-loading="statusConfirmLoading"
         @confirm="confirmStatusToggle"

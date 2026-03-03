@@ -221,7 +221,7 @@ const {
                         <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
                       </svg>
                     </span>
-                    <span>{{ stage.label }}</span>
+
                   </div>
                 </template>
               </td>
@@ -239,7 +239,7 @@ const {
                         <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
                       </svg>
                     </span>
-                    <span>{{ stage.label }}</span>
+
                   </div>
                 </template>
               </td>
@@ -257,7 +257,7 @@ const {
                         <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
                       </svg>
                     </span>
-                    <span>{{ stage.label }}</span>
+
                   </div>
                 </template>
               </td>

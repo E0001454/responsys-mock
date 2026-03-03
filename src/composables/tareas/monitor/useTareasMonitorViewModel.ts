@@ -70,8 +70,8 @@ export function useTareasMonitorViewModel() {
   const estatusOptions = computed(() => mapIdLabelOptions(statusLabelById.value))
 
   const dictaminarOptions = [
-    { label: 'Activos', value: true },
-    { label: 'Inactivos', value: false }
+    { label: 'Pendientes', value: false },
+    { label: 'Aprobados', value: true }
   ]
 
   const selectedLineas = ref<number[]>([])
@@ -90,18 +90,20 @@ export function useTareasMonitorViewModel() {
   })
 
   const statusConfirmTitle = computed(() => {
-    if (!pendingStatusItem.value) return 'Confirmar cambio de estatus'
-    return pendingStatusItem.value.bolActivo
-      ? 'Confirmar inactivación'
-      : 'Confirmar activación'
+    return 'Aprobar registro'
   })
 
   const statusConfirmMessage = computed(() => {
-    if (!pendingStatusItem.value) return '¿Deseas continuar con este cambio de estatus?'
-    const actionText = pendingStatusItem.value.bolActivo ? 'inactivar' : 'activar'
+    if (!pendingStatusItem.value) return '¿Deseas aprobar este registro?'
     const nombre = pendingStatusItem.value.nombreMapeo || `registro ${pendingStatusItem.value.id}`
-    return `¿Estás seguro de ${actionText} el registro ${nombre}?`
+    return `¿Deseas aprobar el registro ${nombre}?`
   })
+
+  function isValidacionRow(row: TareaMonitorData) {
+    const actividadId = Number(row?.actividad?.id ?? 0)
+    const actividadCode = String(row?.actividad?.codigo ?? '').trim().toUpperCase()
+    return actividadId === 2 || actividadCode === 'VALIDACION' || actividadCode === 'VALIDACIÓN'
+  }
 
   const filteredRows = computed<TareaMonitorData[]>(() => {
     return currentRows.value
@@ -123,9 +125,11 @@ export function useTareasMonitorViewModel() {
       const matchEstatus = selectedEstatus.value.length
         ? selectedEstatus.value.includes(statusId)
         : true
-      const matchDictaminar = selectedDictaminar.value.length
-        ? selectedDictaminar.value.includes(Boolean(row.bolActivo))
-        : true
+      const matchDictaminar = !isValidacionRow(row)
+        ? true
+        : selectedDictaminar.value.length
+          ? selectedDictaminar.value.includes(Boolean(row.bolActivo))
+          : true
 
       return matchSearch && matchLinea && matchCampana && matchActividad && matchEstatus && matchDictaminar
       })
@@ -237,11 +241,14 @@ export function useTareasMonitorViewModel() {
   }
 
   async function toggleDictaminar(row: TareaMonitorData) {
+    if (!isValidacionRow(row)) return
+    if (Boolean(row.bolActivo)) return
+
     const lockKey = getStatusLockKey(row)
     if (statusToggleLocks.value.has(lockKey)) return
 
     statusToggleLocks.value.add(lockKey)
-    const nextActivo = !Boolean(row.bolActivo)
+    const nextActivo = true
     try {
       if (isCampanaRow(row)) {
         await tareaMonitorService.patchDictaminarCampana(Number(row.id), nextActivo, 1)
@@ -264,6 +271,7 @@ export function useTareasMonitorViewModel() {
   }
 
   function requestStatusToggle(row: TareaMonitorData) {
+    if (!isValidacionRow(row) || Boolean(row.bolActivo)) return
     pendingStatusItem.value = row
     showStatusConfirmModal.value = true
   }

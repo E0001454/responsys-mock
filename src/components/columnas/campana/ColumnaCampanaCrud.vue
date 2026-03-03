@@ -27,6 +27,7 @@ const emit = defineEmits<{
 interface Option {
 	label: string
 	value: number
+	isRequired?: boolean
 }
 
 const columnasCatalogo = ref<Option[]>([])
@@ -79,6 +80,30 @@ const filtered = computed(() =>
 	}).sort(newestFirstCompare)
 )
 
+const currentMapeoIdForRequired = computed<number | null>(() => {
+	if (props.mapeoId !== undefined && props.mapeoId !== null) return Number(props.mapeoId)
+	if (selectedFilters.mapeos.length === 1) return Number(selectedFilters.mapeos[0])
+	return null
+})
+
+const missingRequiredColumnas = computed<Option[]>(() => {
+	const requiredOptions = columnasCatalogo.value.filter(option => Boolean(option.isRequired))
+	if (!requiredOptions.length) return []
+
+	const targetMapeoId = currentMapeoIdForRequired.value
+	const configuredIds = new Set(
+		items.value
+			.filter(item => targetMapeoId === null || Number(item.mapeoId ?? 0) === targetMapeoId)
+			.map(item => Number(item.columnaId ?? 0))
+	)
+
+	return requiredOptions.filter(option => !configuredIds.has(Number(option.value)))
+})
+
+const missingRequiredLabel = computed(() =>
+	missingRequiredColumnas.value.map(option => option.label).join(', ')
+)
+
 const totalPages = computed(() =>
 	Math.max(1, Math.ceil(filtered.value.length / pageSize.value))
 )
@@ -117,7 +142,11 @@ async function fetchCatalogos() {
 	)
 	columnasCatalogo.value = list
 		.filter(c => c.bolActivo)
-		.map(c => ({ label: c.nombre, value: c.id }))
+		.map(c => ({
+			label: c.nombre,
+			value: c.id,
+			isRequired: Boolean(c.esRequerido ?? c.obligatorio ?? false)
+		}))
 }
 
 
@@ -222,6 +251,10 @@ defineExpose({ openAdd })
 </script>
 <template>
 	<div @click.self="openFilter = null">
+		<div v-if="missingRequiredColumnas.length" class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+			Faltan {{ missingRequiredColumnas.length }} columnas obligatorias por configurar: {{ missingRequiredLabel }}.
+		</div>
+
 		<div class="">
 			<div class="">
 				<ColumnaCampanaTable
@@ -299,7 +332,7 @@ defineExpose({ openAdd })
 			:show="showStatusConfirmModal"
 			:title="statusConfirmTitle"
 			:message="statusConfirmMessage"
-			confirm-text="Guardar"
+			confirm-text="Aceptar"
 			cancel-text="Cancelar"
 			:is-loading="loading"
 			@confirm="confirmStatusToggle"

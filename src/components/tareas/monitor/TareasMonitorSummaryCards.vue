@@ -37,7 +37,7 @@ defineProps<{
     </div>
     <div class="bg-white border border-slate-200 rounded-lg px-3 py-2">
       <div class="flex items-center justify-between">
-        <p class="text-[11px] uppercase tracking-wide text-slate-400">Dictaminar Activos</p>
+        <p class="text-[11px] uppercase tracking-wide text-slate-400">Dictaminados</p>
         <Activity class="w-4 h-4 text-slate-400" />
       </div>
       <p class="text-lg font-semibold text-[#00357F] tabular-nums">{{ totals.activos }}</p>

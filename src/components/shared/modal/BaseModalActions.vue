@@ -9,6 +9,7 @@ interface Props {
   disabledCancel?: boolean
   disabledConfirm?: boolean
   confirmType?: 'button' | 'submit'
+  confirmTone?: 'auto' | 'primary' | 'neutral'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,7 +19,8 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   disabledCancel: false,
   disabledConfirm: false,
-  confirmType: 'button'
+  confirmType: 'button',
+  confirmTone: 'auto'
 })
 
 const emit = defineEmits<{
@@ -26,7 +28,11 @@ const emit = defineEmits<{
   (e: 'confirm'): void
 }>()
 
-const isSaveAction = computed(() => String(props.confirmText ?? '').trim().toLowerCase().includes('guardar'))
+const usePrimaryConfirmStyle = computed(() => {
+  if (props.confirmTone === 'primary') return true
+  if (props.confirmTone === 'neutral') return false
+  return String(props.confirmText ?? '').trim().toLowerCase().includes('guardar')
+})
 
 const handleConfirmClick = () => {
   emit('confirm')
@@ -54,7 +60,7 @@ const handleConfirmClick = () => {
         :type="confirmType"
         :class="[
           'px-5 py-2.5 text-sm font-bold rounded-lg transition-all focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2',
-          isSaveAction
+          usePrimaryConfirmStyle
             ? 'text-[#00357F] bg-[#FFD100] hover:bg-yellow-400 shadow-md hover:shadow-lg focus:ring-2 focus:ring-yellow-300'
             : 'text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-2 focus:ring-gray-300'
         ]"

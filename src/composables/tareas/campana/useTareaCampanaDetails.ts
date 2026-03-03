@@ -41,7 +41,6 @@ export function useTareaCampanaDetails(props: {
   const horarios = computed(() => props.item?.horarios ?? [])
 
   const STAGE_CONFIG: Array<{ key: StageKey; label: string }> = [
-    { key: 'carga', label: 'Carga' },
     { key: 'validacion', label: 'Validación' },
     { key: 'envio', label: 'Envío' }
   ]

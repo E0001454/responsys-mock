@@ -118,12 +118,12 @@ const { formatTimestamp, horarios, stageDetails } = useTareaLineaDetails(props)
                       <p class="text-xs mt-0.5" :class="stage.configured ? 'text-slate-500' : 'text-slate-400'">
                         TIPO DE EJECUCIÓN:
                         <span class="font-semibold" :class="stage.configured ? 'text-slate-700' : 'text-slate-500'">
-                          {{ stage.configured ? stage.execution : 'No está configurado' }}
+                          {{ stage.execution || '-' }}
                         </span>
                       </p>
                     </div>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="stage.configured ? 'bg-slate-100 text-slate-600' : 'bg-slate-200 text-slate-500'">
-                      {{ stage.configured ? `${stage.activeCount} activos` : 'No configurado' }}
+                      {{ `${stage.activeCount} activos` }}
                     </span>
                   </div>
 
@@ -142,7 +142,7 @@ const { formatTimestamp, horarios, stageDetails } = useTareaLineaDetails(props)
                     </span>
                   </div>
                   <p v-else class="mt-2 text-xs" :class="stage.configured ? 'text-slate-500' : 'text-slate-400'">
-                    {{ stage.configured ? 'Sin horarios configurados.' : 'No está configurado' }}
+                    Sin horarios.
                   </p>
                 </div>
               </div>
@@ -164,7 +164,7 @@ const { formatTimestamp, horarios, stageDetails } = useTareaLineaDetails(props)
     </template>
     <template #footer>
       <BaseModalActions
-        confirm-text="Aceptar"
+        confirm-text="Cerrar"
         :show-cancel="false"
         @confirm="emit('close')"
       />

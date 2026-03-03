@@ -193,7 +193,7 @@ function getDictaminarVisual(configured: boolean) {
     </template>
     <template #footer>
       <BaseModalActions
-        confirm-text="Aceptar"
+        confirm-text="Cerrar"
         :show-cancel="false"
         @confirm="emit('close')"
       />

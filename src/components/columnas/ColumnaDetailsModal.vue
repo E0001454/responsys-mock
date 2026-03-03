@@ -422,7 +422,7 @@ function mapFechaTipoName(id: number | null | undefined) {
 		</template>
 		<template #footer>
 			<BaseModalActions
-				confirm-text="Aceptar"
+				confirm-text="Cerrar"
 				:show-cancel="false"
 				@confirm="emit('close')"
 			/>

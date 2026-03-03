@@ -6,7 +6,7 @@
       "campana": { "id": 1 }
     },
     "mapeo": { "id": 3 },
-    "activo": true,
+    "activo": false,
     "actividad": { "id": 2 },
     "ejecucion": { "id": 2 },
     "horario": {
@@ -21,29 +21,6 @@
     "registros": 21000,
     "procesados": 18320,
     "fechaCreacion": "1768827000000"
-  },
-  {
-    "id": 1,
-    "linea": {
-      "id": 1,
-      "campana": { "id": 1 }
-    },
-    "mapeo": { "id": 3 },
-    "activo": true,
-    "actividad": { "id": 1 },
-    "ejecucion": { "id": 1 },
-    "horario": {
-      "dia": {
-        "id": 1,
-        "hora": { "id": 1 }
-      }
-    },
-    "estatus": { "id": 4 },
-    "fechaInico": "1768826400000",
-    "fechaFin": "1768826800000",
-    "registros": 21000,
-    "procesados": 21000,
-    "fechaCreacion": "1768826400000"
   },
   {
     "id": 7,
@@ -75,8 +52,8 @@
       "campana": { "id": 2 }
     },
     "mapeo": { "id": 4 },
-    "activo": true,
-    "actividad": { "id": 1 },
+    "activo": false,
+    "actividad": { "id": 2 },
     "ejecucion": { "id": 2 },
     "horario": {
       "dia": {
@@ -98,8 +75,8 @@
       "campana": { "id": 6 }
     },
     "mapeo": { "id": 5 },
-    "activo": true,
-    "actividad": { "id": 1 },
+    "activo": false,
+    "actividad": { "id": 2 },
     "ejecucion": { "id": 1 },
     "horario": {
       "dia": {
@@ -121,8 +98,8 @@
       "campana": { "id": 1 }
     },
     "mapeo": { "id": 6 },
-    "activo": true,
-    "actividad": { "id": 1 },
+    "activo": false,
+    "actividad": { "id": 2 },
     "ejecucion": { "id": 1 },
     "horario": {
       "dia": {
@@ -144,8 +121,8 @@
       "campana": { "id": 3 }
     },
     "mapeo": { "id": 7 },
-    "activo": true,
-    "actividad": { "id": 1 },
+    "activo": false,
+    "actividad": { "id": 2 },
     "ejecucion": { "id": 2 },
     "horario": {
       "dia": {
@@ -190,7 +167,7 @@
       "campana": { "id": 1 }
     },
     "mapeo": { "id": 8 },
-    "activo": true,
+    "activo": false,
     "actividad": { "id": 2 },
     "ejecucion": { "id": 2 },
     "horario": {
@@ -205,28 +182,5 @@
     "registros": 43000,
     "procesados": 32900,
     "fechaCreacion": "1768740400000"
-  },
-  {
-    "id": 9,
-    "linea": {
-      "id": 2,
-      "campana": { "id": 1 }
-    },
-    "mapeo": { "id": 8 },
-    "activo": true,
-    "actividad": { "id": 1 },
-    "ejecucion": { "id": 1 },
-    "horario": {
-      "dia": {
-        "id": 3,
-        "hora": { "id": 9 }
-      }
-    },
-    "estatus": { "id": 4 },
-    "fechaInico": "1768739800000",
-    "fechaFin": "1768740300000",
-    "registros": 43000,
-    "procesados": 43000,
-    "fechaCreacion": "1768739800000"
   }
 ]

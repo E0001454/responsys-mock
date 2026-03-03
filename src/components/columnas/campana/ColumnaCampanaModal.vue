@@ -11,6 +11,7 @@ import type { ColumnaCampanaModel } from '@/models/columnas/campana/columnaCampa
 interface Option {
 	label: string
 	value: number
+	isRequired?: boolean
 }
 
 const props = defineProps<{
@@ -97,7 +98,7 @@ const confirmMessage = computed(() =>
 		? '¿Estás seguro de guardar los cambios de este registro?'
 		: 'Se detectaron cambios sin guardar. ¿Deseas cancelar y descartar la información modificada?'
 )
-const confirmText = computed(() => (pendingAction.value === 'save' ? 'Guardar' : 'Aceptar'))
+const confirmText = computed(() => (pendingAction.value === 'save' ? 'Aceptar' : 'Aceptar'))
 const confirmCancelText = computed(() => (pendingAction.value === 'save' ? 'Cancelar' : 'Cancelar'))
 
 const selectedVal = computed(() => {
@@ -278,6 +279,27 @@ const availableColumnas = computed(() => {
 		return !taken.has(option.value)
 	})
 })
+
+const selectedColumnaOption = computed<Option | undefined>(() =>
+	(props.columnas as Option[]).find(option => Number(option.value) === Number(form.value.idABCCatColumna ?? 0))
+)
+
+const missingRequiredCount = computed(() => {
+	const selectedMapeo = Number(form.value.idABCConfigMapeoCampana ?? 0)
+	if (!selectedMapeo) return 0
+
+	const requiredOptions = (props.columnas as Option[]).filter(option => Boolean(option.isRequired))
+	if (!requiredOptions.length) return 0
+
+	const configuredIds = new Set(
+		props.existingItems
+			.filter(item => Number(item.mapeoId ?? 0) === selectedMapeo)
+			.map(item => Number(item.columnaId ?? 0))
+	)
+
+	return requiredOptions.filter(option => !configuredIds.has(Number(option.value))).length
+})
+
 
 function resetForm() {
 	attemptedSave.value = false
@@ -494,6 +516,16 @@ watch(
 )
 
 watch(
+	() => form.value.idABCCatColumna,
+	() => {
+		const selected = selectedColumnaOption.value
+		if (selected?.isRequired) {
+			form.value.esRequerido = true
+		}
+	}
+)
+
+watch(
 	() => form.value.valor.tipoSel,
 	() => {
 		touchedNumericFields.value = {
@@ -613,7 +645,11 @@ async function save() {
 								:disabled="isEditing"
 								placeholder="Seleccione una opción"
 							/>
+							
 							<p v-if="attemptedSave && columnaRequiredError" class="text-xs text-red-500 mt-1">{{ columnaRequiredError }}</p>
+							<div v-if="missingRequiredCount > 0" class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+								Faltan {{ missingRequiredCount }} columnas obligatorias por configurar.
+							</div>
 						</div>
 					</div>
 

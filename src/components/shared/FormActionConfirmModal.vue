@@ -49,6 +49,7 @@ const emit = defineEmits<{
         <BaseModalActions
           :cancel-text="cancelText"
           :confirm-text="confirmText"
+          confirm-tone="primary"
           :loading="isLoading"
           @cancel="emit('cancel')"
           @confirm="emit('confirm')"

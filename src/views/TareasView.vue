@@ -41,6 +41,7 @@ const tabs = [
   { key: 'linea', label: 'Lineas de negocio' },
   { key: 'campana', label: 'Campañas' }
 ] as const
+const campanaStageKeys = ['validacion', 'envio'] as const
 
 type TabKey = typeof tabs[number]['key']
 const activeTab = ref<TabKey>('linea')
@@ -481,7 +482,7 @@ async function hydrateLineaForEdit(item: TareaLineaRow): Promise<TareaLineaRow> 
 async function hydrateCampanaForEdit(item: TareaCampanaRow): Promise<TareaCampanaRow> {
   const ids = item.idsTarea ?? {}
   const horariosByStage = await Promise.all(
-    stageKeys.map(async stage => {
+    campanaStageKeys.map(async stage => {
       const taskId = Number(
         ids[stage]
         ?? item.tareasPorTipo?.[stage]?.idABCConfigTareaCampana
@@ -570,7 +571,8 @@ function toUniquePositiveIds(values: unknown[]): number[] {
 }
 
 function resolveTareaToggleTargetIds(item: TareaLineaRow | TareaCampanaRow): number[] {
-  const stageIds = stageKeys.flatMap(stage => {
+  const scopeStageKeys = isCampanaRow(item) ? campanaStageKeys : stageKeys
+  const stageIds = scopeStageKeys.flatMap(stage => {
     const explicitId = Number(item.idsTarea?.[stage] ?? 0)
     const fromTipo = Number(
       item.tareasPorTipo?.[stage]?.id
@@ -989,7 +991,7 @@ watch(
         :show="showStatusConfirmModal"
         :title="statusConfirmTitle"
         :message="statusConfirmMessage"
-        confirm-text="Guardar"
+        confirm-text="Aceptar"
         cancel-text="Cancelar"
         :is-loading="statusConfirmLoading"
         @confirm="confirmStatusToggle"

@@ -131,6 +131,7 @@ const {
             :day-options="diasDisponibles"
             :hour-options="horasDisponibles"
             :execution-options="ejecucionesDisponibles"
+            :hide-carga="true"
             @update:schedule-ready="isScheduleReady = $event"
             @toggle-slot="handleToggleSlot"
           />
