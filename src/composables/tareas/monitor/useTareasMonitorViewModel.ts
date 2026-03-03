@@ -322,8 +322,10 @@ export function useTareasMonitorViewModel() {
     lineaLabelById.value = mapCatalogIdToLabel(catalogos, 'LNN')
     campanaLabelById.value = mapCatalogIdToLabel(catalogos, 'CMP')
     actividadLabelById.value = mapCatalogIdToLabel(catalogos, 'ACT')
-    statusLabelById.value = mapCatalogIdToLabel(catalogos, 'STS')
-    statusCodeById.value = mapCatalogIdToCode(catalogos, 'STS')
+    const statusLabelEST = mapCatalogIdToLabel(catalogos, 'EST')
+    const statusCodeEST = mapCatalogIdToCode(catalogos, 'EST')
+    statusLabelById.value = statusLabelEST.size ? statusLabelEST : mapCatalogIdToLabel(catalogos, 'STS')
+    statusCodeById.value = statusCodeEST.size ? statusCodeEST : mapCatalogIdToCode(catalogos, 'STS')
   }
 
   async function fetchMapeos() {

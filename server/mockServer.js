@@ -46,6 +46,7 @@ const CATALOGOS_META = {
   HRS: 'HORA',
   EJE: 'EJECUCION',
   ACT: 'ACTIVIDAD',
+  EST: 'ESTATUS_TAREA',
   STS: 'STATUS'
 }
 
@@ -79,6 +80,23 @@ function finalizeCatalogGroups(grouped = []) {
     }
   }
 
+  const estGroup = byCode.get('EST')
+  const stsGroup = byCode.get('STS')
+  if (estGroup && !stsGroup) {
+    byCode.set('STS', {
+      codigo: 'STS',
+      nombre: CATALOGOS_META.STS,
+      registros: cloneCatalogRecords(estGroup.registros)
+    })
+  }
+  if (stsGroup && !estGroup) {
+    byCode.set('EST', {
+      codigo: 'EST',
+      nombre: CATALOGOS_META.EST,
+      registros: cloneCatalogRecords(stsGroup.registros)
+    })
+  }
+
   for (const [codigo, nombre] of Object.entries(CATALOGOS_META)) {
     if (!byCode.has(codigo)) {
       byCode.set(codigo, { codigo, nombre, registros: [] })
@@ -109,7 +127,18 @@ function normalizeCatalogItem(item) {
 
 function getCatalogGroup(code) {
   const key = String(code ?? '').toUpperCase()
-  return store.catalogos.find(group => String(group?.codigo ?? '').toUpperCase() === key)
+  const direct = store.catalogos.find(group => String(group?.codigo ?? '').toUpperCase() === key)
+  if (direct) return direct
+
+  if (key === 'STS') {
+    return store.catalogos.find(group => String(group?.codigo ?? '').toUpperCase() === 'EST')
+  }
+
+  if (key === 'EST') {
+    return store.catalogos.find(group => String(group?.codigo ?? '').toUpperCase() === 'STS')
+  }
+
+  return undefined
 }
 
 function getCatalogRecordById(code, id) {
@@ -118,6 +147,28 @@ function getCatalogRecordById(code, id) {
   const group = getCatalogGroup(code)
   if (!group) return null
   return (group.registros ?? []).find(record => Number(record?.id ?? 0) === targetId) ?? null
+}
+
+function resolveCatalogRecordId(code, id) {
+  const targetId = Number(id ?? 0)
+  if (!targetId) return 0
+
+  const group = getCatalogGroup(code)
+  if (!group) return targetId
+
+  const records = Array.isArray(group.registros) ? group.registros : []
+  if (!records.length) return targetId
+
+  const exists = records.find(record => Number(record?.id ?? 0) === targetId)
+  if (exists) return targetId
+
+  const legacyIndex = targetId - 1
+  if (legacyIndex >= 0 && legacyIndex < records.length) {
+    const remappedId = Number(records[legacyIndex]?.id ?? 0)
+    if (remappedId) return remappedId
+  }
+
+  return targetId
 }
 
 function toIsoDate(value) {
@@ -138,14 +189,14 @@ function toIsoDate(value) {
 }
 
 function normalizeMonitorRecord(item, scope = 'linea') {
-  const lineaId = Number(item?.linea?.id ?? item?.idABCCatLineaNegocio ?? 0)
-  const campanaId = Number(item?.linea?.campana?.id ?? item?.idABCCatCampana ?? item?.campana?.id ?? 0)
+  const lineaId = resolveCatalogRecordId('LNN', Number(item?.linea?.id ?? item?.idABCCatLineaNegocio ?? 0))
+  const campanaId = resolveCatalogRecordId('CMP', Number(item?.linea?.campana?.id ?? item?.idABCCatCampana ?? item?.campana?.id ?? 0))
   const mapeoId = Number(item?.mapeo?.id ?? item?.idABCConfigMapeo ?? item?.idABCConfigMapeoLinea ?? item?.idABCConfigMapeoCampana ?? 0)
-  const actividadId = Number(item?.actividad?.id ?? item?.actividadId ?? 0)
-  const ejecucionId = Number(item?.ejecucion?.id ?? item?.ejecucionId ?? 0)
-  const diaId = Number(item?.dia?.id ?? item?.horario?.dia?.id ?? item?.diaId ?? 0)
-  const horaId = Number(item?.hora?.id ?? item?.horario?.dia?.hora?.id ?? item?.horaId ?? 0)
-  const estatusId = Number(item?.estatus?.id ?? item?.status?.id ?? item?.estatusId ?? item?.statusId ?? 0)
+  const actividadId = resolveCatalogRecordId('ACT', Number(item?.actividad?.id ?? item?.actividadId ?? 0))
+  const ejecucionId = resolveCatalogRecordId('EJE', Number(item?.ejecucion?.id ?? item?.ejecucionId ?? 0))
+  const diaId = resolveCatalogRecordId('DIA', Number(item?.dia?.id ?? item?.horario?.dia?.id ?? item?.diaId ?? 0))
+  const horaId = resolveCatalogRecordId('HRS', Number(item?.hora?.id ?? item?.horario?.dia?.hora?.id ?? item?.horaId ?? 0))
+  const estatusId = resolveCatalogRecordId('EST', Number(item?.estatus?.id ?? item?.status?.id ?? item?.estatusId ?? item?.statusId ?? 0))
 
   const toTimestampString = value => {
     if (value === null || value === undefined || value === '') return ''

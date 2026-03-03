@@ -12,7 +12,7 @@ interface ApiClient {
 
 const apiClient = api as ApiClient
 
-const KNOWN_CODIGOS = new Set(['ROL', 'LNN', 'CMP', 'CLM', 'CLI', 'CCM', 'VAL', 'CDN', 'NMR', 'FCH', 'DIA', 'HRS', 'EJE', 'ACT', 'STS'])
+const KNOWN_CODIGOS = new Set(['ROL', 'LNN', 'CMP', 'CLM', 'CLI', 'CCM', 'VAL', 'CDN', 'NMR', 'FCH', 'DIA', 'HRS', 'EJE', 'ACT', 'EST', 'STS'])
 
 function normalizeCatalogText(value: any): string {
   const clean = String(value ?? '')
@@ -68,7 +68,7 @@ function inferCodigoFromName(value: any): string {
   if (name.includes('HORA')) return 'HRS'
   if (name.includes('EJECU')) return 'EJE'
   if (name.includes('ACTIV')) return 'ACT'
-  if (name.includes('STATUS') || name.includes('ESTATUS')) return 'STS'
+  if (name.includes('STATUS') || name.includes('ESTATUS')) return 'EST'
   return ''
 }
 
@@ -190,8 +190,15 @@ export const catalogosService = {
         return grouped.flatMap(group => group.registros)
       }
 
+      const requested = normalizeCatalogoCodigo(codigo)
+      const compatibleCodes = requested === 'STS'
+        ? ['STS', 'EST']
+        : requested === 'EST'
+          ? ['EST', 'STS']
+          : [requested]
+
       const selected = grouped.find(
-        group => normalizeCatalogoCodigo(group.codigo) === normalizeCatalogoCodigo(codigo)
+        group => compatibleCodes.includes(normalizeCatalogoCodigo(group.codigo))
       )
       return selected?.registros ?? []
     })

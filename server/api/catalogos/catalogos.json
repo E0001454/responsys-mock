@@ -4,9 +4,136 @@
         "nombre": "COLUMNA_LINEA",
         "registros": [
             {
-                "id": 1,
-                "codigo": "NOM",
-                "nombre": "NOMBRE"
+                "id": 68,
+                "codigo": "C01",
+                "nombre": "RIID_\t",
+                "esRequerido": true
+            },
+            {
+                "id": 69,
+                "codigo": "C02",
+                "nombre": "NOMBRE\t",
+                "esRequerido": true
+            },
+            {
+                "id": 70,
+                "codigo": "C03",
+                "nombre": "APELLIDO_PATERNO\t",
+                "esRequerido": true
+            },
+            {
+                "id": 71,
+                "codigo": "C04",
+                "nombre": "APELLIDO_MATERNO",
+                "esRequerido": false
+            },
+            {
+                "id": 72,
+                "codigo": "C05",
+                "nombre": "EMAIL_ADDRESS_",
+                "esRequerido": true
+            },
+            {
+                "id": 73,
+                "codigo": "C06",
+                "nombre": "MOBILE_NUMBER_",
+                "esRequerido": true
+            },
+            {
+                "id": 74,
+                "codigo": "C07",
+                "nombre": "MOBILE_COUNTRY_",
+                "esRequerido": false
+            },
+            {
+                "id": 75,
+                "codigo": "C08",
+                "nombre": "LINEA_DE_NEGOCIO",
+                "esRequerido": true
+            },
+            {
+                "id": 76,
+                "codigo": "C09",
+                "nombre": "NUMERO_DE_CUENTA",
+                "esRequerido": false
+            },
+            {
+                "id": 77,
+                "codigo": "C10",
+                "nombre": "NSS",
+                "esRequerido": false
+            },
+            {
+                "id": 78,
+                "codigo": "C11",
+                "nombre": "CURP",
+                "esRequerido": false
+            },
+            {
+                "id": 79,
+                "codigo": "C12",
+                "nombre": "RFC",
+                "esRequerido": false
+            },
+            {
+                "id": 80,
+                "codigo": "C13",
+                "nombre": "DATE_OF_BIRTH",
+                "esRequerido": false
+            },
+            {
+                "id": 81,
+                "codigo": "C14",
+                "nombre": "POSTAL_STREET_1_",
+                "esRequerido": false
+            },
+            {
+                "id": 82,
+                "codigo": "C15",
+                "nombre": "POSTAL_STREET_2_",
+                "esRequerido": false
+            },
+            {
+                "id": 83,
+                "codigo": "C16",
+                "nombre": "CITY_",
+                "esRequerido": false
+            },
+            {
+                "id": 84,
+                "codigo": "C17",
+                "nombre": "STATE_",
+                "esRequerido": false
+            },
+            {
+                "id": 85,
+                "codigo": "C18",
+                "nombre": "POSTAL_CODE_",
+                "esRequerido": false
+            },
+            {
+                "id": 86,
+                "codigo": "C19",
+                "nombre": "POLIZA",
+                "esRequerido": false
+            },
+            {
+                "id": 87,
+                "codigo": "C20",
+                "nombre": "SUSPENSION_LOGICA",
+                "esRequerido": false
+            },
+            {
+                "id": 88,
+                "codigo": "C21",
+                "nombre": "USUARIO PRUEBA",
+                "esRequerido": false
+            },
+            {
+                "id": 89,
+                "codigo": "C22",
+                "nombre": "GENERO",
+                "esRequerido": false
             }
         ]
     },
@@ -15,54 +142,54 @@
         "nombre": "CAMPANA",
         "registros": [
             {
-                "id": 1,
-                "codigo": "BNV",
+                "id": 12,
+                "codigo": "C01",
                 "nombre": "BIENVENIDA"
             },
             {
-                "id": 2,
-                "codigo": "DES",
-                "nombre": "DESCUENTOS"
+                "id": 13,
+                "codigo": "C02",
+                "nombre": "BOLETÍN"
             },
             {
-                "id": 3,
-                "codigo": "CUM",
-                "nombre": "CUMPLEAÑOS"
+                "id": 14,
+                "codigo": "C03",
+                "nombre": "BIENVENIDA "
             },
             {
-                "id": 4,
-                "codigo": "PRO",
-                "nombre": "PROMOCION"
+                "id": 15,
+                "codigo": "C04",
+                "nombre": "PROFUKIDS"
             },
             {
-                "id": 5,
-                "codigo": "DAU",
-                "nombre": "DESCUENTO SEGURO DE AUTO "
+                "id": 16,
+                "codigo": "C05",
+                "nombre": "WEBINAR"
             },
             {
-                "id": 6,
-                "codigo": "DAU",
-                "nombre": "DESCUENTO SEGURO DE AUTO "
+                "id": 17,
+                "codigo": "C06",
+                "nombre": "APOVOL RESPONSYS"
             },
             {
-                "id": 7,
-                "codigo": "AFR",
-                "nombre": "cujxnajcn"
+                "id": 18,
+                "codigo": "C07",
+                "nombre": "CUMPLEAÑOS "
             },
             {
-                "id": 8,
-                "codigo": "AFR",
-                "nombre": "Afore"
+                "id": 19,
+                "codigo": "C08",
+                "nombre": "UNIVERSOS IMSS E ISSSTE"
             },
             {
-                "id": 9,
-                "codigo": "AFR",
-                "nombre": "Afore"
+                "id": 20,
+                "codigo": "C09",
+                "nombre": "ESTADO DE CUENTA"
             },
             {
-                "id": 10,
-                "codigo": "AFR",
-                "nombre": "Afore"
+                "id": 21,
+                "codigo": "C10",
+                "nombre": "EXPEDIENTE IDENTIFICACIÓN"
             }
         ]
     },
@@ -71,19 +198,60 @@
         "nombre": "CADENA",
         "registros": [
             {
-                "id": 1,
-                "codigo": "NMR",
-                "nombre": "NUMERICO"
-            },
-            {
                 "id": 2,
                 "codigo": "ALF",
-                "nombre": "ALFABETICO"
+                "nombre": "ALFABETO"
             },
             {
                 "id": 3,
                 "codigo": "ALN",
                 "nombre": "ALFANUMERICO"
+            },
+            {
+                "id": 4,
+                "codigo": "ALE",
+                "nombre": "ALFABETO Y ESPECIALES"
+            },
+            {
+                "id": 5,
+                "codigo": "ANE",
+                "nombre": "ALFANUMÉRICO Y ESPECIALES"
+            }
+        ]
+    },
+    {
+        "codigo": "EST",
+        "nombre": "ESTATUS_TAREA",
+        "registros": [
+            {
+                "id": 1,
+                "codigo": "PLN",
+                "nombre": "Planificada"
+            },
+            {
+                "id": 2,
+                "codigo": "EJC",
+                "nombre": "En ejecución"
+            },
+            {
+                "id": 3,
+                "codigo": "BLQ",
+                "nombre": "Bloqueada"
+            },
+            {
+                "id": 4,
+                "codigo": "CMP",
+                "nombre": "Completada "
+            },
+            {
+                "id": 5,
+                "codigo": "ERR",
+                "nombre": "Error "
+            },
+            {
+                "id": 6,
+                "codigo": "CNC",
+                "nombre": "Cancelada "
             }
         ]
     },
@@ -118,9 +286,382 @@
         "nombre": "COLUMNA_CAMPANA",
         "registros": [
             {
-                "id": 1,
-                "codigo": "NOM",
-                "nombre": "NOMBRE"
+                "id": 39,
+                "codigo": "C01",
+                "nombre": "ID_AFORE \t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 40,
+                "codigo": "C02",
+                "nombre": "DESCRIPCION_DE_AFORE\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 41,
+                "codigo": "C03",
+                "nombre": "SIEFORE\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 42,
+                "codigo": "C04",
+                "nombre": "SEGMENTO\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 43,
+                "codigo": "C05",
+                "nombre": "REGIMEN\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 44,
+                "codigo": "C06",
+                "nombre": "ID_CLIENTE_AHORRADOR\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 45,
+                "codigo": "C07",
+                "nombre": "ID_PRESTAMO_PENSIONADO\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 46,
+                "codigo": "C08",
+                "nombre": "ID_SUSCEPTIBLE_PRESTAMO\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 47,
+                "codigo": "C09",
+                "nombre": "TIPO_PENSION\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 48,
+                "codigo": "C10",
+                "nombre": "GRUPO_PAGO\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 49,
+                "codigo": "C11",
+                "nombre": "CUSTOMER_ID_\t\t\t\t\t\t",
+                "esRequerido": true
+            },
+            {
+                "id": 50,
+                "codigo": "C12",
+                "nombre": "NUM_LOTE\t\t\t\t\t\t\t",
+                "esRequerido": true
+            },
+            {
+                "id": 51,
+                "codigo": "C13",
+                "nombre": "NOMBRE_CAMPANA\t\t\t\t\t\t",
+                "esRequerido": true
+            },
+            {
+                "id": 52,
+                "codigo": "C14",
+                "nombre": "ID_CAMPANA\t\t\t\t\t\t\t",
+                "esRequerido": true
+            },
+            {
+                "id": 53,
+                "codigo": "C15",
+                "nombre": "ID_BAJA_CAMBIO\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 54,
+                "codigo": "C16",
+                "nombre": "FECHA_BAJA_CAMBIO\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 55,
+                "codigo": "C17",
+                "nombre": "REGIMEN_IMSS\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 56,
+                "codigo": "C18",
+                "nombre": "SEGMENTO_AFO\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 57,
+                "codigo": "C19",
+                "nombre": "EDAD\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 58,
+                "codigo": "C20",
+                "nombre": "GENERO\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 59,
+                "codigo": "C21",
+                "nombre": "LIGA_RSALDOS\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 60,
+                "codigo": "C22",
+                "nombre": "LINEA_DE_NEGOCIO\t\t\t\t\t",
+                "esRequerido": true
+            },
+            {
+                "id": 61,
+                "codigo": "C23",
+                "nombre": "SEGMENTO_PRE\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 62,
+                "codigo": "C24",
+                "nombre": "FIRST_NAME\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 63,
+                "codigo": "C25",
+                "nombre": "LAST_NAME\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 64,
+                "codigo": "C26",
+                "nombre": "ID_COMUNICACION\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 65,
+                "codigo": "C27",
+                "nombre": "DOMICILIO_PREFERENTE\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 66,
+                "codigo": "C28",
+                "nombre": "EMPRESA\t\t\t ",
+                "esRequerido": false
+            },
+            {
+                "id": 67,
+                "codigo": "C29",
+                "nombre": "SEGMENTO_PROY\t\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 68,
+                "codigo": "C30",
+                "nombre": "IDPERSONA\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 69,
+                "codigo": "C31",
+                "nombre": "PATERNO\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 70,
+                "codigo": "C32",
+                "nombre": "LIGA_TITULAR\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 71,
+                "codigo": "C33",
+                "nombre": "INSTITUTO\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 72,
+                "codigo": "C34",
+                "nombre": "TRABAJADOR\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 73,
+                "codigo": "C35",
+                "nombre": "ENTIDAD\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 74,
+                "codigo": "C36",
+                "nombre": "MEDIOS_DIGITALES\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 75,
+                "codigo": "C37",
+                "nombre": "APERTURA\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 76,
+                "codigo": "C38",
+                "nombre": "NUMERO_HIJOS\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 77,
+                "codigo": "C39",
+                "nombre": "MASY65\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 78,
+                "codigo": "C40",
+                "nombre": "MENORES\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 79,
+                "codigo": "C41",
+                "nombre": "CUENTA_MENOR_1\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 80,
+                "codigo": "C42",
+                "nombre": "NOMBRE_HIJO_1\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 81,
+                "codigo": "C43",
+                "nombre": "LIGA_HIJO_1\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 82,
+                "codigo": "C44",
+                "nombre": "CUENTA_MENOR_2\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 83,
+                "codigo": "C45",
+                "nombre": "NOMBRE_HIJO_2\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 84,
+                "codigo": "C46",
+                "nombre": "LIGA_HIJO_2\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 85,
+                "codigo": "C47",
+                "nombre": "CUENTA_MENOR_3\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 86,
+                "codigo": "C48",
+                "nombre": "NOMBRE_HIJO_3\t\t\t ",
+                "esRequerido": false
+            },
+            {
+                "id": 87,
+                "codigo": "C49",
+                "nombre": "LIGA_HIJO_3\t\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 88,
+                "codigo": "C50",
+                "nombre": "CUENTA_MENOR_4\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 89,
+                "codigo": "C51",
+                "nombre": "NOMBRE_HIJO_4\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 90,
+                "codigo": "C52",
+                "nombre": "LIGA_HIJO_4\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 91,
+                "codigo": "C53",
+                "nombre": "CUENTA_MENOR_5\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 92,
+                "codigo": "C54",
+                "nombre": "NOMBRE_HIJO_5\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 93,
+                "codigo": "C55",
+                "nombre": "LIGA_HIJO_5\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 94,
+                "codigo": "C56",
+                "nombre": "CUENTA_MENOR_6\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 95,
+                "codigo": "C57",
+                "nombre": "NOMBRE_HIJO_6\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 96,
+                "codigo": "C58",
+                "nombre": "LIGA_HIJO_6\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 97,
+                "codigo": "C59",
+                "nombre": "PERFIL\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 98,
+                "codigo": "C60",
+                "nombre": "HIJOS\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 99,
+                "codigo": "C61",
+                "nombre": "ESTATUS_EXP\t\t\t ",
+                "esRequerido": false
+            },
+            {
+                "id": 100,
+                "codigo": "C62",
+                "nombre": "SUCURSAL\t\t\t\t",
+                "esRequerido": false
+            },
+            {
+                "id": 101,
+                "codigo": "C63",
+                "nombre": "DOM_SUCURSAL\t\t\t",
+                "esRequerido": false
             }
         ]
     },
@@ -279,6 +820,31 @@
                 "id": 1,
                 "codigo": "FH1",
                 "nombre": "AAAA-MM-DD "
+            },
+            {
+                "id": 2,
+                "codigo": "FH2",
+                "nombre": "DD/MM/AAAA "
+            },
+            {
+                "id": 3,
+                "codigo": "FH3",
+                "nombre": "DD-MM-AAAA "
+            },
+            {
+                "id": 4,
+                "codigo": "FH4",
+                "nombre": "MM/DD/AAAA "
+            },
+            {
+                "id": 5,
+                "codigo": "FH5",
+                "nombre": "MM-DD-AAAA "
+            },
+            {
+                "id": 6,
+                "codigo": "FH6",
+                "nombre": "Día de Mes de Año "
             }
         ]
     },
@@ -320,7 +886,7 @@
             {
                 "id": 2,
                 "codigo": "DEC",
-                "nombre": "DECIMALES"
+                "nombre": "PUNTO FLOTANTE"
             }
         ]
     },
@@ -394,42 +960,6 @@
                 "id": 3,
                 "codigo": "HBD",
                 "nombre": "Hibrido"
-            }
-        ]
-    },
-    {
-        "codigo": "STS",
-        "nombre": "STATUS",
-        "registros": [
-            {
-                "id": 1,
-                "codigo": "PLN",
-                "nombre": "Planificada"
-            },
-            {
-                "id": 2,
-                "codigo": "EJC",
-                "nombre": "En ejecución"
-            },
-            {
-                "id": 3,
-                "codigo": "BLQ",
-                "nombre": "Bloqueada"
-            },
-            {
-                "id": 4,
-                "codigo": "CMP",
-                "nombre": "Completada"
-            },
-            {
-                "id": 5,
-                "codigo": "ERR",
-                "nombre": "Error"
-            },
-            {
-                "id": 6,
-                "codigo": "CNC",
-                "nombre": "Cancelada"
             }
         ]
     }

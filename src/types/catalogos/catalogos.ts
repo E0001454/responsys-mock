@@ -1,4 +1,4 @@
-export type CatalogoCodigo = 'ROL' | 'LNN' | 'CMP' | 'CLM' | 'CLI' | 'CCM' | 'VAL' | 'CDN' | 'NMR' | 'FCH' | 'DIA' | 'HRS' | 'EJE' | 'ACT' | 'STS'
+export type CatalogoCodigo = 'ROL' | 'LNN' | 'CMP' | 'CLM' | 'CLI' | 'CCM' | 'VAL' | 'CDN' | 'NMR' | 'FCH' | 'DIA' | 'HRS' | 'EJE' | 'ACT' | 'EST' | 'STS'
 
 export interface CatalogoItem {
   id: number

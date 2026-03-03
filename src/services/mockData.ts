@@ -143,7 +143,7 @@ export const mockCatalogosApi = {
 			{ codigo: 'HRS', nombre: 'HORA', registros: horas },
 			{ codigo: 'EJE', nombre: 'EJECUCION', registros: ejecuciones },
 			{ codigo: 'ACT', nombre: 'ACTIVIDAD', registros: actividades },
-			{ codigo: 'STS', nombre: 'STATUS', registros: estatus }
+			{ codigo: 'EST', nombre: 'ESTATUS_TAREA', registros: estatus }
 		]
 
 		if (!codigo) return grouped
