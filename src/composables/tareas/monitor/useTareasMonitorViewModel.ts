@@ -41,6 +41,7 @@ export function useTareasMonitorViewModel() {
   const currentPage = ref(1)
   const showDetailsModal = ref(false)
   const detailsItem = ref<TareaMonitorData | null>(null)
+  const detailsStages = ref<TareaMonitorData[]>([])
   const detailsActionLoading = ref(false)
 
   const tareasMonitorLinea = ref<TareaMonitorLineaData[]>([])
@@ -281,6 +282,49 @@ export function useTareasMonitorViewModel() {
     return item.actividad.codigo === 'VALIDACION' && item.dictaminacionRequerida
   })
 
+  function canApproveFor(item: TareaMonitorData) {
+    const mode = item.ejecucion.modo
+    const isPlanned = item.estatus.codigo === 'PLN'
+    const scheduleTs = Date.parse(item.horarioProgramado)
+    const reachedSchedule = Number.isFinite(scheduleTs) ? Date.now() >= scheduleTs : false
+
+    if (mode === 'AUTOMATICA') return false
+    if (mode === 'MANUAL') return isPlanned && reachedSchedule
+    if (mode === 'HIBRIDA') return isPlanned && !reachedSchedule
+    return false
+  }
+
+  function showApproveFor(item: TareaMonitorData) {
+    return item.ejecucion.modo !== 'AUTOMATICA'
+  }
+
+  function canDictaminarFor(item: TareaMonitorData) {
+    return item.actividad.codigo === 'VALIDACION'
+      && item.dictaminacionRequerida
+      && item.estatus.codigo === 'CMP'
+      && !item.dictaminado
+  }
+
+  function showDictaminarFor(item: TareaMonitorData) {
+    return item.actividad.codigo === 'VALIDACION' && item.dictaminacionRequerida
+  }
+
+  async function refreshDetailsStages(reference?: TareaMonitorData | null) {
+    const target = reference ?? detailsItem.value
+    if (!target) {
+      detailsStages.value = []
+      return
+    }
+
+    const stages = await tareaMonitorService.getPipelineDetalle(target.scope, target.pipelineId)
+    detailsStages.value = stages
+
+    const sameStage = stages.find(stage =>
+      stage.pipelineId === target.pipelineId && stage.etapaIndex === target.etapaIndex
+    )
+    detailsItem.value = sameStage ?? stages[0] ?? target
+  }
+
   async function fetchCatalogos() {
     const catalogos = await catalogosService.getCatalogosAgrupados()
     lineaLabelById.value = mapCatalogIdToLabel(catalogos, 'LNN')
@@ -296,11 +340,7 @@ export function useTareasMonitorViewModel() {
     tareasMonitorCampana.value = campana
 
     if (detailsItem.value) {
-      const source = detailsItem.value.scope === 'linea' ? linea : campana
-      const refreshed = source.find(item =>
-        item.pipelineId === detailsItem.value?.pipelineId && item.etapaIndex === detailsItem.value?.etapaIndex
-      )
-      if (refreshed) detailsItem.value = refreshed
+      await refreshDetailsStages(detailsItem.value)
     }
 
     initializeFilters()
@@ -366,6 +406,9 @@ export function useTareasMonitorViewModel() {
 
   function openDetails(row: TareaMonitorData) {
     detailsItem.value = row
+    refreshDetailsStages(row).catch(() => {
+      detailsStages.value = [row]
+    })
     showDetailsModal.value = true
   }
 
@@ -373,6 +416,7 @@ export function useTareasMonitorViewModel() {
     if (detailsActionLoading.value) return
     showDetailsModal.value = false
     detailsItem.value = null
+    detailsStages.value = []
   }
 
   async function approveCurrentEjecucion() {
@@ -399,6 +443,28 @@ export function useTareasMonitorViewModel() {
         detailsItem.value.pipelineId,
         detailsItem.value.etapaIndex
       )
+      await fetchMonitorData()
+    } finally {
+      detailsActionLoading.value = false
+    }
+  }
+
+  async function approveStage(item: TareaMonitorData) {
+    if (!canApproveFor(item)) return
+    detailsActionLoading.value = true
+    try {
+      await tareaMonitorService.approveEjecucion(item.scope, item.pipelineId, item.etapaIndex)
+      await fetchMonitorData()
+    } finally {
+      detailsActionLoading.value = false
+    }
+  }
+
+  async function dictaminarStage(item: TareaMonitorData) {
+    if (!canDictaminarFor(item)) return
+    detailsActionLoading.value = true
+    try {
+      await tareaMonitorService.dictaminar(item.scope, item.pipelineId, item.etapaIndex)
       await fetchMonitorData()
     } finally {
       detailsActionLoading.value = false
@@ -473,6 +539,7 @@ export function useTareasMonitorViewModel() {
     detailsCanApprove,
     detailsCanDictaminar,
     detailsItem,
+    detailsStages,
     detailsShowApprove,
     detailsShowDictaminar,
     dictaminarOptions,
@@ -485,6 +552,10 @@ export function useTareasMonitorViewModel() {
     getScopeFromTab,
     getStatusClass,
     getStatusLabel,
+    showApproveFor,
+    canApproveFor,
+    showDictaminarFor,
+    canDictaminarFor,
     handleSearch,
     handleTabChange,
     isLoading,
@@ -504,6 +575,8 @@ export function useTareasMonitorViewModel() {
     closeDetails,
     approveCurrentEjecucion,
     dictaminarCurrent,
+    approveStage,
+    dictaminarStage,
     tabs,
     toggleFilter,
     totalPages,

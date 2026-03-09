@@ -14,11 +14,8 @@ const {
   campanasOptions,
   currentPage,
   detailsActionLoading,
-  detailsCanApprove,
-  detailsCanDictaminar,
   detailsItem,
-  detailsShowApprove,
-  detailsShowDictaminar,
+  detailsStages,
   dictaminarOptions,
   error,
   estatusOptions,
@@ -28,6 +25,10 @@ const {
   getLineaLabel,
   getStatusClass,
   getStatusLabel,
+  canApproveFor,
+  canDictaminarFor,
+  showApproveFor,
+  showDictaminarFor,
   handleSearch,
   handleTabChange,
   isLoading,
@@ -46,8 +47,8 @@ const {
   showDetailsModal,
   toggleFilter,
   closeDetails,
-  approveCurrentEjecucion,
-  dictaminarCurrent,
+  approveStage,
+  dictaminarStage,
   tabs,
   totalPages,
   totals
@@ -137,11 +138,12 @@ function updateSelectedDictaminar(value: boolean[]) {
       <TareaMonitorDetailsModal
         :show="showDetailsModal"
         :item="detailsItem"
+        :stages="detailsStages"
         :loading="detailsActionLoading"
-        :can-approve="detailsCanApprove"
-        :can-dictaminar="detailsCanDictaminar"
-        :show-approve="detailsShowApprove"
-        :show-dictaminar="detailsShowDictaminar"
+        :can-approve-for="canApproveFor"
+        :can-dictaminar-for="canDictaminarFor"
+        :show-approve-for="showApproveFor"
+        :show-dictaminar-for="showDictaminarFor"
         :get-linea-label="getLineaLabel"
         :get-campana-label="getCampanaLabel"
         :get-status-class="getStatusClass"
@@ -149,8 +151,8 @@ function updateSelectedDictaminar(value: boolean[]) {
         :format-time-label="formatTimeLabel"
         :format-number="formatNumber"
         @close="closeDetails"
-        @approve="approveCurrentEjecucion"
-        @dictaminar="dictaminarCurrent"
+        @approve="approveStage"
+        @dictaminar="dictaminarStage"
       />
     </div>
   </div>
