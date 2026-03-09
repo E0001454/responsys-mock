@@ -37,8 +37,8 @@ const emit = defineEmits<{
       :overlay-class="variant === 'overlay' ? 'bg-black/50 backdrop-blur-sm' : 'bg-transparent p-0'"
       :max-width-class="variant === 'overlay' ? 'max-w-md' : 'max-w-lg'"
       :panel-class="variant === 'overlay' ? 'rounded-xl shadow-2xl border border-gray-100' : 'rounded-xl shadow-sm border border-gray-100'"
-      body-class="px-5 py-4"
-      footer-class="px-5 py-4 border-t border-gray-100 bg-white"
+      body-class="px-3 py-3 sm:px-5 sm:py-4"
+      footer-class="px-3 py-3 sm:px-5 sm:py-4 border-t border-gray-100 bg-white"
       :show-close-button="false"
       :close-on-backdrop="false"
     >

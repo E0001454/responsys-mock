@@ -9,11 +9,23 @@ import type {
 import type { BitacoraPayload } from '../types/bitacora'
 import { addToast } from '@/stores/toastStore'
 
-type ApiDomain = 'catalogos' | 'mapeos' | 'tareas' | 'monitor' | 'horarios' | 'columnas' | 'default'
+type ApiService =
+  | 'catalogos'
+  | 'mapeos_linea'
+  | 'mapeos_campana'
+  | 'tareas_linea'
+  | 'tareas_campana'
+  | 'columnas_linea'
+  | 'columnas_campana'
+  | 'bitacora'
+  | 'horarios_linea'
+  | 'horarios_campana'
+  | 'monitor_linea'
+  | 'monitor_campana'
+  | 'default'
 
 const GLOBAL_USE_MOCK = String(import.meta.env.VITE_USE_MOCK ?? 'false').toLowerCase() === 'true'
 const API_BASE_URL_REAL = import.meta.env.VITE_API_URL_REAL
-  || import.meta.env.VITE_API_URL
   || 'http://localhost:3000/api'
 const API_BASE_URL_MOCK = import.meta.env.VITE_API_URL_MOCK
   || 'http://localhost:3100/api'
@@ -26,36 +38,77 @@ function parseEnvBoolean(value: unknown): boolean | undefined {
   return undefined
 }
 
-function getEndpointDomain(endpoint: string): ApiDomain {
+function getEndpointService(endpoint: string): ApiService {
   const path = String(endpoint || '').toLowerCase()
-  if (path.includes('/monitor/tareas') || path.includes('/monitor/actividades')) return 'monitor'
-  if (path.includes('/horarios')) return 'horarios'
+
+  const isLineasCampanasMapeos = /^\/lineas\/[^/]+\/campanas\/[^/]+\/mapeos(?:\/|$)/.test(path)
+  const isLineasCampanasActividades = /^\/lineas\/[^/]+\/campanas\/[^/]+\/(actividades|tareas)(?:\/|$)/.test(path)
+
+  if (path.includes('/bitacoras')) return 'bitacora'
   if (path.includes('/catalogos')) return 'catalogos'
-  if (path.includes('/columnas')) return 'columnas'
-  if (path.includes('/tareas') || path.includes('/actividades')) return 'tareas'
-  if (path.includes('/mapeos')) return 'mapeos'
+
+  if (path.includes('/monitor/tareas/linea') || path.includes('/monitor/actividades/linea')) return 'monitor_linea'
+  if (path.includes('/monitor/tareas/campana') || path.includes('/monitor/actividades/campana')) return 'monitor_campana'
+
+  if (path.includes('/lineas/tareas/') && path.includes('/horarios')) return 'horarios_linea'
+  if (path.includes('/lineas/actividades/') && path.includes('/horarios')) return 'horarios_linea'
+  if (path.includes('/campanas/tareas/') && path.includes('/horarios')) return 'horarios_campana'
+  if (path.includes('/campanas/actividades/') && path.includes('/horarios')) return 'horarios_campana'
+
+  if (path.includes('/lineas/campanas/mapeos') || isLineasCampanasMapeos) return 'mapeos_campana'
+  if (path.includes('/lineas/mapeos')) return 'mapeos_linea'
+
+  if (path.includes('/campanas/mapeos') && path.includes('/columnas')) return 'columnas_campana'
+  if (path.includes('/lineas/mapeos') && path.includes('/columnas')) return 'columnas_linea'
+
+  if (path.includes('/lineas/campanas/tareas') || path.includes('/lineas/campanas/actividades') || isLineasCampanasActividades) return 'tareas_campana'
+  if (path.includes('/lineas/tareas') || path.includes('/lineas/actividades')) return 'tareas_linea'
+
   return 'default'
 }
 
-function shouldUseMockByDomain(domain: ApiDomain): boolean {
-  const domainEnvKey = {
-    catalogos: 'VITE_MOCK_CATALOGOS',
-    mapeos: 'VITE_MOCK_MAPEOS',
-    tareas: 'VITE_MOCK_TAREAS',
-    monitor: 'VITE_MOCK_TAREAS_MONITOR',
-    horarios: 'VITE_MOCK_HORARIOS',
-    columnas: 'VITE_MOCK_COLUMNAS',
-    default: 'VITE_MOCK_DEFAULT'
-  }[domain]
+const SERVICE_SUFFIX: Record<ApiService, string> = {
+  catalogos: 'CATALOGOS',
+  mapeos_linea: 'MAPEOS_LINEA',
+  mapeos_campana: 'MAPEOS_CAMPANA',
+  tareas_linea: 'TAREAS_LINEA',
+  tareas_campana: 'TAREAS_CAMPANA',
+  columnas_linea: 'COLUMNAS_LINEA',
+  columnas_campana: 'COLUMNAS_CAMPANA',
+  bitacora: 'BITACORA',
+  horarios_linea: 'HORARIOS_LINEA',
+  horarios_campana: 'HORARIOS_CAMPANA',
+  monitor_linea: 'MONITOR_LINEA',
+  monitor_campana: 'MONITOR_CAMPANA',
+  default: 'DEFAULT'
+}
 
-  const rawValue = (import.meta.env as Record<string, unknown>)[domainEnvKey]
-  const parsed = parseEnvBoolean(rawValue)
-  return parsed ?? GLOBAL_USE_MOCK
+function shouldUseMockByService(service: ApiService): boolean {
+  const envObj = import.meta.env as Record<string, unknown>
+  const suffix = SERVICE_SUFFIX[service]
+
+  const specific = parseEnvBoolean(envObj[`VITE_MS_${suffix}_USE_MOCK`])
+  if (specific !== undefined) return specific
+
+  return GLOBAL_USE_MOCK
+}
+
+function resolveBaseByService(service: ApiService, useMock: boolean): string {
+  const envObj = import.meta.env as Record<string, unknown>
+  const suffix = SERVICE_SUFFIX[service]
+
+  const specific = String(
+    envObj[useMock ? `VITE_MS_${suffix}_MOCK` : `VITE_MS_${suffix}_REAL`] ?? ''
+  ).trim()
+
+  if (specific) return specific
+  return useMock ? API_BASE_URL_MOCK : API_BASE_URL_REAL
 }
 
 function resolveBaseUrl(endpoint: string): string {
-  const domain = getEndpointDomain(endpoint)
-  return shouldUseMockByDomain(domain) ? API_BASE_URL_MOCK : API_BASE_URL_REAL
+  const service = getEndpointService(endpoint)
+  const useMock = shouldUseMockByService(service)
+  return resolveBaseByService(service, useMock)
 }
 const _shownLoadedToasts = new Set<string>()
 

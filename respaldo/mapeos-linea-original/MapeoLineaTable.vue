@@ -106,8 +106,31 @@ function formatPorcentajeError(value?: number | null) {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[72dvh] h-[calc(100dvh-11rem)] max-h-[calc(100dvh-8rem)] max-[650px]:h-[78dvh] max-[650px]:min-h-[68dvh] max-[650px]:max-h-none">
-    <div class="overflow-y-auto overflow-x-auto flex-1 min-h-0">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[320px] h-[70dvh] md:min-h-[400px] md:h-[87vh] max-h-[calc(100dvh-8rem)] md:max-h-[calc(100vh-2rem)] max-[650px]:h-auto max-[650px]:max-h-none">
+    <div v-if="props.totalPages > 1" class="hidden max-[650px]:flex px-4 py-3 border-b border-slate-200 bg-slate-50 text-xs text-slate-500 flex-col items-center gap-2 rounded-t-xl">
+      <span class="text-center">Mostrando {{ props.filteredMapeos.length }} de {{ props.totalMapeos }} registros</span>
+      <div class="flex gap-2 items-center justify-center">
+        <button
+          class="h-[42px] px-4 inline-flex items-center gap-1.5 rounded-lg text-slate-600 bg-white border border-slate-200 hover:text-[#00357F] hover:border-[#00357F]/30 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          :disabled="!props.canPrevPage"
+          @click="emit('prevPage')"
+        >
+          <ChevronLeft class="w-4 h-4" />
+          Anterior
+        </button>
+        <span class="h-[42px] min-w-[74px] inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600">{{ props.currentPage }} / {{ props.totalPages }}</span>
+        <button
+          class="h-[42px] px-4 inline-flex items-center gap-1.5 rounded-lg text-slate-600 bg-white border border-slate-200 hover:text-[#00357F] hover:border-[#00357F]/30 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          :disabled="!props.canNextPage"
+          @click="emit('nextPage')"
+        >
+          Siguiente
+          <ChevronRight class="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+
+    <div class="max-[650px]:hidden overflow-x-auto flex-1 min-h-0">
       <table class="w-full min-w-[1120px] text-left border-collapse table-fixed">
         <colgroup>
           <col class="w-[14%]" />
@@ -141,12 +164,12 @@ function formatPorcentajeError(value?: number | null) {
                 <button
                   @click.stop="emit('toggleFilter', 'search')"
                   :class="props.openFilter === 'search'
-                    ? 'p-2 bg-[#00357F] text-white rounded-md shadow-sm transition-colors border border-[#00357F]'
-                    : 'p-2 bg-white text-slate-400 border border-slate-200 rounded-md hover:bg-slate-50 hover:text-[#00357F] transition-colors'"
+                    ? 'p-1.5 text-[#00357F] bg-blue-50 rounded-md transition-colors'
+                    : 'p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors'"
                   aria-label="Buscar en tabla"
                   title="Buscar"
                 >
-                  <Search class="w-4 h-4" :class="props.openFilter === 'search' ? 'text-white' : 'text-[#00357F]'" />
+                  <Search class="w-4 h-4" />
                 </button>
               </div>
 
@@ -192,7 +215,7 @@ function formatPorcentajeError(value?: number | null) {
 
           <tr v-else-if="props.filteredMapeos.length === 0">
             <td colspan="100%" class="px-4 py-12">
-              <div class="sticky left-0 mx-auto flex w-fit flex-col items-center justify-center text-slate-400">
+              <div class="flex flex-col items-center justify-center text-slate-400">
                 <Search class="w-8 h-8 mb-2 opacity-50" />
                 <span class="text-sm">No hay registros.</span>
               </div>
@@ -200,7 +223,7 @@ function formatPorcentajeError(value?: number | null) {
           </tr>
 
           <template v-else v-for="(m, index) in props.filteredMapeos" :key="m.idABCConfigMapeoLinea">
-            <tr :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40', 'hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(m, index) }]">
+            <tr :class="['hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(m, index) }]">
               <td class="px-4 py-2.5" @dblclick="emit('viewDetails', m)">
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
                   {{ props.getLineaLabel(m.linea?.id) }}
@@ -327,7 +350,163 @@ function formatPorcentajeError(value?: number | null) {
       </table>
     </div>
 
-    <div class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex flex-col items-center gap-2 rounded-b-xl min-[651px]:flex-row min-[651px]:justify-between min-[651px]:items-center shrink-0">
+   <div class="hidden max-[650px]:block p-3 space-y-3 bg-slate-50/30">
+      <div class="relative z-0 flex flex-wrap items-center gap-2 bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+        <div class="relative shrink-0">
+          <FilterDropdown
+            label="Línea"
+            header-label="Filtrar por línea"
+            :options="props.lineasDisponibles"
+            v-model="selectedLineas"
+            :open="props.openFilter === 'linea'"
+            :is-filtered="selectedLineas.length < props.lineasDisponibles.length"
+            @toggle="emit('toggleFilter', 'linea')"
+            @select-all="emit('selectAllLineas')"
+          />
+        </div>
+        <div class="relative shrink-0">
+          <FilterDropdown
+            label="Estado"
+            header-label="Estado"
+            :options="statusOptions"
+            v-model="selectedStatus"
+            :open="props.openFilter === 'status'"
+            :is-filtered="selectedStatus.length < 2"
+            :show-select-all="false"
+            menu-width="w-48"
+            align="right"
+            @toggle="emit('toggleFilter', 'status')"
+          />
+        </div>
+        <button
+          @click.stop="emit('toggleFilter', 'search')"
+          :class="props.openFilter === 'search'
+            ? 'p-2 text-[#00357F] bg-blue-50 rounded-lg transition-colors border border-blue-100'
+            : 'p-2 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-lg transition-colors border border-transparent'"
+          aria-label="Buscar en tabla"
+        >
+          <Search class="w-4 h-4" />
+        </button>
+
+        <div class="w-full mt-1" v-if="props.openFilter === 'search'">
+          <TableSearch
+            :open="props.openFilter === 'search'"
+            @search="query => emit('search', query)"
+            @toggle="emit('toggleFilter', 'search')"
+          />
+        </div>
+      </div>
+
+      <div v-if="props.isLoading" class="py-12 flex flex-col items-center justify-center text-slate-500 bg-white rounded-xl border border-slate-200">
+        <div class="w-6 h-6 border-2 border-[#00357F] border-t-transparent rounded-full animate-spin mb-2"></div>
+        <span class="text-sm font-medium">Cargando datos...</span>
+      </div>
+
+      <div v-else-if="props.filteredMapeos.length === 0" class="py-12 flex flex-col items-center justify-center text-slate-400 bg-white rounded-xl border border-slate-200">
+        <Search class="w-8 h-8 mb-2 opacity-50" />
+        <span class="text-sm">No hay registros.</span>
+      </div>
+
+      <template v-else>
+        <div class="space-y-3">
+          <article
+            v-for="(m, index) in props.filteredMapeos"
+            :key="m.idABCConfigMapeoLinea"
+            :class="[
+              'rounded-xl border border-slate-200 bg-white shadow-sm flex flex-col transition-all overflow-hidden',
+              { 'row-new-record-glow': isRowGlowing(m, index) }
+            ]"
+          >
+            <div class="px-3 pt-3 pb-2 flex items-start justify-between gap-2">
+              <h3 class="text-[13px] font-semibold text-slate-800 leading-tight line-clamp-2 min-w-0 flex-1">{{ m.nombre }}</h3>
+              <div class="shrink-0 inline-flex items-center gap-2">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                  {{ props.getLineaLabel(m.linea?.id) }}
+                </span>
+                <button 
+                  @click.stop="emit('toggleStatus', m)"
+                  class="inline-flex items-center gap-1 text-[10px] font-semibold transition-colors px-1.5 py-0.5 rounded-full border"
+                  :class="m.bolActivo 
+                    ? 'bg-blue-50/50 border-blue-100 text-[#00357F]' 
+                    : 'bg-slate-50 border-slate-100 text-slate-500'"
+                >
+                  <span class="h-1.5 w-1.5 rounded-full" :class="m.bolActivo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"></span>
+                  {{ m.bolActivo ? 'Activo' : 'Inactivo' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="mx-3 mb-3 bg-slate-50/80 rounded-lg border border-slate-100 p-2 grid grid-cols-4 divide-x divide-slate-200/60">
+              
+              <div class="flex flex-col items-center justify-center gap-1 px-1">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Validación</span>
+                <template v-for="stage in [getMapeoStageVisual(Boolean((m as any).validar ?? false))]" :key="`val-${m.idABCConfigMapeoLinea}`">
+                  <span class="h-4 w-4 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
+                    <svg v-if="stage.configured" class="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                    <svg v-else class="w-2.5 h-2.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="6.5"></circle><path d="M10 6.7V10.3"></path><circle cx="10" cy="13.3" r="1" fill="currentColor" stroke="none"></circle></svg>
+                  </span>
+                </template>
+              </div>
+
+              <div class="flex flex-col items-center justify-center gap-1 px-1">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Envío</span>
+                <template v-for="stage in [getMapeoStageVisual(Boolean((m as any).enviar ?? (m as any).envio ?? false))]" :key="`env-${m.idABCConfigMapeoLinea}`">
+                  <span class="h-4 w-4 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
+                    <svg v-if="stage.configured" class="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                    <svg v-else class="w-2.5 h-2.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="6.5"></circle><path d="M10 6.7V10.3"></path><circle cx="10" cy="13.3" r="1" fill="currentColor" stroke="none"></circle></svg>
+                  </span>
+                </template>
+              </div>
+
+              <div class="flex flex-col items-center justify-center gap-1 px-1">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Dictaminar</span>
+                <template v-for="stage in [getDictaminarVisual(Boolean(m.dictaminar ?? m.bolDictaminacion ?? false))]" :key="`dic-${m.idABCConfigMapeoLinea}`">
+                  <span class="h-4 w-4 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
+                    <svg v-if="stage.configured" class="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                    <svg v-else class="w-2.5 h-2.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="6.5"></circle><path d="M10 6.7V10.3"></path><circle cx="10" cy="13.3" r="1" fill="currentColor" stroke="none"></circle></svg>
+                  </span>
+                </template>
+              </div>
+
+              <div class="flex flex-col items-center justify-center gap-0.5 px-1">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">% Error</span>
+                <span class="text-[11px] font-bold text-slate-700">{{ formatPorcentajeError(m.porcentajeError) }}</span>
+              </div>
+            </div>
+
+            <div class="px-3 py-2 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between mt-auto">
+              <button
+                @click.stop.prevent="emit('viewColumnas', m)"
+                class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-white text-slate-600 text-[11px] font-medium border border-slate-200 shadow-sm hover:text-[#00357F] hover:border-blue-200 transition-colors"
+              >
+                <Columns class="w-3 h-3 text-slate-400" />
+                <span>Columnas: <strong class="text-slate-700">{{ typeof (m as any).columnas === 'number' ? (m as any).columnas : (Array.isArray((m as any).columnas) ? (m as any).columnas.length : 0) }}</strong></span>
+              </button>
+
+              <div class="flex items-center gap-1">
+                <button
+                  @click.stop="emit('viewDetails', m)"
+                  class="p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors"
+                  aria-label="Ver detalles"
+                >
+                  <Eye class="w-4 h-4" />
+                </button>
+                <div class="w-px h-4 bg-slate-200 mx-1"></div>
+                <button
+                  @click.stop="emit('edit', m)"
+                  class="p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors"
+                  aria-label="Editar registro"
+                >
+                  <Edit3 class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </template>
+    </div>
+
+    <div class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex flex-col items-center gap-2 rounded-b-xl min-[651px]:flex-row min-[651px]:justify-between min-[651px]:items-center">
       <span class="text-center min-[651px]:text-left">Mostrando {{ props.filteredMapeos.length }} de {{ props.totalMapeos }} registros</span>
       <div class="flex gap-2 items-center justify-center">
         <button

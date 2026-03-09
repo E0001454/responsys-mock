@@ -1,0 +1,64 @@
+[
+  {
+    "id": 1,
+    "idUsuario": 1,
+    "bitacora": {
+      "evento": { "id": 3 },
+      "objeto": { "id": 2 },
+      "detalle": "Creacion de mapeo de linea",
+      "ip": "10.20.1.45",
+      "navegador": "Google Chrome",
+      "fechaCreacion": "2026-03-04T10:13:00.000Z"
+    }
+  },
+  {
+    "id": 2,
+    "idUsuario": 1,
+    "bitacora": {
+      "evento": { "id": 4 },
+      "objeto": { "id": 2 },
+      "detalle": "Actualizacion de tarea de campana",
+      "ip": "10.20.1.45",
+      "navegador": "Google Chrome",
+      "fechaCreacion": "2026-03-04T11:45:00.000Z"
+    }
+  },
+  {
+    "id": 3,
+    "idUsuario": 2,
+    "bitacora": {
+      "evento": { "id": 1 },
+      "objeto": { "id": 1 },
+      "columnaLinea": { "id": 68 },
+      "detalle": "Cambio de estatus en columna de linea",
+      "ip": "10.20.3.10",
+      "navegador": "Edge",
+      "fechaCreacion": "2026-03-05T09:10:00.000Z"
+    }
+  },
+  {
+    "id": 4,
+    "idUsuario": 3,
+    "bitacora": {
+      "evento": { "id": 1 },
+      "objeto": { "id": 1 },
+      "columnaCampana": { "id": 39 },
+      "detalle": "Alta de columna de campana",
+      "ip": "10.20.4.8",
+      "navegador": "Firefox",
+      "fechaCreacion": "2026-03-05T14:22:00.000Z"
+    }
+  },
+  {
+    "id": 5,
+    "idUsuario": 2,
+    "bitacora": {
+      "evento": { "id": 4 },
+      "objeto": { "id": 2 },
+      "detalle": "Reconfiguracion de horarios de linea",
+      "ip": "10.20.3.10",
+      "navegador": "Safari",
+      "fechaCreacion": "2026-03-05T18:03:00.000Z"
+    }
+  }
+]

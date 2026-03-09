@@ -6,6 +6,7 @@ interface Props {
   zIndexClass?: string
   panelClass?: string
   overlayClass?: string
+  mobileBottomSheet?: boolean
   closeOnBackdrop?: boolean
   showCloseButton?: boolean
   bodyClass?: string
@@ -16,9 +17,10 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   title: '',
   maxWidthClass: 'max-w-2xl',
-  zIndexClass: 'z-50',
+  zIndexClass: 'z-[60]',
   panelClass: 'rounded-2xl shadow-2xl',
   overlayClass: 'bg-black/60 backdrop-blur-sm',
+  mobileBottomSheet: false,
   closeOnBackdrop: true,
   showCloseButton: true,
   bodyClass: 'p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0',
@@ -39,16 +41,24 @@ const onClose = () => emit('close')
 </script>
 
 <template>
-  <div
-    v-if="show"
-    class="fixed inset-0 flex items-center justify-center p-4 transition-opacity"
-    :class="[zIndexClass, overlayClass]"
-    @click.self="onBackdropClick"
-  >
+  <Transition name="modal-overlay">
     <div
-      class="relative bg-white w-full overflow-hidden flex flex-col max-h-[90vh]"
-      :class="[maxWidthClass, panelClass]"
+      v-if="show"
+      data-app-modal="true"
+      class="fixed inset-0 flex transition-opacity"
+      :class="[
+        zIndexClass,
+        overlayClass,
+        mobileBottomSheet ? 'items-end justify-center p-0 pb-2 sm:items-center sm:p-4' : 'items-center justify-center p-4'
+      ]"
+      @click.self="onBackdropClick"
     >
+      <Transition :name="mobileBottomSheet ? 'modal-sheet' : 'modal-panel'" appear>
+        <div
+          v-if="show"
+          class="relative bg-white w-full overflow-hidden flex flex-col"
+          :class="[maxWidthClass, panelClass, mobileBottomSheet ? 'min-h-[85dvh] max-h-[90dvh] sm:min-h-0 sm:max-h-[90vh]' : 'max-h-[90vh]']"
+        >
       <slot name="header" :close="onClose">
         <div :class="headerClass">
           <h3 class="text-base font-semibold text-white/95 flex items-center gap-2 tracking-wide">
@@ -76,8 +86,44 @@ const onClose = () => emit('close')
       <div v-if="$slots.footer" :class="footerClass">
         <slot name="footer" :close="onClose" />
       </div>
-    </div>
+        </div>
+      </Transition>
 
-    <slot name="overlay" :close="onClose" />
-  </div>
+      <slot name="overlay" :close="onClose" />
+    </div>
+  </Transition>
 </template>
+
+<style scoped>
+.modal-overlay-enter-active,
+.modal-overlay-leave-active {
+  transition: opacity 180ms ease;
+}
+
+.modal-overlay-enter-from,
+.modal-overlay-leave-to {
+  opacity: 0;
+}
+
+.modal-panel-enter-active,
+.modal-panel-leave-active {
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.modal-panel-enter-from,
+.modal-panel-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+.modal-sheet-enter-active,
+.modal-sheet-leave-active {
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 220ms ease;
+}
+
+.modal-sheet-enter-from,
+.modal-sheet-leave-to {
+  opacity: 0.98;
+  transform: translateY(100%);
+}
+</style>

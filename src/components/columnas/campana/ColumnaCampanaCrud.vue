@@ -34,7 +34,7 @@ const columnasCatalogo = ref<Option[]>([])
 const lineasCatalogo = ref<Option[]>([])
 const campanasCatalogo = ref<Option[]>([])
 const { mapeos, rawMapeos, fetchAll: fetchMapeos } = useMapeosCampana()
-const { items, loading, error, fetchAll, toggle } = useColumnasCampana()
+const { items, loading, fetchAll, toggle } = useColumnasCampana()
 
 const openFilter = ref<string | null>(null)
 const selectedFilters = reactive({
@@ -281,12 +281,6 @@ defineExpose({ openAdd })
 					@next="currentPage++"
 				/>
 
-				<p
-					v-if="error"
-					class="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200"
-				>
-					{{ error }}
-				</p>
 			</div>
 		</div>
 

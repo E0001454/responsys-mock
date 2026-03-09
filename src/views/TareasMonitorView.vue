@@ -53,7 +53,7 @@ const {
 </script>
 
 <template>
-  <div class="p-6 bg-slate-50 min-h-screen font-sans text-slate-800" @click.self="closeFilter()">
+  <div class="p-3 sm:p-4 lg:p-6 bg-slate-50 min-h-full font-sans text-slate-800" @click.self="closeFilter()">
     <div class="max-w-7xl mx-auto space-y-4">
       <TareasMonitorHeader
         :tabs="tabs"

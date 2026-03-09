@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { Filter } from 'lucide-vue-next'
 
 interface Option {
@@ -32,13 +32,81 @@ const selection = computed({
 })
 
 const menuWidthClass = computed(() => props.menuWidth ?? 'w-60')
-const alignClass = computed(() => (props.align === 'right' ? 'right-0' : 'left-0'))
 const showSelectAll = computed(() => props.showSelectAll ?? true)
 const selectAllText = computed(() => props.selectAllLabel ?? 'Ver todas')
+
+const rootRef = ref<HTMLElement | null>(null)
+const menuRef = ref<HTMLElement | null>(null)
+const resolvedAlign = ref<'left' | 'right'>(props.align === 'right' ? 'right' : 'left')
+
+const alignClass = computed(() => (resolvedAlign.value === 'right' ? 'right-0' : 'left-0'))
+
+function resolveMenuAlignment() {
+	const root = rootRef.value
+	if (!root) return
+
+	const rect = root.getBoundingClientRect()
+	const preferred = props.align === 'right' ? 'right' : 'left'
+	const menuWidth = menuRef.value?.offsetWidth ?? 240
+	const spaceRight = window.innerWidth - rect.left - 8
+	const spaceLeft = rect.right - 8
+
+	if (preferred === 'left') {
+		if (menuWidth <= spaceRight) {
+			resolvedAlign.value = 'left'
+			return
+		}
+		if (menuWidth <= spaceLeft) {
+			resolvedAlign.value = 'right'
+			return
+		}
+		resolvedAlign.value = spaceRight >= spaceLeft ? 'left' : 'right'
+		return
+	}
+
+	if (menuWidth <= spaceLeft) {
+		resolvedAlign.value = 'right'
+		return
+	}
+	if (menuWidth <= spaceRight) {
+		resolvedAlign.value = 'left'
+		return
+	}
+	resolvedAlign.value = spaceLeft >= spaceRight ? 'right' : 'left'
+}
+
+function onWindowChange() {
+	if (props.open) resolveMenuAlignment()
+}
+
+watch(
+	() => props.open,
+	async (open) => {
+		if (!open) return
+		await nextTick()
+		resolveMenuAlignment()
+	}
+)
+
+watch(
+	() => props.align,
+	() => {
+		resolvedAlign.value = props.align === 'right' ? 'right' : 'left'
+		onWindowChange()
+	}
+)
+
+window.addEventListener('resize', onWindowChange)
+window.addEventListener('scroll', onWindowChange, true)
+
+onBeforeUnmount(() => {
+	window.removeEventListener('resize', onWindowChange)
+	window.removeEventListener('scroll', onWindowChange, true)
+})
 </script>
 
 <template>
-	<div class="relative">
+	<div ref="rootRef" class="relative">
 		<button
 			type="button"
 			@click.stop="emit('toggle')"
@@ -53,8 +121,9 @@ const selectAllText = computed(() => props.selectAllLabel ?? 'Ver todas')
 		</button>
 
 		<div
+			ref="menuRef"
 			v-if="open"
-			class="absolute top-full mt-2 bg-white rounded-xl shadow-xl ring-1 ring-black/5 z-50 overflow-hidden transform origin-top-left transition-all"
+			class="absolute top-full mt-2 bg-white rounded-xl shadow-xl ring-1 ring-black/5 z-[35] overflow-hidden transform origin-top-left transition-all"
 			:class="[menuWidthClass, alignClass]"
 		>
 			<div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">

@@ -184,7 +184,8 @@ export function normalizeTareasLinea(data: any): TareaLineaData[] {
     const mapeoId = resolveMapeoId(tarea, item)
     const lineaId = Number(tarea?.linea?.id ?? tarea?.idABCCatLineaNegocio ?? item?.idABCCatLineaNegocio ?? item?.idLinea ?? 0)
     const taskId = Number(tarea?.idABCConfigTareaLinea ?? tarea?.id ?? item?.idABCConfigTareaLinea ?? item?.id ?? 0)
-    const key = `${lineaId}|${mapeoId || taskId || resolveIngestaName(tarea, item)}`
+    const ingestaName = resolveIngestaName(tarea, item).trim().toLowerCase()
+    const key = `${lineaId}|${mapeoId || ingestaName || taskId}`
 
     const existing = grouped.get(key)
     const base: TareaLineaData = existing ?? {

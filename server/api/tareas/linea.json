@@ -103,5 +103,89 @@
     },
     "fechaCreacion": "2026-02-15T08:40:00.000+00:00",
     "fechaUltimaModificacion": "2026-02-16T12:30:00.000+00:00"
+  },
+  {
+    "bolActivo": true,
+    "id": 12,
+    "linea": {
+      "id": 3
+    },
+    "asignacion": {
+      "mapeo": {
+        "id": 3006,
+        "nombre": "MAPEO_LINEA_3_ALERTAS"
+      }
+    },
+    "tipo": {
+      "id": 1
+    },
+    "ejecucion": {
+      "id": 1
+    },
+    "fechaCreacion": "2026-02-20T07:20:00.000+00:00",
+    "fechaUltimaModificacion": "2026-02-20T07:20:00.000+00:00"
+  },
+  {
+    "bolActivo": true,
+    "id": 13,
+    "linea": {
+      "id": 3
+    },
+    "asignacion": {
+      "mapeo": {
+        "id": 3006,
+        "nombre": "MAPEO_LINEA_3_ALERTAS"
+      }
+    },
+    "tipo": {
+      "id": 2
+    },
+    "ejecucion": {
+      "id": 2
+    },
+    "fechaCreacion": "2026-02-20T07:22:00.000+00:00",
+    "fechaUltimaModificacion": "2026-02-20T08:05:00.000+00:00"
+  },
+  {
+    "bolActivo": true,
+    "id": 14,
+    "linea": {
+      "id": 1
+    },
+    "asignacion": {
+      "mapeo": {
+        "id": 3007,
+        "nombre": "MAPEO_LINEA_1_REPROCESO"
+      }
+    },
+    "tipo": {
+      "id": 3
+    },
+    "ejecucion": {
+      "id": 1
+    },
+    "fechaCreacion": "2026-02-22T12:10:00.000+00:00",
+    "fechaUltimaModificacion": "2026-02-22T12:10:00.000+00:00"
+  },
+  {
+    "bolActivo": false,
+    "id": 15,
+    "linea": {
+      "id": 2
+    },
+    "asignacion": {
+      "mapeo": {
+        "id": 3008,
+        "nombre": "MAPEO_LINEA_2_DEPURACION"
+      }
+    },
+    "tipo": {
+      "id": 2
+    },
+    "ejecucion": {
+      "id": 1
+    },
+    "fechaCreacion": "2026-02-23T18:40:00.000+00:00",
+    "fechaUltimaModificacion": "2026-02-24T09:12:00.000+00:00"
   }
 ]

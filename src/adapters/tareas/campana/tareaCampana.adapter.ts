@@ -196,7 +196,8 @@ export function normalizeTareasCampana(data: any): TareaCampanaData[] {
       ?? 0
     )
     const taskId = Number(tarea?.idABCConfigTareaCampana ?? tarea?.id ?? item?.idABCConfigTareaCampana ?? item?.id ?? 0)
-    const key = `${lineaId}|${campanaId}|${mapeoId || taskId || resolveIngestaName(tarea, item)}`
+    const ingestaName = resolveIngestaName(tarea, item).trim().toLowerCase()
+    const key = `${lineaId}|${campanaId}|${mapeoId || ingestaName || taskId}`
 
     const existing = grouped.get(key)
     const base: TareaCampanaData = existing ?? {

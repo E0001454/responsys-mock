@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Edit3, Search, Eye } from 'lucide-vue-next'
+import { Edit3, Search, Eye, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import TableSearch from '@/components/TableSearch.vue'
 import { useTareaCampanaTable } from '@/composables/tareas/campana/useTareaCampanaTable'
@@ -112,9 +112,9 @@ const {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[400px] h-[87vh] max-h-[calc(100vh-2rem)]">
-    <div class="overflow-y-auto overflow-x-auto flex-1" style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;">
-      <table class="w-full text-left border-collapse table-fixed">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[64dvh] h-[calc(100dvh-14rem)] max-h-[calc(100dvh-10rem)] max-[650px]:h-[72dvh] max-[650px]:min-h-[62dvh] max-[650px]:max-h-none">
+    <div class="overflow-y-auto overflow-x-auto flex-1 min-h-0">
+      <table class="w-full min-w-[1080px] text-left border-collapse table-fixed">
         <colgroup>
           <col class="w-[14%]" />
           <col class="w-[16%]" />
@@ -205,7 +205,7 @@ const {
 
           <tr v-else-if="props.filteredTareas.length === 0">
             <td colspan="100%" class="px-4 py-12">
-              <div class="flex flex-col items-center justify-center text-slate-400">
+              <div class="sticky left-0 mx-auto flex w-fit flex-col items-center justify-center text-slate-400">
                 <Search class="w-8 h-8 mb-2 opacity-50" />
                 <span class="text-sm">No hay registros.</span>
               </div>
@@ -213,7 +213,7 @@ const {
           </tr>
 
           <template v-else v-for="(t, index) in props.filteredTareas" :key="t.idABCConfigTareaCampana">
-            <tr :class="['hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(t, index) }]">
+            <tr :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40', 'hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(t, index) }]">
               <td class="px-4 py-2.5" @dblclick="emit('viewDetails', t)">
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
                   {{ props.getLineaLabel(t.idABCCatLineaNegocio) }}
@@ -318,27 +318,29 @@ const {
           </template>
         </tbody>
       </table>
+    </div>
 
-      <div class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex justify-between items-center rounded-b-xl">
-        <span>Mostrando {{ props.filteredTareas.length }} de {{ props.totalTareas }} registros</span>
-        <div class="flex gap-2 items-center">
-          <button
-            class="hover:text-[#00357F] disabled:opacity-50"
-            :disabled="!props.canPrevPage"
-            @click="emit('prevPage')"
-          >
-            Anterior
-          </button>
-          <span class="text-[11px] text-slate-400">{{ props.currentPage }} / {{ props.totalPages }}</span>
-          <button
-            class="hover:text-[#00357F] disabled:opacity-50"
-            :disabled="!props.canNextPage"
-            @click="emit('nextPage')"
-          >
-            Siguiente
-          </button>
-        </div>
+    <div class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex flex-col items-center gap-2 rounded-b-xl shrink-0">
+      <div class="flex gap-2 items-center justify-center">
+        <button
+          class="h-[42px] px-4 inline-flex items-center gap-1.5 rounded-lg text-slate-600 bg-white border border-slate-200 hover:text-[#00357F] hover:border-[#00357F]/30 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed min-[651px]:h-auto min-[651px]:px-0 min-[651px]:bg-transparent min-[651px]:border-0 min-[651px]:rounded-none min-[651px]:hover:bg-transparent"
+          :disabled="!props.canPrevPage"
+          @click="emit('prevPage')"
+        >
+          <ChevronLeft class="w-4 h-4 min-[651px]:hidden" />
+          Anterior
+        </button>
+        <span class="h-[42px] min-w-[74px] inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 min-[651px]:h-auto min-[651px]:min-w-0 min-[651px]:border-0 min-[651px]:bg-transparent min-[651px]:px-0 min-[651px]:text-[11px] min-[651px]:font-medium min-[651px]:text-slate-400">{{ props.currentPage }} / {{ props.totalPages }}</span>
+        <button
+          class="h-[42px] px-4 inline-flex items-center gap-1.5 rounded-lg text-slate-600 bg-white border border-slate-200 hover:text-[#00357F] hover:border-[#00357F]/30 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed min-[651px]:h-auto min-[651px]:px-0 min-[651px]:bg-transparent min-[651px]:border-0 min-[651px]:rounded-none min-[651px]:hover:bg-transparent"
+          :disabled="!props.canNextPage"
+          @click="emit('nextPage')"
+        >
+          Siguiente
+          <ChevronRight class="w-4 h-4 min-[651px]:hidden" />
+        </button>
       </div>
+      <span class="text-center">Mostrando {{ props.filteredTareas.length }} de {{ props.totalTareas }} registros</span>
     </div>
   </div>
 </template>

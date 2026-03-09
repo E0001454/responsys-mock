@@ -7,10 +7,66 @@
     "obligatorio": true
   },
   {
-    "idABCConfigMapeoCampana": 202,
+    "idABCConfigMapeoCampana": 201,
     "idABCCatColumna": 2,
     "bolActivo": true,
     "regex": "^.{1,100}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoCampana": 201,
+    "idABCCatColumna": 4,
+    "bolActivo": true,
+    "regex": "^.{0,80}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoCampana": 202,
+    "idABCCatColumna": 6,
+    "bolActivo": true,
+    "regex": "^\\d{1,12}$",
+    "obligatorio": true
+  },
+  {
+    "idABCConfigMapeoCampana": 202,
+    "idABCCatColumna": 8,
+    "bolActivo": false,
+    "regex": "^[A-Z0-9_-]{1,20}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoCampana": 203,
+    "idABCCatColumna": 10,
+    "bolActivo": true,
+    "regex": "^.{0,120}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoCampana": 203,
+    "idABCCatColumna": 11,
+    "bolActivo": true,
+    "regex": "^.{0,120}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoCampana": 204,
+    "idABCCatColumna": 13,
+    "bolActivo": true,
+    "regex": "^(SI|NO|TRUE|FALSE)$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoCampana": 204,
+    "idABCCatColumna": 15,
+    "bolActivo": true,
+    "regex": "^.{0,60}$",
+    "obligatorio": true
+  },
+  {
+    "idABCConfigMapeoCampana": 205,
+    "idABCCatColumna": 18,
+    "bolActivo": true,
+    "regex": "^\\d{1,6}$",
     "obligatorio": false
   }
 ]

@@ -13,8 +13,8 @@ const emit = defineEmits<{
 }>()
 
 const tabs: { key: TabKey; label: string; icon: any }[] = [
-	{ key: 'linea', label: 'Líneas de negocio', icon: Layers },
-	{ key: 'campana', label: 'Campañas', icon: Megaphone }
+    { key: 'campana', label: 'Campañas', icon: Megaphone },
+    { key: 'linea', label: 'Líneas de negocio', icon: Layers }
 ]
 
 const headerCopy: Record<TabKey, { title: string; description: string; icon: any }> = {
@@ -33,7 +33,7 @@ const headerCopy: Record<TabKey, { title: string; description: string; icon: any
 
 <template>
     <div class="flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
-        <div>
+        <div class="pl-12 lg:pl-0 min-h-10 flex flex-col justify-center">
             <h1 class="text-2xl font-bold text-[#00357F] tracking-tight flex items-center gap-2">
                 <component :is="headerCopy[props.activeTab].icon" class="w-6 h-6" />
                 {{ headerCopy[props.activeTab].title }}

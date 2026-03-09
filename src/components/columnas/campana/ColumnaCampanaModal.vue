@@ -594,15 +594,18 @@ async function save() {
 	<BaseModalShell
 		:show="show"
 		title="Agregar columna"
-		max-width-class="max-w-2xl"
+		:mobile-bottom-sheet="true"
+		max-width-class="max-w-2xl max-[640px]:max-w-none"
+		panel-class="rounded-2xl max-[640px]:rounded-t-2xl max-[640px]:rounded-b-none"
+		body-class="p-3 sm:p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0"
 		@close="requestCancel"
 	>
 		<template #body>
 			<form @submit.prevent="requestSave" class="flex flex-col min-h-0 flex-1 h-full">
-				<div class="p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
+				<div class="p-3 sm:p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
 					<div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-5">
 
-					<div class="grid grid-cols-2 gap-4">
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 						
 						<div v-if="lineas && lineas.length">
 							<label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Línea</label>
@@ -665,7 +668,7 @@ async function save() {
 
 					<div>
 						<div>
-							<div class="grid grid-cols-2 gap-3">
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 								<div>
 									<label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Tipo valor</label>
 									<SearchableSelect
@@ -714,7 +717,7 @@ async function save() {
 						</div>
 					</div>
 
-					<div class="grid grid-cols-2 gap-4" v-if="selectedValorTipoId === 2">
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4" v-if="selectedValorTipoId === 2">
 						<div>
 							<label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Mínimo (cadena)</label>
 							<input type="number" min="1" max="4000" step="1" maxlength="4" placeholder="Ej. 1" v-model.number="form.valor.cadena.minimo" class="w-full px-4 py-2.5 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" :class="showCadenaMinimoError ? 'border-red-400 focus:ring-red-200' : 'border-gray-300'" @blur="touchedNumericFields.cadenaMinimo = true" />
@@ -728,7 +731,7 @@ async function save() {
 						</div>
 					</div>
 
-					<div class="grid grid-cols-2 gap-4" v-if="selectedValorTipoId === 1">
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4" v-if="selectedValorTipoId === 1">
 						<div>
 							<label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Enteros (número)</label>
 							<input type="number" min="1" max="4000" step="1" placeholder="Ej. 3" v-model.number="form.valor.numero.enteros" class="w-full px-4 py-2.5 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-[#00357F]" :class="showNumeroEnterosError ? 'border-red-400 focus:ring-red-200' : 'border-gray-300'" @blur="touchedNumericFields.numeroEnteros = true" />

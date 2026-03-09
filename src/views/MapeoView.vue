@@ -23,11 +23,11 @@ import { Plus, Layers, Megaphone, LayoutGrid } from 'lucide-vue-next'
 import { compareNewestFirst, matchesTokenizedSearch } from '@/composables/shared/listViewUtils'
 
 const tabs = [
-  { key: 'linea', label: 'Líneas de negocio', icon: Layers },
-  { key: 'campana', label: 'Campañas', icon: Megaphone }
+  { key: 'campana', label: 'Campañas', icon: Megaphone },
+  { key: 'linea', label: 'Líneas de negocio', icon: Layers }
 ] as const
 type TabKey = typeof tabs[number]['key']
-const activeTab = ref<TabKey>('linea')
+const activeTab = ref<TabKey>('campana')
 
 interface Option {
   label: string
@@ -186,13 +186,13 @@ const campanasDisponibles = computed(() => campanasCatalogo.value)
 
 const showModal = ref(false)
 const modalMode = ref<'add' | 'edit'>('add')
-const modalTab = ref<TabKey>('linea')
+const modalTab = ref<TabKey>('campana')
 const selectedItem = ref<MapeoLineaData | MapeoCampanaData | null>(null)
 const showDetailsModal = ref(false)
 const detailsItem = ref<MapeoLineaData | MapeoCampanaData | null>(null)
-const detailsTab = ref<TabKey>('linea')
+const detailsTab = ref<TabKey>('campana')
 const showColumnasModal = ref(false)
-const columnasTab = ref<TabKey>('linea')
+const columnasTab = ref<TabKey>('campana')
 const nombreMapeoForModal = ref<string>('')
 const mapeoIdForModal = ref<number | string | null>(null)
 const lineaIdForModal = ref<number | string | null>(null)
@@ -502,12 +502,12 @@ function handleSearchCampana(query: string) {
 </script>
 
 <template>
-  <div class="p-6 bg-slate-50 min-h-screen font-sans text-slate-800" @click.self="openFilterLinea = null; openFilterCampana = null">
+  <div class="p-3 sm:p-4 lg:p-6 bg-slate-50 min-h-full font-sans text-slate-800" @click.self="openFilterLinea = null; openFilterCampana = null">
     <div class="max-w-7xl mx-auto space-y-4">
       
-      <div class="flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
-        <div>
-          <h1 class="text-2xl font-bold text-[#00357F] tracking-tight flex items-center gap-2">
+      <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3 sm:gap-4">
+        <div class="pl-12 lg:pl-0 min-h-10 flex flex-col justify-center">
+          <h1 class="text-xl sm:text-2xl font-bold text-[#00357F] tracking-tight flex items-center gap-2">
             <LayoutGrid class="w-6 h-6"/>
             Gestión de Mapeos
           </h1>
@@ -516,13 +516,13 @@ function handleSearchCampana(query: string) {
           </p>
         </div>
         
-        <div class="flex items-center gap-3">
-            <div class="bg-white p-1 rounded-lg border border-slate-200 shadow-sm flex">
+        <div class="w-full lg:w-auto flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 max-[430px]:flex-col max-[430px]:items-stretch max-[430px]:overflow-visible">
+          <div class="bg-white p-1 rounded-lg border border-slate-200 shadow-sm flex shrink-0 min-w-[280px] max-[430px]:w-full max-[430px]:min-w-0">
                 <button
                 v-for="t in tabs"
                 :key="t.key"
                 @click="handleTabChange(t.key)"
-                class="flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200"
+          class="flex items-center gap-2 px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap max-[430px]:flex-1 max-[430px]:justify-center"
                 :class="activeTab === t.key 
                     ? 'bg-[#00357F] text-white shadow-sm cursor-pointer' 
                     : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer'"
@@ -534,7 +534,7 @@ function handleSearchCampana(query: string) {
 
             <button 
                 @click="openAddModal" 
-                class="flex items-center gap-2 bg-[#FFD100] hover:bg-yellow-400 text-[#00357F] text-sm font-bold py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all cursor-pointer"
+              class="shrink-0 justify-center flex items-center gap-2 bg-[#FFD100] hover:bg-yellow-400 text-[#00357F] text-sm font-bold py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all cursor-pointer max-[430px]:w-full"
             >
                 <Plus class="w-4 h-4" />
                 <span>Nuevo</span>

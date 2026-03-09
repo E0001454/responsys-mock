@@ -1,16 +1,70 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import { useToastStore } from '@/stores/toastStore'
+
 const { toasts, removeToast } = useToastStore()
+
+const swipeOffsets = ref<Record<number, number>>({})
+const swipeDraggingIds = ref<Record<number, boolean>>({})
+const touchStartX = ref<Record<number, number>>({})
+const touchCurrentX = ref<Record<number, number>>({})
+
+const isMobile = computed(() => {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia('(max-width: 640px)').matches
+})
+
+function onTouchStart(id: number, event: TouchEvent) {
+  if (!isMobile.value) return
+  const x = event.touches?.[0]?.clientX
+  if (x === undefined) return
+  touchStartX.value[id] = x
+  touchCurrentX.value[id] = x
+  swipeDraggingIds.value[id] = true
+}
+
+function onTouchMove(id: number, event: TouchEvent) {
+  if (!isMobile.value || !swipeDraggingIds.value[id]) return
+  const x = event.touches?.[0]?.clientX
+  if (x === undefined) return
+  touchCurrentX.value[id] = x
+  swipeOffsets.value[id] = x - (touchStartX.value[id] ?? x)
+}
+
+function onTouchEnd(id: number) {
+  if (!isMobile.value) return
+  const offset = swipeOffsets.value[id] ?? 0
+  if (Math.abs(offset) > 72) {
+    removeToast(id)
+  }
+  swipeOffsets.value[id] = 0
+  swipeDraggingIds.value[id] = false
+  delete touchStartX.value[id]
+  delete touchCurrentX.value[id]
+}
+
+function toastStyle(id: number) {
+  const offset = swipeOffsets.value[id] ?? 0
+  return {
+    transform: `translateX(${offset}px)`,
+    opacity: `${Math.max(0.35, 1 - Math.min(0.65, Math.abs(offset) / 160))}`
+  }
+}
 </script>
 
 <template>
-  <div class="fixed top-4 right-4 z-50 flex flex-col gap-2">
-    <transition-group name="toast" tag="div" class="fixed top-4 right-4 z-50 flex flex-col gap-3">
+  <div class="pointer-events-none fixed inset-x-0 top-3 z-[80] px-3 sm:inset-x-auto sm:right-4 sm:top-4 sm:px-0">
+    <transition-group name="toast" tag="div" class="pointer-events-auto flex w-full flex-col gap-3 sm:w-auto sm:max-w-sm">
       <div
         v-for="t in toasts"
         :key="t.id"
-        class="max-w-sm w-full p-4 rounded-xl shadow-xl flex items-start transform transition-all duration-300 hover:scale-[1.02] opacity-95"
+        class="w-full p-4 rounded-xl shadow-xl flex items-start transition-all duration-200 sm:hover:scale-[1.02] opacity-95 select-none touch-pan-y"
         :class="'bg-slate-100 text-[#00357F] border-l-6 border-yellow-400'"
+        :style="toastStyle(t.id)"
+        @touchstart.passive="onTouchStart(t.id, $event)"
+        @touchmove.passive="onTouchMove(t.id, $event)"
+        @touchend="onTouchEnd(t.id)"
+        @touchcancel="onTouchEnd(t.id)"
       >
         <div
           class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mr-3 shadow-sm"

@@ -28,8 +28,8 @@ function formatTimestamp(value?: string) {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col  min-h-[400px] h-[87vh] max-h-[calc(100vh-2rem)]">
-    <div class="overflow-y-auto overflow-x-hidden flex-1" style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[72dvh] h-[calc(100dvh-11rem)] max-h-[calc(100dvh-8rem)] max-[650px]:h-[78dvh] max-[650px]:min-h-[68dvh] max-[650px]:max-h-none">
+    <div class="overflow-y-auto overflow-x-hidden flex-1 min-h-0 flex flex-col justify-between">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="border-b border-slate-200 bg-slate-50/50 text-xs uppercase text-slate-500 font-semibold tracking-wider">
@@ -51,7 +51,7 @@ function formatTimestamp(value?: string) {
           </tr>
           <tr v-else-if="props.items.length === 0">
             <td colspan="100%" class="px-4 py-12">
-              <div class="flex flex-col items-center justify-center text-slate-400">
+              <div class="sticky left-0 mx-auto flex w-fit flex-col items-center justify-center text-slate-400">
                 <Search class="w-8 h-8 mb-2 opacity-50" />
                 <span class="text-sm">No hay registros.</span>
               </div>
@@ -61,7 +61,7 @@ function formatTimestamp(value?: string) {
             v-else
             v-for="(item, index) in props.items"
             :key="`${item.codigo}-${item.id}`"
-            :class="['text-sm hover:bg-blue-50/30 transition-colors', { 'row-new-record-glow': isRowGlowing(item, index) }]"
+            :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40', 'text-sm hover:bg-blue-50/30 transition-colors', { 'row-new-record-glow': isRowGlowing(item, index) }]"
           >
             <td class="px-4 py-2.5">
               <span

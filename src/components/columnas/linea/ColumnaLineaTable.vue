@@ -89,14 +89,9 @@ function getRequiredVisual(required: boolean) {
         <span>Nueva</span>
       </button>
     </div>
-    <div
-      class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[400px]"
-    >
-      <div
-        class="overflow-y-auto overflow-x-hidden flex-1"
-        style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;"
-      >
-        <table class="w-full text-left border-collapse table-fixed">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[72dvh] h-[calc(100dvh-11rem)] max-h-[calc(100dvh-8rem)] max-[650px]:h-[78dvh] max-[650px]:min-h-[68dvh] max-[650px]:max-h-none">
+      <div class="overflow-y-auto overflow-x-auto flex-1 min-h-0">
+        <table class="w-full min-w-[920px] max-[650px]:min-w-[620px] text-left border-collapse table-fixed">
           <colgroup>
             <col class="w-[45%]" />
             <col class="w-[15%]" />
@@ -108,7 +103,7 @@ function getRequiredVisual(required: boolean) {
             <tr
               class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider"
             >
-              <th class="px-4 py-3 relative">
+              <th class="px-2.5 py-2.5 sm:px-4 sm:py-3 relative">
                 <FilterDropdown
                   label="Columnas"
                   header-label="Filtrar por columna"
@@ -121,7 +116,7 @@ function getRequiredVisual(required: boolean) {
                 />
               </th>
   
-              <th class="px-4 py-3 relative text-center">
+              <th class="px-2.5 py-2.5 sm:px-4 sm:py-3 relative text-center">
                 <FilterDropdown
                   label="Estado"
                   header-label="Estado"
@@ -135,11 +130,11 @@ function getRequiredVisual(required: boolean) {
                 />
               </th>
   
-              <th class="px-4 py-3 relative text-center">
+              <th class="px-2.5 py-2.5 sm:px-4 sm:py-3 relative text-center">
                 Requerido
               </th>
   
-              <th class="px-4 py-3 text-right">
+              <th class="px-2.5 py-2.5 sm:px-4 sm:py-3 text-right">
                 Acciones
               </th>
             </tr>
@@ -159,7 +154,7 @@ function getRequiredVisual(required: boolean) {
   
             <tr v-else-if="!columnas.length">
               <td colspan="100%" class="px-4 py-12">
-                <div class="flex flex-col items-center justify-center text-slate-400">
+                <div class="sticky left-0 mx-auto flex w-fit flex-col items-center justify-center text-slate-400">
                   <Search class="w-8 h-8 mb-2 opacity-50" />
                   <span class="text-sm">No hay registros.</span>
                 </div>
@@ -170,14 +165,14 @@ function getRequiredVisual(required: boolean) {
               <tr
                 v-for="(c, index) in columnas"
                 :key="`${c.mapeoId}-${c.columnaId}`"
-                :class="['hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(c, index) }]"
+                :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40', 'hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(c, index) }]"
                 @dblclick="emit('details', c)"
               >
-                <td class="px-4 py-2.5 text-slate-600">
+                <td class="px-2.5 py-2 sm:px-4 sm:py-2.5 text-slate-600">
                   {{ getColumnaLabel(c.columna?.tipo?.idABCCatColumna ?? c.columna?.tipo?.id ?? c.columnaId) }}
                 </td>
   
-                <td class="px-4 py-2.5 text-center">
+                <td class="px-2.5 py-2 sm:px-4 sm:py-2.5 text-center">
                   <label
                     class="inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200 cursor-pointer group select-none"
                     :class="(c.bolActivo ?? c.columna?.bolActivo)
@@ -209,7 +204,7 @@ function getRequiredVisual(required: boolean) {
                   </label>
                 </td>
   
-                <td class="px-4 py-2.5 text-center">
+                <td class="px-2.5 py-2 sm:px-4 sm:py-2.5 text-center">
                   <template v-for="requiredStage in [getRequiredVisual(Boolean(c.esRequerido ?? c.obligatorio ?? c.columna?.esRequerido ?? c.columna?.obligatorio))]" :key="`obligatorio-${c.mapeoId}-${c.columnaId}`">
                     <div class="inline-flex items-center px-2.5 py-1 rounded-lg border text-[11px] font-semibold" :class="requiredStage.containerClass">
                         <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="requiredStage.iconWrapClass">
@@ -227,7 +222,7 @@ function getRequiredVisual(required: boolean) {
                   </template>
                 </td>
   
-                <td class="px-4 py-2.5 text-right">
+                <td class="px-2.5 py-2 sm:px-4 sm:py-2.5 text-right">
                   <div class="inline-flex items-center justify-end gap-2">
                     <button
                       @click="emit('details', c)"
@@ -256,36 +251,38 @@ function getRequiredVisual(required: boolean) {
           </tbody>
         </table>
   
-        <div
-          class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex justify-between items-center rounded-b-xl"
-        >
-          <span>
-            Mostrando {{ columnas.length }} de {{ totalColumnas }} registros
+      </div>
+
+      <div
+        class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex justify-between items-center rounded-b-xl shrink-0"
+      >
+        <span>
+          Mostrando {{ columnas.length }} de {{ totalColumnas }} registros
+        </span>
+
+        <div class="flex gap-2 items-center">
+          <button
+            class="hover:text-[#00357F] disabled:opacity-50"
+            :disabled="currentPage <= 1"
+            @click="emit('prev')"
+          >
+            Anterior
+          </button>
+
+          <span class="text-[11px] text-slate-400">
+            {{ currentPage }} / {{ totalPages }}
           </span>
-  
-          <div class="flex gap-2 items-center">
-            <button
-              class="hover:text-[#00357F] disabled:opacity-50"
-              :disabled="currentPage <= 1"
-              @click="emit('prev')"
-            >
-              Anterior
-            </button>
-  
-            <span class="text-[11px] text-slate-400">
-              {{ currentPage }} / {{ totalPages }}
-            </span>
-  
-            <button
-              class="hover:text-[#00357F] disabled:opacity-50 "
-              :disabled="currentPage >= totalPages"
-              @click="emit('next')"
-            >
-              Siguiente
-            </button>
-          </div>
+
+          <button
+            class="hover:text-[#00357F] disabled:opacity-50 "
+            :disabled="currentPage >= totalPages"
+            @click="emit('next')"
+          >
+            Siguiente
+          </button>
         </div>
       </div>
+
     </div>
   </div>
 </template>

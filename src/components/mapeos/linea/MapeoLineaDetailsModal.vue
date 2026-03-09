@@ -62,16 +62,18 @@ function getDictaminarVisual(configured: boolean) {
   <BaseModalShell
     :show="show"
     title="Detalle de Mapeo"
-    max-width-class="max-w-lg"
+    :mobile-bottom-sheet="true"
+    max-width-class="max-w-lg max-[640px]:max-w-none"
+    panel-class="rounded-2xl max-[640px]:rounded-t-2xl max-[640px]:rounded-b-none"
+    body-class="p-3 sm:p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0"
     @close="emit('close')"
   >
     <template #body>
-      <div class="p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
-        <div v-if="!item" class="text-sm text-slate-500">
+      <div v-if="!item" class="text-sm text-slate-500">
           Sin informacion para mostrar.
-        </div>
+      </div>
 
-        <div v-else class="space-y-4 text-sm">
+      <div v-else class="space-y-4 text-sm">
           <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
             <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Linea</span>
             <p class="mt-1 font-semibold text-slate-700">{{ props.getLineaLabel(item.linea?.id) }}</p>
@@ -86,18 +88,32 @@ function getDictaminarVisual(configured: boolean) {
             <p class="mt-1 text-slate-600 whitespace-pre-wrap">{{ item.descripcion }}</p>
           </div>
 
-          <div class="grid grid-cols-3 sm:grid-cols-3 gap-3">
+          <div class="grid grid-cols-3 gap-2 sm:gap-3">
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Estatus</span>
-              <p class="mt-1 font-semibold" :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'">
-                {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
-              </p>
+              <span
+                class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200"
+                :class="item.bolActivo
+                  ? 'bg-blue-50 border-blue-200'
+                  : 'bg-slate-50 border-slate-200'"
+              >
+                <span
+                  class="h-2 w-2 rounded-full"
+                  :class="item.bolActivo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
+                ></span>
+                <span
+                  class="text-xs font-semibold"
+                  :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'"
+                >
+                  {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </span>
             </div>
 
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Validar</span>
               <template v-for="stage in [getMapeoStageVisual(Boolean(item.validar ?? false))]" :key="`validar-detail-${item.idABCConfigMapeoLinea}`">
-                <div class="inline-flex items-center justify-center w-28 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
+                <div class="inline-flex items-center justify-center w-full max-w-full min-w-0 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
                   <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
                     <svg v-if="stage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -115,7 +131,7 @@ function getDictaminarVisual(configured: boolean) {
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Enviar</span>
               <template v-for="stage in [getMapeoStageVisual(Boolean((item as any).enviar ?? (item as any).envio ?? false))]" :key="`enviar-detail-${item.idABCConfigMapeoLinea}`">
-                <div class="inline-flex items-center justify-center w-28 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
+                <div class="inline-flex items-center justify-center w-full max-w-full min-w-0 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
                   <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
                     <svg v-if="stage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -139,11 +155,11 @@ function getDictaminarVisual(configured: boolean) {
             </p>
           </div>
           
-          <div class="mt-2 grid grid-cols-3 sm:grid-cols-3 gap-3">
+          <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Dictaminar</span>
               <template v-for="dictaminarStage in [getDictaminarVisual(Boolean(item.dictaminar ?? item.bolDictaminacion ?? false))]" :key="`dictaminar-detail-${item.idABCConfigMapeoLinea}`">
-                <div class="inline-flex items-center justify-center w-28 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="dictaminarStage.containerClass">
+                <div class="inline-flex items-center justify-center w-full max-w-full min-w-0 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="dictaminarStage.containerClass">
                   <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="dictaminarStage.iconWrapClass">
                     <svg v-if="dictaminarStage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -171,7 +187,6 @@ function getDictaminarVisual(configured: boolean) {
             </div>
           </div>
         </div>
-      </div>
     </template>
     <template #footer>
       <BaseModalActions

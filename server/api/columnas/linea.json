@@ -14,10 +14,73 @@
     "obligatorio": false
   },
   {
+    "idABCConfigMapeoLinea": 101,
+    "idABCCatColumna": 5,
+    "bolActivo": true,
+    "regex": "^[\\w.-]+@[\\w.-]+\\.[A-Za-z]{2,}$",
+    "obligatorio": true
+  },
+  {
     "idABCConfigMapeoLinea": 102,
     "idABCCatColumna": 3,
     "bolActivo": false,
     "regex": "^.{1,50}$",
     "obligatorio": true
+  },
+  {
+    "idABCConfigMapeoLinea": 102,
+    "idABCCatColumna": 6,
+    "bolActivo": true,
+    "regex": "^\\d{10}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoLinea": 103,
+    "idABCCatColumna": 7,
+    "bolActivo": true,
+    "regex": "^[A-Z]{2}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoLinea": 103,
+    "idABCCatColumna": 9,
+    "bolActivo": true,
+    "regex": "^\\d{6,20}$",
+    "obligatorio": true
+  },
+  {
+    "idABCConfigMapeoLinea": 104,
+    "idABCCatColumna": 10,
+    "bolActivo": false,
+    "regex": "^\\d{11}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoLinea": 104,
+    "idABCCatColumna": 12,
+    "bolActivo": true,
+    "regex": "^[A-Z0-9]{10,13}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoLinea": 105,
+    "idABCCatColumna": 14,
+    "bolActivo": true,
+    "regex": "^.{0,120}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoLinea": 105,
+    "idABCCatColumna": 18,
+    "bolActivo": true,
+    "regex": "^\\d{5}$",
+    "obligatorio": false
+  },
+  {
+    "idABCConfigMapeoLinea": 106,
+    "idABCCatColumna": 20,
+    "bolActivo": true,
+    "regex": "^(true|false|0|1)$",
+    "obligatorio": false
   }
 ]

@@ -48,13 +48,15 @@ const {
   <BaseModalShell
     :show="show"
     :title="mode === 'add' ? 'Nuevo Registro' : 'Editar Registro'"
-    max-width-class="max-w-2xl"
+    :mobile-bottom-sheet="true"
+    max-width-class="max-w-2xl max-[640px]:max-w-none"
+    panel-class="rounded-2xl max-[640px]:rounded-t-2xl max-[640px]:rounded-b-none"
+    body-class="p-3 sm:p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0"
     @close="requestCancel"
   >
     <template #body>
       <form @submit.prevent="handleSave" class="flex flex-col min-h-0 flex-1 h-full">
-        <div class="p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
-          <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-5">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-5">
           <div>
             <label for="field-linea" class="block text-[10px] font-bold text-gray-500 uppercase mb-1">
               Linea de negocio <span class="text-red-500 ml-1">*</span>
@@ -175,7 +177,6 @@ const {
             </button>
           </div>
 
-          </div>
         </div>
       </form>
     </template>

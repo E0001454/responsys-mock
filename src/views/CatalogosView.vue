@@ -61,10 +61,10 @@ onMounted(fetchCatalogos)
 </script>
 
 <template>
-    <div class="p-6 bg-slate-50 min-h-screen font-sans text-slate-800">
+    <div class="p-3 sm:p-4 lg:p-6 bg-slate-50 min-h-full font-sans text-slate-800">
         <div class="max-w-6xl mx-auto space-y-4">
             <div class="flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
-                <div>
+                <div class="pl-12 lg:pl-0 min-h-10 flex flex-col justify-center">
                     <h1 class="text-2xl font-bold text-[#00357F] tracking-tight">Catálogos</h1>
                     <p class="text-sm text-slate-500 mt-1">Consulta de catálogos generales.</p>
                 </div>
@@ -88,8 +88,6 @@ onMounted(fetchCatalogos)
                 :items="sortedItems"
                 :is-loading="isLoading"
             />
-
-            <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
         </div>
     </div>
 </template>

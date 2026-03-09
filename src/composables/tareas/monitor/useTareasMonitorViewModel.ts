@@ -20,8 +20,8 @@ import {
 import { getStatusClassByCode } from '@/utils/tareas/monitor/tareasMonitorFormat.utils'
 
 export const tabs = [
-  { key: 'linea', label: 'Lineas de negocio' },
-  { key: 'campana', label: 'Campañas' }
+  { key: 'campana', label: 'Campañas' },
+  { key: 'linea', label: 'Lineas de negocio' }
 ] as const
 
 export type TabKey = typeof tabs[number]['key']
@@ -41,7 +41,7 @@ export function useTareasMonitorViewModel() {
     'ENVÍO': 3
   }
 
-  const activeTab = ref<TabKey>('linea')
+  const activeTab = ref<TabKey>('campana')
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const openFilter = ref<string | null>(null)

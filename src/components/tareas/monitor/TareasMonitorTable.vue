@@ -165,16 +165,13 @@ const rowGroupMeta = computed(() => {
 </script>
 
 <template>
-  <div class="bg-white border border-slate-200 rounded-xl overflow-visible shadow-sm">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[72dvh] h-[calc(100dvh-11rem)] max-h-[calc(100dvh-8rem)] max-[650px]:h-[78dvh] max-[650px]:min-h-[68dvh] max-[650px]:max-h-none">
     <div v-if="isLoading" class="p-6 text-sm text-slate-500">
       Cargando monitoreo...
     </div>
 
-    <div v-else-if="error" class="p-6 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
-      {{ error }}
-    </div>
-
-    <div v-else class="overflow-x-auto">
+    <div v-else class="flex flex-col flex-1 min-h-0">
+      <div class="overflow-y-auto overflow-x-auto flex-1 min-h-0">
       <table class="w-full text-left border-collapse text-sm">
         <thead>
           <tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
@@ -211,7 +208,7 @@ const rowGroupMeta = computed(() => {
                   type="button"
                   @click.stop="emit('toggle-filter', 'search')"
                   :class="openFilter === 'search'
-                    ? 'p-2 bg-[#00357F] text-white rounded-md shadow-sm transition-colors'
+                    ? 'p-2 bg-[#00357F] text-white rounded-md shadow-sm transition-colors border border-[#00357F]'
                     : 'p-2 bg-white text-slate-400 border border-slate-200 rounded-md hover:bg-slate-50 hover:text-[#00357F] transition-colors'"
                   aria-label="Buscar en la ingesta"
                   title="Buscar en la ingesta"
@@ -277,7 +274,7 @@ const rowGroupMeta = computed(() => {
             v-for="(row, index) in paginatedRows"
             :key="`${activeTab}-${row.id}`"
             :class="[
-              rowGroupMeta[index]?.isEvenGroup ? 'bg-white' : 'bg-slate-50/40',
+              index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40',
               rowGroupMeta[index]?.isFirst ? 'border-t-2 border-slate-200' : '',
               rowGroupMeta[index]?.isLast ? 'border-b-2 border-slate-200' : '',
               'hover:bg-blue-50/30 transition-colors',
@@ -366,14 +363,18 @@ const rowGroupMeta = computed(() => {
           </tr>
 
           <tr v-if="!filteredRows.length">
-            <td :colspan="activeTab === 'campana' ? 9 : 8" class="px-4 py-8 text-center text-slate-500">
-              No hay tareas para mostrar en este monitoreo.
+            <td :colspan="activeTab === 'campana' ? 9 : 8" class="px-4 py-12">
+              <div class="sticky left-0 mx-auto flex w-fit flex-col items-center justify-center text-slate-400">
+                <Search class="w-8 h-8 mb-2 opacity-50" />
+                <span class="text-sm">No hay registros.</span>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
+      </div>
 
-      <div class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex justify-between items-center">
+      <div class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex justify-between items-center rounded-b-xl shrink-0">
         <span>Mostrando {{ paginatedRows.length }} de {{ filteredRows.length }} registros</span>
         <div class="flex gap-2 items-center">
           <button

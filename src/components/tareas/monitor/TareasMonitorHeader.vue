@@ -22,7 +22,7 @@ function resolveIcon(key: TabItem['key']) {
 
 <template>
   <div class="flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
-    <div>
+    <div class="pl-12 lg:pl-0 min-h-10 flex flex-col justify-center">
       <h1 class="text-2xl font-bold text-[#00357F] tracking-tight flex items-center gap-2">
         <Activity class="w-6 h-6" />
         Monitoreo de Tareas
@@ -32,12 +32,12 @@ function resolveIcon(key: TabItem['key']) {
       </p>
     </div>
 
-    <div class="bg-white p-1 rounded-lg border border-slate-200 flex">
+    <div class="bg-white p-1 rounded-lg border border-slate-200 flex w-full md:w-auto">
       <button
         v-for="t in props.tabs"
         :key="t.key"
         @click="emit('tab-change', t.key)"
-        class="flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200"
+        class="flex-1 md:flex-none md:min-w-[140px] flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200"
         :class="props.activeTab === t.key
           ? 'bg-[#00357F] text-white cursor-pointer'
           : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer'"

@@ -66,7 +66,7 @@ async function fetchCatalogosLineas() {
 		}))
 }
 
-const { items, loading, error, fetchAll, toggle } = useColumnasLinea()
+const { items, loading, fetchAll, toggle } = useColumnasLinea()
 
 const openFilter = ref<string | null>(null)
 const selectedFilters = reactive({
@@ -257,7 +257,7 @@ defineExpose({ openAdd })
 </script>
 
 <template>
-	<div class="" @click.self="openFilter = null">
+	<div class="min-h-[72dvh]" @click.self="openFilter = null">
 		<div v-if="missingRequiredColumnas.length" class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
 			Faltan {{ missingRequiredColumnas.length }} columnas obligatorias por configurar: {{ missingRequiredLabel }}.
 		</div>
@@ -284,10 +284,6 @@ defineExpose({ openAdd })
 			@prev="currentPage--"
 			@next="currentPage++"
 		/>
-
-		<p v-if="error" class="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200 mt-2">
-			{{ error }}
-		</p>
 
 		<ColumnaLineaModal
 			:key="mode + String(selected?.columnaId ?? 'new')"

@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import BaseModalActions from '@/components/shared/modal/BaseModalActions.vue'
 import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
-import type { MapeoCampanaData } from '@/types/mapeos/campana'
-import { ref, onMounted } from 'vue'
-import { catalogosService } from '@/services/catalogos/catalogosService'
+import type { MapeoLineaData } from '@/types/mapeos/linea'
 
 interface Props {
   show: boolean
-  item?: MapeoCampanaData | null
+  item?: MapeoLineaData | null
   getLineaLabel: (id?: number) => string
+  getCampanaLabel?: (id?: number) => string
 }
 
 interface Emits {
@@ -18,22 +17,9 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const campanas = ref<{ id: number; nombre: string }[]>([])
-
-onMounted(async () => {
-  try {
-    const catalogos = await catalogosService.getCatalogosAgrupados()
-    const list: any[] = catalogos.find(group => group.codigo === 'CMP')?.registros ?? []
-    campanas.value = (list || []).filter(c => c.bolActivo !== false).map(c => ({ id: c.id, nombre: c.nombre }))
-  } catch (_) {
-    campanas.value = []
-  }
-})
-
-function getCampanaLabel(id?: number) {
-  if (id === undefined || id === null) return '-'
-  return campanas.value.find(c => Number(c.id) === Number(id))?.nombre ?? `Campaña ${id}`
-}
+// function isCampanaItem(item?: MapeoData | MapeoCampanaData | null): item is MapeoCampanaData {
+//   return !!item && Object.prototype.hasOwnProperty.call(item, 'idABCCatCampana')
+// }
 
 function formatTimestamp(value?: string) {
   if (!value) return ''
@@ -67,7 +53,7 @@ function getDictaminarVisual(configured: boolean) {
       : 'bg-rose-50 border-rose-200 text-rose-700',
     iconWrapClass: configured
       ? 'bg-emerald-100 text-[#00357F]'
-      : 'bg-rose-100 text-amber-700'
+      : 'bg-rose-100 text-rose-700'
   }
 }
 </script>
@@ -84,17 +70,13 @@ function getDictaminarVisual(configured: boolean) {
   >
     <template #body>
       <div v-if="!item" class="text-sm text-slate-500">
-        Sin informacion para mostrar.
+          Sin informacion para mostrar.
       </div>
 
       <div v-else class="space-y-4 text-sm">
           <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
             <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Linea</span>
-            <p class="mt-1 font-semibold text-slate-700">{{ getLineaLabel(item.linea?.id) }}</p>
-          </div>
-          <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
-            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Campaña</span>
-            <p class="mt-1 font-semibold text-slate-700">{{ getCampanaLabel(item.linea?.campana?.id) }}</p>
+            <p class="mt-1 font-semibold text-slate-700">{{ props.getLineaLabel(item.linea?.id) }}</p>
           </div>
           <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
             <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Mapeo</span>
@@ -105,18 +87,33 @@ function getDictaminarVisual(configured: boolean) {
             <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Descripcion</span>
             <p class="mt-1 text-slate-600 whitespace-pre-wrap">{{ item.descripcion }}</p>
           </div>
+
           <div class="grid grid-cols-3 gap-2 sm:gap-3">
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Estatus</span>
-              <p class="mt-1 font-semibold" :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'">
-                {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
-              </p>
+              <span
+                class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200"
+                :class="item.bolActivo
+                  ? 'bg-blue-50 border-blue-200'
+                  : 'bg-slate-50 border-slate-200'"
+              >
+                <span
+                  class="h-2 w-2 rounded-full"
+                  :class="item.bolActivo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
+                ></span>
+                <span
+                  class="text-xs font-semibold"
+                  :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'"
+                >
+                  {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </span>
             </div>
-           
+
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Validar</span>
               <template v-for="stage in [getMapeoStageVisual(Boolean(item.validar ?? false))]" :key="`validar-detail-${item.idABCConfigMapeoLinea}`">
-                <div class="inline-flex items-center justify-center w-full max-w-full min-w-0 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
+                <div class="inline-flex items-center justify-center w-28 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
                   <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
                     <svg v-if="stage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -134,7 +131,7 @@ function getDictaminarVisual(configured: boolean) {
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Enviar</span>
               <template v-for="stage in [getMapeoStageVisual(Boolean((item as any).enviar ?? (item as any).envio ?? false))]" :key="`enviar-detail-${item.idABCConfigMapeoLinea}`">
-                <div class="inline-flex items-center justify-center w-full max-w-full min-w-0 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
+                <div class="inline-flex items-center justify-center w-28 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="stage.containerClass">
                   <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="stage.iconWrapClass">
                     <svg v-if="stage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -151,18 +148,18 @@ function getDictaminarVisual(configured: boolean) {
             </div>
           </div>
 
-         <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
-              <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">porcentaje de Error permitido</span>
-              <p class="mt-1 font-semibold text-slate-700">
-                {{ item.porcentajeError === null || item.porcentajeError === undefined ? '-' : `${item.porcentajeError}%` }}
-              </p>
+          <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Porcentaje de Error permitido</span>
+            <p class="mt-1 font-semibold text-slate-700">
+              {{ item.porcentajeError === null || item.porcentajeError === undefined ? '-' : `${item.porcentajeError}%` }}
+            </p>
           </div>
           
           <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Dictaminar</span>
               <template v-for="dictaminarStage in [getDictaminarVisual(Boolean(item.dictaminar ?? item.bolDictaminacion ?? false))]" :key="`dictaminar-detail-${item.idABCConfigMapeoLinea}`">
-                <div class="inline-flex items-center justify-center w-full max-w-full min-w-0 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="dictaminarStage.containerClass">
+                <div class="inline-flex items-center justify-center w-28 gap-2 px-2.5 py-1 mt-2 rounded-lg border text-[11px] font-semibold" :class="dictaminarStage.containerClass">
                   <span class="h-5 w-5 rounded-full inline-flex items-center justify-center" :class="dictaminarStage.iconWrapClass">
                     <svg v-if="dictaminarStage.configured" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -179,7 +176,7 @@ function getDictaminarVisual(configured: boolean) {
             </div>
           </div>
 
-           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Creado</span>
               <p class="mt-1 text-slate-600">{{ formatTimestamp(item.fechaCreacion) }}</p>
@@ -189,8 +186,7 @@ function getDictaminarVisual(configured: boolean) {
               <p class="mt-1 text-slate-600">{{ formatTimestamp(item.fechaUltimaModificacion) }}</p>
             </div>
           </div>
-         
-      </div>
+        </div>
     </template>
     <template #footer>
       <BaseModalActions

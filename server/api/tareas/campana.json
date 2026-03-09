@@ -190,5 +190,101 @@
     },
     "fechaCreacion": "2026-02-16T13:15:00.000+00:00",
     "fechaUltimaModificacion": "2026-02-19T12:00:00.000+00:00"
+  },
+  {
+    "bolActivo": true,
+    "id": 9,
+    "linea": {
+      "catCampana": {
+        "id": 4
+      },
+      "id": 3
+    },
+    "asignacion": {
+      "mapeo": {
+        "id": 4009,
+        "nombre": "MAPEO_CAMPANA_4_RETENCION"
+      }
+    },
+    "tipo": {
+      "id": 1
+    },
+    "ejecucion": {
+      "id": 1
+    },
+    "fechaCreacion": "2026-02-20T10:20:00.000+00:00",
+    "fechaUltimaModificacion": "2026-02-20T10:20:00.000+00:00"
+  },
+  {
+    "bolActivo": true,
+    "id": 10,
+    "linea": {
+      "catCampana": {
+        "id": 4
+      },
+      "id": 3
+    },
+    "asignacion": {
+      "mapeo": {
+        "id": 4009,
+        "nombre": "MAPEO_CAMPANA_4_RETENCION"
+      }
+    },
+    "tipo": {
+      "id": 2
+    },
+    "ejecucion": {
+      "id": 2
+    },
+    "fechaCreacion": "2026-02-20T10:24:00.000+00:00",
+    "fechaUltimaModificacion": "2026-02-20T11:10:00.000+00:00"
+  },
+  {
+    "bolActivo": false,
+    "id": 11,
+    "linea": {
+      "catCampana": {
+        "id": 5
+      },
+      "id": 1
+    },
+    "asignacion": {
+      "mapeo": {
+        "id": 4010,
+        "nombre": "MAPEO_CAMPANA_5_NURTURING"
+      }
+    },
+    "tipo": {
+      "id": 1
+    },
+    "ejecucion": {
+      "id": 2
+    },
+    "fechaCreacion": "2026-02-21T14:30:00.000+00:00",
+    "fechaUltimaModificacion": "2026-02-22T09:55:00.000+00:00"
+  },
+  {
+    "bolActivo": true,
+    "id": 12,
+    "linea": {
+      "catCampana": {
+        "id": 6
+      },
+      "id": 2
+    },
+    "asignacion": {
+      "mapeo": {
+        "id": 4011,
+        "nombre": "MAPEO_CAMPANA_6_CONVERSION"
+      }
+    },
+    "tipo": {
+      "id": 3
+    },
+    "ejecucion": {
+      "id": 1
+    },
+    "fechaCreacion": "2026-02-23T06:45:00.000+00:00",
+    "fechaUltimaModificacion": "2026-02-23T06:45:00.000+00:00"
   }
 ]

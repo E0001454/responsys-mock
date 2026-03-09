@@ -19,6 +19,7 @@ async function readJson(relPath) {
 
 const store = {
   catalogos: [],
+  bitacoraEventos: [],
   mapeosLinea: [],
   mapeosCampana: [],
   columnasLinea: [],
@@ -320,8 +321,26 @@ async function loadData() {
   const mapeosCampanaRaw = await readJson('api/mapeos/campana.json')
   const columnasLineaRaw = await readJson('api/columnas/linea.json')
   const columnasCampanaRaw = await readJson('api/columnas/campana.json')
+  let bitacoraEventosRaw = []
+  try {
+    bitacoraEventosRaw = await readJson('api/bitacora/eventos.json')
+  } catch {
+    bitacoraEventosRaw = []
+  }
 
   await loadCatalogos()
+
+  store.bitacoraEventos = (Array.isArray(bitacoraEventosRaw) ? bitacoraEventosRaw : []).map((item, index) => {
+    const id = Number(item?.id ?? index + 1)
+    return {
+      id,
+      idUsuario: Number(item?.idUsuario ?? 1),
+      bitacora: {
+        ...(item?.bitacora ?? {}),
+        fechaCreacion: item?.bitacora?.fechaCreacion ?? now()
+      }
+    }
+  })
 
   store.mapeosLinea = (Array.isArray(mapeosLineaRaw) ? mapeosLineaRaw : []).map(item =>
     normalizeMapeoLineaRecord(item)
@@ -422,6 +441,7 @@ async function loadData() {
   })
 
   console.log('[mock-server] data loaded', {
+    bitacoraEventos: store.bitacoraEventos.length,
     mapeosLinea: store.mapeosLinea.length,
     mapeosCampana: store.mapeosCampana.length,
     columnasLinea: store.columnasLinea.length,
@@ -1046,6 +1066,10 @@ const server = http.createServer(async (req, res) => {
     const pathOnly = pathOnlyRaw.replace(/\/actividades/gi, '/tareas')
 
     if (req.method === 'GET') {
+      if (pathOnly === '/bitacoras/eventos') {
+        return send(res, 200, store.bitacoraEventos)
+      }
+
       if (pathOnly === '/catalogos') {
         return send(res, 200, store.catalogos)
       }
@@ -1368,7 +1392,18 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathOnly === '/bitacoras/eventos') {
-        return send(res, 200, { ok: true })
+        const body = await parseBody(req)
+        const next = nextId(store.bitacoraEventos, 'id')
+        const record = {
+          id: next,
+          idUsuario: Number(body?.idUsuario ?? 1),
+          bitacora: {
+            ...(body?.bitacora ?? {}),
+            fechaCreacion: body?.bitacora?.fechaCreacion ?? now()
+          }
+        }
+        store.bitacoraEventos.unshift(record)
+        return send(res, 200, { ok: true, id: next })
       }
     }
 

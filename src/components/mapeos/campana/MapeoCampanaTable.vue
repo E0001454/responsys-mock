@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Edit3, Search, Eye, Columns } from 'lucide-vue-next'
+import { Edit3, Search, Eye, Columns, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import FilterDropdown from '@/components/FilterDropdown.vue'
 import TableSearch from '@/components/TableSearch.vue'
 import type { MapeoCampanaData } from '@/types/mapeos/campana'
@@ -117,20 +117,20 @@ function formatPorcentajeError(value?: number | null) {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[400px] h-[87vh] max-h-[calc(100vh-2rem)]">
-    <div class="overflow-y-auto overflow-x-auto flex-1" style="height: 100%; display: flex; justify-content: space-between; flex-flow: column nowrap;">
-      <table class="w-full text-left border-collapse table-fixed">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[72dvh] h-[calc(100dvh-11rem)] max-h-[calc(100dvh-8rem)] max-[650px]:h-[78dvh] max-[650px]:min-h-[68dvh] max-[650px]:max-h-none">
+    <div class="overflow-y-auto overflow-x-auto flex-1 min-h-0">
+      <table class="w-full min-w-[1240px] text-left border-collapse table-fixed">
         <colgroup>
-          <col class="w-[12%]" />
-          <col class="w-[11%]" />
-          <col class="w-[16%]" />
-          <col class="w-[9%]" />
-          <col class="w-[9%]" />
+          <col class="w-[10%]" />
+          <col class="w-[10%]" />
+          <col class="w-[17%]" />
+          <col class="w-[8%]" />
+          <col class="w-[8%]" />
+          <col class="w-[8%]" />
+          <col class="w-[8%]" />
           <col class="w-[9%]" />
           <col class="w-[10%]" />
-          <col class="w-[9%]" />
-          <col class="w-[7%]" />
-          <col class="w-[8%]" />
+          <col class="w-[12%]" />
         </colgroup>
         <thead>
           <tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
@@ -164,11 +164,13 @@ function formatPorcentajeError(value?: number | null) {
                 <span class="font-semibold">Nombre de ingesta</span>
                 <button
                   @click.stop="emit('toggleFilter', 'search')"
-                  :class="props.openFilter === 'search' ? 'p-2 bg-[#00357F] text-white rounded-md shadow-sm transition-colors' : 'p-2 bg-white text-slate-400 border border-slate-200 rounded-md hover:bg-slate-50 hover:text-[#00357F] transition-colors'"
+                  :class="props.openFilter === 'search'
+                    ? 'p-2 bg-[#00357F] text-white rounded-md shadow-sm transition-colors border border-[#00357F]'
+                    : 'p-2 bg-white text-slate-400 border border-slate-200 rounded-md hover:bg-slate-50 hover:text-[#00357F] transition-colors'"
                   aria-label="Buscar en tabla"
                   title="Buscar"
                 >
-                  <Search class="w-4 h-4 text-[#00357F]" :class="props.openFilter === 'search' ? 'text-white' : 'text-[#00357F]'" />
+                  <Search class="w-4 h-4" :class="props.openFilter === 'search' ? 'text-white' : 'text-[#00357F]'" />
                 </button>
               </div>
 
@@ -214,7 +216,7 @@ function formatPorcentajeError(value?: number | null) {
 
           <tr v-else-if="props.filteredMapeos.length === 0">
             <td colspan="100%" class="px-4 py-12">
-              <div class="flex flex-col items-center justify-center text-slate-400">
+              <div class="sticky left-0 mx-auto flex w-fit flex-col items-center justify-center text-slate-400">
                 <Search class="w-8 h-8 mb-2 opacity-50" />
                 <span class="text-sm">No hay registros.</span>
               </div>
@@ -222,7 +224,7 @@ function formatPorcentajeError(value?: number | null) {
           </tr>
 
           <template v-else v-for="(m, index) in props.filteredMapeos" :key="m.idABCConfigMapeoLinea">
-            <tr :class="['hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(m, index) }]">
+            <tr :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40', 'hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(m, index) }]">
               <td class="px-4 py-2.5" @dblclick="emit('viewDetails', m)">
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
                   {{ props.getLineaLabel(m.linea?.id) }}
@@ -255,7 +257,6 @@ function formatPorcentajeError(value?: number | null) {
                         <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
                       </svg>
                     </span>
-
                   </div>
                 </template>
               </td>
@@ -273,7 +274,6 @@ function formatPorcentajeError(value?: number | null) {
                         <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
                       </svg>
                     </span>
-
                   </div>
                 </template>
               </td>
@@ -291,7 +291,6 @@ function formatPorcentajeError(value?: number | null) {
                         <circle cx="10" cy="13.3" r="0.8" fill="currentColor" stroke="none"></circle>
                       </svg>
                     </span>
-
                   </div>
                 </template>
               </td>
@@ -354,26 +353,28 @@ function formatPorcentajeError(value?: number | null) {
           </template>
         </tbody>
       </table>
+    </div>
 
-      <div class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex justify-between items-center rounded-b-xl">
-        <span>Mostrando {{ props.filteredMapeos.length }} de {{ props.totalMapeos }} registros</span>
-        <div class="flex gap-2 items-center">
-          <button
-            class="hover:text-[#00357F] disabled:opacity-50"
-            :disabled="!props.canPrevPage"
-            @click="emit('prevPage')"
-          >
-            Anterior
-          </button>
-          <span class="text-[11px] text-slate-400">{{ props.currentPage }} / {{ props.totalPages }}</span>
-          <button
-            class="hover:text-[#00357F] disabled:opacity-50"
-            :disabled="!props.canNextPage"
-            @click="emit('nextPage')"
-          >
-            Siguiente
-          </button>
-        </div>
+    <div class="px-4 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex flex-col items-center gap-2 rounded-b-xl min-[651px]:flex-row min-[651px]:justify-between min-[651px]:items-center shrink-0">
+      <span class="text-center min-[651px]:text-left">Mostrando {{ props.filteredMapeos.length }} de {{ props.totalMapeos }} registros</span>
+      <div class="flex gap-2 items-center justify-center">
+        <button
+          class="h-[42px] px-4 inline-flex items-center gap-1.5 rounded-lg text-slate-600 bg-white border border-slate-200 hover:text-[#00357F] hover:border-[#00357F]/30 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed min-[651px]:h-auto min-[651px]:px-0 min-[651px]:bg-transparent min-[651px]:border-0 min-[651px]:rounded-none min-[651px]:hover:bg-transparent"
+          :disabled="!props.canPrevPage"
+          @click="emit('prevPage')"
+        >
+          <ChevronLeft class="w-4 h-4 min-[651px]:hidden" />
+          Anterior
+        </button>
+        <span class="h-[42px] min-w-[74px] inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 min-[651px]:h-auto min-[651px]:min-w-0 min-[651px]:border-0 min-[651px]:bg-transparent min-[651px]:px-0 min-[651px]:text-[11px] min-[651px]:font-medium min-[651px]:text-slate-400">{{ props.currentPage }} / {{ props.totalPages }}</span>
+        <button
+          class="h-[42px] px-4 inline-flex items-center gap-1.5 rounded-lg text-slate-600 bg-white border border-slate-200 hover:text-[#00357F] hover:border-[#00357F]/30 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed min-[651px]:h-auto min-[651px]:px-0 min-[651px]:bg-transparent min-[651px]:border-0 min-[651px]:rounded-none min-[651px]:hover:bg-transparent"
+          :disabled="!props.canNextPage"
+          @click="emit('nextPage')"
+        >
+          Siguiente
+          <ChevronRight class="w-4 h-4 min-[651px]:hidden" />
+        </button>
       </div>
     </div>
   </div>

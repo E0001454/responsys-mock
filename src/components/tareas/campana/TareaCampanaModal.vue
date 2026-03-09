@@ -64,13 +64,15 @@ const {
   <BaseModalShell
     :show="show"
     :title="mode === 'add' ? 'Nuevo Registro' : 'Editar Registro'"
-    max-width-class="max-w-2xl"
-    panel-class="rounded-xl shadow-2xl"
+    :mobile-bottom-sheet="true"
+    max-width-class="max-w-2xl max-[640px]:max-w-none"
+    panel-class="rounded-2xl max-[640px]:rounded-t-2xl max-[640px]:rounded-b-none"
+    body-class="p-3 sm:p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0"
     @close="requestCancel"
   >
     <template #body>
       <form @submit.prevent="handleSave" class="flex flex-col min-h-0 flex-1 h-full">
-        <div class="p-6 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
+        <div class="p-3 sm:p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
           <div class="space-y-6">
           
           <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 relative">

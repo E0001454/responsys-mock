@@ -225,11 +225,14 @@ function mapFechaTipoName(id: number | null | undefined) {
 	<BaseModalShell
 		:show="props.show"
 		title="Detalle de Columna"
-		max-width-class="max-w-lg"
+		:mobile-bottom-sheet="true"
+		max-width-class="max-w-lg max-[640px]:max-w-none"
+		panel-class="rounded-2xl max-[640px]:rounded-t-2xl max-[640px]:rounded-b-none"
+		body-class="p-3 sm:p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0"
 		@close="emit('close')"
 	>
 		<template #body>
-			<div class="p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
+			<div>
 				<div v-if="!props.item" class="text-sm text-slate-500">
 					Sin información para mostrar.
 				</div>
@@ -270,7 +273,7 @@ function mapFechaTipoName(id: number | null | undefined) {
 						</p>
 						
 					</div>
-					<div class="grid grid-cols-3 gap-3">
+					<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
 
 						<div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
 							<span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Estatus</span>
@@ -298,7 +301,7 @@ function mapFechaTipoName(id: number | null | undefined) {
 							</template>
 						</div>
 
-						<div v-if="(props.item.columna?.regex ?? props.item.regex)" class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
+						<div v-if="(props.item.columna?.regex ?? props.item.regex)" class="col-span-2 sm:col-span-1 bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
 							<span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
 								Regex
 							</span>
@@ -313,7 +316,7 @@ function mapFechaTipoName(id: number | null | undefined) {
 						
 						<div class="p-2">
 							<div class="grid grid-cols-1 gap-4">
-								<div class="grid grid-cols-2">
+								<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 									<div class="flex items-center gap-2 pb-2 border-b border-slate-100 ">
 										<div class=" bg-gray-50 text-gray-600 rounded-md">
 											<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -368,7 +371,7 @@ function mapFechaTipoName(id: number | null | undefined) {
 
 							<div v-if="valor?.tipoId === 2" class="space-y-3">
 
-								<div class="grid grid-cols-2 gap-2">
+								<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
 								<div class=" p-2 rounded-lg border border-slate-100 shadow-sm">
 									<span class="block text-[10px] text-slate-400 uppercase font-medium"> Mínimo</span>
 									<span class="text-sm font-mono font-semibold text-slate-600">{{ valor?.cadena?.minimo ?? '—' }}</span>
@@ -382,7 +385,7 @@ function mapFechaTipoName(id: number | null | undefined) {
 
 							<div v-if="valor?.tipoId === 1" class="space-y-3">
 
-								<div class="grid grid-cols-2 gap-2">
+								<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
 								<div class=" p-2 rounded-lg border border-slate-100 shadow-sm">
 									<span class="block text-[10px] text-slate-400 uppercase font-medium">Enteros</span>
 									<span class="text-sm font-mono font-semibold text-slate-600">{{ valor?.numero?.enteros ?? '0' }}</span>

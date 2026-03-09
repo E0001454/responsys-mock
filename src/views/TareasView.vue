@@ -38,13 +38,13 @@ import { compareNewestFirst, matchesTokenizedSearch } from '@/composables/shared
 import { addToast } from '@/stores/toastStore'
 
 const tabs = [
-  { key: 'linea', label: 'Lineas de negocio' },
-  { key: 'campana', label: 'Campañas' }
+  { key: 'campana', label: 'Campañas' },
+  { key: 'linea', label: 'Lineas de negocio' }
 ] as const
 const campanaStageKeys = ['validacion', 'envio'] as const
 
 type TabKey = typeof tabs[number]['key']
-const activeTab = ref<TabKey>('linea')
+const activeTab = ref<TabKey>('campana')
 
 interface Option {
   label: string
@@ -169,10 +169,10 @@ const selectedFiltersCampana = reactive({
 
 const showModal = ref(false)
 const modalMode = ref<'add' | 'edit'>('add')
-const modalTab = ref<TabKey>('linea')
+const modalTab = ref<TabKey>('campana')
 const selectedItem = ref<TareaLineaRow | TareaCampanaRow | null>(null)
 const showDetailsModal = ref(false)
-const detailTab = ref<TabKey>('linea')
+const detailTab = ref<TabKey>('campana')
 const detailItem = ref<TareaLineaRow | TareaCampanaRow | null>(null)
 const isLoadingDetails = ref(false)
 const showSaveProgress = ref(false)
@@ -448,6 +448,7 @@ const isCampanaRow = (item: TareaLineaRow | TareaCampanaRow): item is TareaCampa
 
 async function hydrateLineaForEdit(item: TareaLineaRow): Promise<TareaLineaRow> {
   const ids = item.idsTarea ?? {}
+  const attemptedTaskIds = new Set<number>()
   const horariosByStage = await Promise.all(
     stageKeys.map(async stage => {
       const taskId = Number(
@@ -457,6 +458,7 @@ async function hydrateLineaForEdit(item: TareaLineaRow): Promise<TareaLineaRow> 
         ?? 0
       )
       if (!taskId) return []
+      attemptedTaskIds.add(taskId)
       const horarios = await tareaLineaService.getHorariosByTarea(taskId)
       return (Array.isArray(horarios) ? horarios : []).map((horario: any) => ({
         ...horario,
@@ -473,14 +475,33 @@ async function hydrateLineaForEdit(item: TareaLineaRow): Promise<TareaLineaRow> 
     })
   )
 
+  let hydratedHorarios = horariosByStage.flat()
+  if (!hydratedHorarios.length) {
+    const principalTaskId = Number(item.idABCConfigTareaLinea ?? 0)
+    if (principalTaskId > 0 && !attemptedTaskIds.has(principalTaskId)) {
+      const fallbackHorarios = await tareaLineaService.getHorariosByTarea(principalTaskId)
+      hydratedHorarios = (Array.isArray(fallbackHorarios) ? fallbackHorarios : []).map((horario: any) => ({
+        ...horario,
+        horarioId: Number(horario?.idABCConfigHorarioTareaLinea ?? horario?.id ?? 0) || undefined,
+        persisted: true,
+        activo: horario?.activo ?? horario?.bolActivo ?? true
+      }))
+    }
+  }
+
+  if (!hydratedHorarios.length && Array.isArray(item.horarios)) {
+    hydratedHorarios = [...item.horarios]
+  }
+
   return {
     ...item,
-    horarios: horariosByStage.flat()
+    horarios: hydratedHorarios
   }
 }
 
 async function hydrateCampanaForEdit(item: TareaCampanaRow): Promise<TareaCampanaRow> {
   const ids = item.idsTarea ?? {}
+  const attemptedTaskIds = new Set<number>()
   const horariosByStage = await Promise.all(
     campanaStageKeys.map(async stage => {
       const taskId = Number(
@@ -490,6 +511,7 @@ async function hydrateCampanaForEdit(item: TareaCampanaRow): Promise<TareaCampan
         ?? 0
       )
       if (!taskId) return []
+      attemptedTaskIds.add(taskId)
       const horarios = await tareaCampanaService.getHorariosByTarea(taskId)
       return (Array.isArray(horarios) ? horarios : []).map((horario: any) => ({
         ...horario,
@@ -506,9 +528,27 @@ async function hydrateCampanaForEdit(item: TareaCampanaRow): Promise<TareaCampan
     })
   )
 
+  let hydratedHorarios = horariosByStage.flat()
+  if (!hydratedHorarios.length) {
+    const principalTaskId = Number(item.idABCConfigTareaCampana ?? 0)
+    if (principalTaskId > 0 && !attemptedTaskIds.has(principalTaskId)) {
+      const fallbackHorarios = await tareaCampanaService.getHorariosByTarea(principalTaskId)
+      hydratedHorarios = (Array.isArray(fallbackHorarios) ? fallbackHorarios : []).map((horario: any) => ({
+        ...horario,
+        horarioId: Number(horario?.idABCConfigHorarioTareaCampana ?? horario?.id ?? 0) || undefined,
+        persisted: true,
+        activo: horario?.activo ?? horario?.bolActivo ?? true
+      }))
+    }
+  }
+
+  if (!hydratedHorarios.length && Array.isArray(item.horarios)) {
+    hydratedHorarios = [...item.horarios]
+  }
+
   return {
     ...item,
-    horarios: horariosByStage.flat()
+    horarios: hydratedHorarios
   }
 }
 
@@ -856,7 +896,7 @@ watch(
 </script>
 
 <template>
-  <div class="p-6 bg-slate-50 min-h-screen font-sans text-slate-800" @click.self="openFilterLinea = null; openFilterCampana = null">
+  <div class="p-3 sm:p-4 lg:p-6 bg-slate-50 min-h-full font-sans text-slate-800" @click.self="openFilterLinea = null; openFilterCampana = null">
     <div class="max-w-7xl mx-auto space-y-4">
       <TareasHeader
         :tabs="tabs"
@@ -917,13 +957,6 @@ watch(
           @search="handleSearchCampana"
         />
       </Transition>
-
-      <p
-        v-if="error"
-        class="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200"
-      >
-        {{ error }}
-      </p>
 
       <TareaLineaModal
         v-if="modalTab === 'linea'"

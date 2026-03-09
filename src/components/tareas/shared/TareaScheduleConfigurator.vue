@@ -59,18 +59,18 @@ const {
 </script>
 <template>
   <div>
-    <div class="relative pl-3 md:pl-0">
-      <div class="absolute left-3 md:left-[19px] top-3 bottom-8 w-0.5 bg-gray-200 z-0"></div>
+    <div class="relative">
+      <div class="hidden md:block absolute left-[19px] top-3 bottom-8 w-0.5 bg-gray-200 z-0"></div>
 
       <div v-if="!props.hideCarga" class="relative z-10 mb-8">
-        <div class="flex items-start gap-4">
+        <div class="flex flex-col md:flex-row items-start gap-3 md:gap-4">
           <div class="flex-shrink-0 w-10 h-10 rounded-full border-4 border-slate-50 flex items-center justify-center shadow-sm transition-colors duration-300 z-10"
             :class="hasCargaConfig ? 'bg-blue-500 text-white' : 'bg-[#00357F] text-white'">
             <svg v-if="hasCargaConfig" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
             <span v-else class="font-bold text-sm">1</span>
           </div>
 
-          <div class="relative flex-grow bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:border-[#00357F]/30 transition-all">
+          <div class="relative flex-grow w-full bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:border-[#00357F]/30 transition-all">
             <span v-if="hasCargaConfig" class="absolute -top-2.5 right-4 text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold border border-blue-200 shadow-sm">Configurado</span>
 
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -134,7 +134,7 @@ const {
       </div>
 
       <div class="relative z-10 mb-8 transition-all duration-300" :class="!isValidacionSectionEnabled ? 'opacity-50 grayscale' : 'opacity-100'">
-        <div class="flex items-start gap-4">
+        <div class="flex flex-col md:flex-row items-start gap-3 md:gap-4">
           <div class="flex-shrink-0 w-10 h-10 rounded-full border-4 border-slate-50 flex items-center justify-center shadow-sm transition-colors duration-300 z-10"
             :class="hasValidacionConfig ? 'bg-blue-500 text-white' : (isValidacionSectionEnabled ? 'bg-white border-[#00357F] text-[#00357F]' : 'bg-gray-200 text-gray-400')">
             <svg v-if="hasValidacionConfig" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
@@ -142,7 +142,7 @@ const {
             <span v-else class="font-bold text-sm">{{ props.hideCarga ? '1' : '2' }}</span>
           </div>
 
-          <div class="flex-grow bg-white p-5 rounded-xl shadow-sm border border-gray-200 relative">
+          <div class="flex-grow w-full bg-white p-5 rounded-xl shadow-sm border border-gray-200 relative">
              <div v-if="!isValidacionSectionEnabled" class="absolute inset-0 z-20 cursor-not-allowed bg-white/30"></div>
              <span v-if="hasValidacionConfig" class="absolute -top-2.5 right-4 text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold border border-blue-200 shadow-sm">Configurado</span>
 
@@ -215,7 +215,7 @@ const {
       </div>
 
       <div class="relative z-10 transition-all duration-300" :class="!isEnvioSectionEnabled ? 'opacity-50 grayscale' : 'opacity-100'">
-        <div class="flex items-start gap-4">
+        <div class="flex flex-col md:flex-row items-start gap-3 md:gap-4">
           <div class="flex-shrink-0 w-10 h-10 rounded-full border-4 border-slate-50 flex items-center justify-center shadow-sm transition-colors duration-300 z-10"
             :class="hasEnvioConfig ? 'bg-blue-500 text-white' : (isEnvioSectionEnabled ? 'bg-white border-[#00357F] text-[#00357F]' : 'bg-gray-200 text-gray-400')">
             <svg v-if="hasEnvioConfig" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
@@ -223,7 +223,7 @@ const {
             <span v-else class="font-bold text-sm">{{ props.hideCarga ? '2' : '3' }}</span>
           </div>
 
-          <div class="flex-grow bg-white p-5 rounded-xl shadow-sm border border-gray-200 relative">
+          <div class="flex-grow w-full bg-white p-5 rounded-xl shadow-sm border border-gray-200 relative">
              <div v-if="!isEnvioSectionEnabled" class="absolute inset-0 z-20 cursor-not-allowed bg-white/30"></div>
              <span v-if="hasEnvioConfig" class="absolute -top-2.5 right-4 text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold border border-blue-200 shadow-sm">Configurado</span>
 

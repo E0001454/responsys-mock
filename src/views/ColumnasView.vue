@@ -6,22 +6,22 @@ import ColumnaCampanaCrud from '@/components/columnas/campana/ColumnaCampanaCrud
 
 type TabKey = 'linea' | 'campana'
 
-const activeTab = ref<TabKey>('linea')
+const activeTab = ref<TabKey>('campana')
 
 const lineaRef = ref<InstanceType<typeof ColumnaLineaCrud> | null>(null)
 const campanaRef = ref<InstanceType<typeof ColumnaCampanaCrud> | null>(null)
 
 function handleAdd() {
-	if (activeTab.value === 'linea') {
-		lineaRef.value?.openAdd()
-	} else {
+	if (activeTab.value === 'campana') {
 		campanaRef.value?.openAdd()
+	} else {
+		lineaRef.value?.openAdd()
 	}
 }
 </script>
 
 <template>
-  <div class="p-6 bg-slate-50 min-h-screen font-sans text-slate-800">
+	<div class="p-3 sm:p-4 lg:p-6 bg-slate-50 min-h-full font-sans text-slate-800">
     <div class="max-w-7xl mx-auto space-y-4">
 		<ColumnasHeader
 			v-model:activeTab="activeTab"
@@ -29,8 +29,8 @@ function handleAdd() {
 		/>
 
 		<Transition name="tab-fade" mode="out-in" appear>
-			<ColumnaLineaCrud ref="lineaRef" v-if="activeTab === 'linea'" key="columnas-linea" />
-			<ColumnaCampanaCrud ref="campanaRef" v-else key="columnas-campana" />
+			<ColumnaCampanaCrud ref="campanaRef" v-if="activeTab === 'campana'" key="columnas-campana" />
+			<ColumnaLineaCrud ref="lineaRef" v-else key="columnas-linea" />
 		</Transition>
     </div>
   </div>

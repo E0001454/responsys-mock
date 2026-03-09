@@ -73,12 +73,14 @@ const { formatTimestamp, horarios, stageDetails } = useTareaCampanaDetails(props
   <BaseModalShell
     :show="show"
     title="Detalle de Tarea"
-    max-width-class="max-w-lg"
+    :mobile-bottom-sheet="true"
+    max-width-class="max-w-lg max-[640px]:max-w-none"
+    panel-class="rounded-2xl max-[640px]:rounded-t-2xl max-[640px]:rounded-b-none"
+    body-class="p-3 sm:p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0"
     @close="emit('close')"
   >
     <template #body>
-      <div class="p-4 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0">
-        <div v-if="isLoading" class="text-sm text-slate-500">Cargando detalle...</div>
+      <div v-if="isLoading" class="text-sm text-slate-500">Cargando detalle...</div>
 
         <div v-else-if="!item" class="text-sm text-slate-500">Sin información para mostrar.</div>
 
@@ -166,7 +168,6 @@ const { formatTimestamp, horarios, stageDetails } = useTareaCampanaDetails(props
               <p class="mt-1 text-slate-600">{{ formatTimestamp(item.fechaUltimaModificacion) }}</p>
             </div>
           </div>
-        </div>
       </div>
     </template>
     <template #footer>

@@ -28,13 +28,14 @@ onUnmounted(() => { try { document.body.style.overflow = '' } catch (_) {} })
   <BaseModalShell
     :show="props.show"
     :title="`Columnas del mapeo ${props.mapeoNombre ?? '-'}`"
-    max-width-class="max-w-6xl"
-    z-index-class="z-[99999]"
-    panel-class="rounded-xl shadow-xl"
+    :mobile-bottom-sheet="true"
+    max-width-class="max-w-6xl max-[640px]:max-w-none"
+    panel-class="rounded-xl shadow-xl max-[640px]:rounded-t-2xl max-[640px]:rounded-b-none"
+    body-class="p-0 overflow-y-auto custom-scrollbar bg-slate-50 flex-1 min-h-0"
     @close="emit('close')"
   >
     <template #body>
-      <div class="p-6 bg-slate-50">
+      <div class="p-3 sm:p-6 bg-slate-50">
         <ColumnaCampanaCrud
           :mapeo-id="props.mapeoId"
           :mapeo-nombre="props.mapeoNombre"
