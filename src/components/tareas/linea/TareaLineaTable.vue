@@ -107,8 +107,8 @@ const {
 
 <template>
   <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[64dvh] h-[calc(100dvh-14rem)] max-h-[calc(100dvh-10rem)] max-[650px]:h-[72dvh] max-[650px]:min-h-[62dvh] max-[650px]:max-h-none">
-    <div class="overflow-y-auto overflow-x-auto flex-1 min-h-0">
-      <table class="w-full min-w-[1080px] text-left border-collapse table-fixed">
+    <div class="overflow-y-auto overflow-x-hidden max-[1140px]:overflow-x-auto flex-1 min-h-0">
+      <table class="w-full max-[1140px]:min-w-[1080px] text-left border-collapse table-fixed">
         <colgroup>
           <col class="w-[17%]" />
           <col class="w-[23%]" />
@@ -197,7 +197,7 @@ const {
           </tr>
 
           <template v-else v-for="(t, index) in props.filteredTareas" :key="t.idABCConfigTareaLinea">
-            <tr :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40', 'hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(t, index) }]">
+            <tr :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-200/60', 'hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(t, index) }]">
               <td class="px-4 py-2.5" @dblclick="emit('viewDetails', t)">
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
                   {{ props.getLineaLabel(t.idABCCatLineaNegocio) }}

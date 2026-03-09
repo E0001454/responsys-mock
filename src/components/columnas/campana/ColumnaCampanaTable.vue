@@ -64,7 +64,13 @@ const statusOptions = [
 const { isRowGlowing } = useFirstRowNewGlow(
 	() => props.columnas,
 	row => `${Number(row.mapeoId ?? 0)}-${Number(row.columnaId ?? 0)}`,
-	{ isLoading: () => props.isLoading }
+	{
+		isLoading: () => props.isLoading,
+		getRowChangeToken: row => {
+			const item = row as ColumnaCampanaModel
+			return `${Number(item.mapeoId ?? 0)}-${Number(item.columnaId ?? 0)}-${item.fechaUltimaModificacion ?? item.fechaCreacion ?? ''}`
+		}
+	}
 )
 
 function getRequiredVisual(required: boolean) {
@@ -94,8 +100,8 @@ function getRequiredVisual(required: boolean) {
 			</button>
 		</div>
 		<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[72dvh] h-[calc(100dvh-11rem)] max-h-[calc(100dvh-8rem)] max-[650px]:h-[78dvh] max-[650px]:min-h-[68dvh] max-[650px]:max-h-none">
-			<div class="overflow-y-auto overflow-x-auto flex-1 min-h-0">
-					<table class="w-full min-w-[920px] max-[650px]:min-w-[620px] text-left border-collapse table-fixed">
+			<div class="overflow-y-auto overflow-x-hidden max-[1024px]:overflow-x-auto flex-1 min-h-0">
+					<table class="w-full max-[1024px]:min-w-[920px] max-[650px]:min-w-[620px] text-left border-collapse table-fixed">
 						<colgroup>
 							<col class="w-[45%]" />
 							<col class="w-[15%]" />
@@ -158,7 +164,7 @@ function getRequiredVisual(required: boolean) {
 							<tr
 								v-for="(c, index) in props.columnas"
 								:key="`${c.mapeoId}-${c.columnaId}`"
-									:class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40', 'hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(c, index) }]"
+									:class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-200/60', 'hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(c, index) }]"
 									@dblclick="emit('details', c)"
 							>
 								<td class="px-2.5 py-2 sm:px-4 sm:py-2.5 text-slate-600">

@@ -2,18 +2,23 @@
 import TareasMonitorHeader from '@/components/tareas/monitor/TareasMonitorHeader.vue'
 import TareasMonitorSummaryCards from '@/components/tareas/monitor/TareasMonitorSummaryCards.vue'
 import TareasMonitorTable from '@/components/tareas/monitor/TareasMonitorTable.vue'
-import FormActionConfirmModal from '@/components/shared/FormActionConfirmModal.vue'
+import TareaMonitorDetailsModal from '@/components/tareas/monitor/TareaMonitorDetailsModal.vue'
 import { useTareasMonitorViewModel } from '@/composables/tareas/monitor/useTareasMonitorViewModel'
 import { formatDateLabel, formatNumber, formatTimeLabel } from '@/utils/tareas/monitor/tareasMonitorFormat.utils'
 
 const {
   activeTab,
   actividadOptions,
-  campanasOptions,
   canNextPage,
   canPrevPage,
-  closeFilter,
+  campanasOptions,
   currentPage,
+  detailsActionLoading,
+  detailsCanApprove,
+  detailsCanDictaminar,
+  detailsItem,
+  detailsShowApprove,
+  detailsShowDictaminar,
   dictaminarOptions,
   error,
   estatusOptions,
@@ -27,33 +32,50 @@ const {
   handleTabChange,
   isLoading,
   isRowGlowing,
-  isStatusToggleLocked,
   lineasOptions,
   nextPage,
   openFilter,
+  openDetails,
   paginatedRows,
   prevPage,
-  requestStatusToggle,
   selectedActividades,
   selectedCampanas,
   selectedDictaminar,
   selectedEstatus,
   selectedLineas,
-  showStatusConfirmModal,
-  statusConfirmLoading,
-  statusConfirmMessage,
-  statusConfirmTitle,
-  confirmStatusToggle,
-  closeStatusConfirmModal,
-  tabs,
+  showDetailsModal,
   toggleFilter,
+  closeDetails,
+  approveCurrentEjecucion,
+  dictaminarCurrent,
+  tabs,
   totalPages,
   totals
 } = useTareasMonitorViewModel()
+
+function updateSelectedLineas(value: number[]) {
+  selectedLineas.value = value
+}
+
+function updateSelectedCampanas(value: number[]) {
+  selectedCampanas.value = value
+}
+
+function updateSelectedActividades(value: number[]) {
+  selectedActividades.value = value
+}
+
+function updateSelectedEstatus(value: number[]) {
+  selectedEstatus.value = value
+}
+
+function updateSelectedDictaminar(value: boolean[]) {
+  selectedDictaminar.value = value
+}
 </script>
 
 <template>
-  <div class="p-3 sm:p-4 lg:p-6 bg-slate-50 min-h-full font-sans text-slate-800" @click.self="closeFilter()">
+  <div class="p-3 sm:p-4 lg:p-6 bg-slate-50 min-h-full font-sans text-slate-800">
     <div class="max-w-7xl mx-auto space-y-4">
       <TareasMonitorHeader
         :tabs="tabs"
@@ -90,7 +112,6 @@ const {
             :can-prev-page="canPrevPage"
             :can-next-page="canNextPage"
             :is-row-glowing="isRowGlowing"
-            :is-status-toggle-locked="isStatusToggleLocked"
             :get-linea-label="getLineaLabel"
             :get-campana-label="getCampanaLabel"
             :get-actividad-label="getActividadLabel"
@@ -100,28 +121,36 @@ const {
             :format-time-label="formatTimeLabel"
             :format-number="formatNumber"
             @toggle-filter="toggleFilter"
-            @update:selected-lineas="selectedLineas = $event"
-            @update:selected-campanas="selectedCampanas = $event"
-            @update:selected-actividades="selectedActividades = $event"
-            @update:selected-estatus="selectedEstatus = $event"
-            @update:selected-dictaminar="selectedDictaminar = $event"
+            @update:selected-lineas="updateSelectedLineas"
+            @update:selected-campanas="updateSelectedCampanas"
+            @update:selected-actividades="updateSelectedActividades"
+            @update:selected-estatus="updateSelectedEstatus"
+            @update:selected-dictaminar="updateSelectedDictaminar"
             @search="handleSearch"
             @prev-page="prevPage"
             @next-page="nextPage"
-            @toggle-status="requestStatusToggle"
+            @view-details="openDetails"
           />
         </div>
       </Transition>
 
-      <FormActionConfirmModal
-        :show="showStatusConfirmModal"
-        :title="statusConfirmTitle"
-        :message="statusConfirmMessage"
-        confirm-text="Aceptar"
-        cancel-text="Cancelar"
-        :is-loading="statusConfirmLoading"
-        @confirm="confirmStatusToggle"
-        @cancel="closeStatusConfirmModal"
+      <TareaMonitorDetailsModal
+        :show="showDetailsModal"
+        :item="detailsItem"
+        :loading="detailsActionLoading"
+        :can-approve="detailsCanApprove"
+        :can-dictaminar="detailsCanDictaminar"
+        :show-approve="detailsShowApprove"
+        :show-dictaminar="detailsShowDictaminar"
+        :get-linea-label="getLineaLabel"
+        :get-campana-label="getCampanaLabel"
+        :get-status-class="getStatusClass"
+        :format-date-label="formatDateLabel"
+        :format-time-label="formatTimeLabel"
+        :format-number="formatNumber"
+        @close="closeDetails"
+        @approve="approveCurrentEjecucion"
+        @dictaminar="dictaminarCurrent"
       />
     </div>
   </div>

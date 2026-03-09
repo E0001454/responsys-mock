@@ -89,12 +89,12 @@ async function fetchMapeosCampana() {
 }
 
 function newestFirstCompare(
-  left: { fechaCreacion?: string; idABCConfigMapeoLinea?: number },
-  right: { fechaCreacion?: string; idABCConfigMapeoLinea?: number }
+  left: { fechaCreacion?: string; fechaUltimaModificacion?: string; idABCConfigMapeoLinea?: number },
+  right: { fechaCreacion?: string; fechaUltimaModificacion?: string; idABCConfigMapeoLinea?: number }
 ) {
   return compareNewestFirst(
-    left.fechaCreacion,
-    right.fechaCreacion,
+    left.fechaUltimaModificacion ?? left.fechaCreacion,
+    right.fechaUltimaModificacion ?? right.fechaCreacion,
     Number(left.idABCConfigMapeoLinea ?? 0),
     Number(right.idABCConfigMapeoLinea ?? 0)
   )

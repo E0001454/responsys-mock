@@ -208,12 +208,27 @@ function getSearchableText(item: { ingesta?: string; carga?: { ejecucion?: strin
 }
 
 function newestFirstCompare(
-  left: { fechaCreacion?: string; idABCConfigTareaLinea?: number; idABCConfigTareaCampana?: number },
-  right: { fechaCreacion?: string; idABCConfigTareaLinea?: number; idABCConfigTareaCampana?: number }
+  left: {
+    fechaCreacion?: string
+    fechaUltimaModificacion?: string
+    idABCConfigTareaLinea?: number
+    idABCConfigTareaCampana?: number
+  },
+  right: {
+    fechaCreacion?: string
+    fechaUltimaModificacion?: string
+    idABCConfigTareaLinea?: number
+    idABCConfigTareaCampana?: number
+  }
 ) {
   const leftId = Number(left.idABCConfigTareaCampana ?? left.idABCConfigTareaLinea ?? 0)
   const rightId = Number(right.idABCConfigTareaCampana ?? right.idABCConfigTareaLinea ?? 0)
-  return compareNewestFirst(left.fechaCreacion, right.fechaCreacion, leftId, rightId)
+  return compareNewestFirst(
+    left.fechaUltimaModificacion ?? left.fechaCreacion,
+    right.fechaUltimaModificacion ?? right.fechaCreacion,
+    leftId,
+    rightId
+  )
 }
 
 const filteredTareasLinea = computed(() => {

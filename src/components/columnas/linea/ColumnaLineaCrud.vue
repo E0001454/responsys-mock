@@ -84,11 +84,11 @@ function toTimestamp(value?: string) {
 }
 
 function newestFirstCompare(
-	left: { fechaCreacion?: string; mapeoId?: number; columnaId?: number },
-	right: { fechaCreacion?: string; mapeoId?: number; columnaId?: number }
+	left: { fechaCreacion?: string; fechaUltimaModificacion?: string; mapeoId?: number; columnaId?: number },
+	right: { fechaCreacion?: string; fechaUltimaModificacion?: string; mapeoId?: number; columnaId?: number }
 ) {
-	const leftTs = toTimestamp(left.fechaCreacion)
-	const rightTs = toTimestamp(right.fechaCreacion)
+	const leftTs = toTimestamp(left.fechaUltimaModificacion || left.fechaCreacion)
+	const rightTs = toTimestamp(right.fechaUltimaModificacion || right.fechaCreacion)
 	if (rightTs !== leftTs) return rightTs - leftTs
 
 	const leftId = Number(left.mapeoId ?? 0) * 100000 + Number(left.columnaId ?? 0)

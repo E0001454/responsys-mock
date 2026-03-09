@@ -9,6 +9,8 @@ interface HorarioItem {
 
 export interface TareaLineaTableRow {
   idABCConfigTareaLinea: number
+  fechaCreacion?: string
+  fechaUltimaModificacion?: string
   carga?: { ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
   validacion?: { ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
   envio?: { ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
@@ -86,7 +88,13 @@ export function useTareaLineaTable(props: {
   const { isRowGlowing } = useFirstRowNewGlow(
     () => props.filteredTareas,
     row => Number(row.idABCConfigTareaLinea ?? 0),
-    { isLoading: () => props.isLoading }
+    {
+      isLoading: () => props.isLoading,
+      getRowChangeToken: row => {
+        const item = row as TareaLineaTableRow
+        return `${Number(item.idABCConfigTareaLinea ?? 0)}-${item.fechaUltimaModificacion ?? item.fechaCreacion ?? ''}`
+      }
+    }
   )
 
   return {

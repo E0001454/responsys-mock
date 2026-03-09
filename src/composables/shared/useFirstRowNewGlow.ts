@@ -5,6 +5,7 @@ type RowKey = string | number
 interface GlowOptions {
   durationMs?: number
   isLoading?: () => boolean
+  getRowChangeToken?: (row: unknown, index: number) => RowKey
 }
 
 export function useFirstRowNewGlow<T>(
@@ -13,10 +14,14 @@ export function useFirstRowNewGlow<T>(
   options?: GlowOptions
 ) {
   const glowingRowKey = ref<RowKey | null>(null)
-  const previousFirstRowKey = ref<RowKey | null>(null)
   const initialized = ref(false)
   const duration = Math.max(300, Number(options?.durationMs ?? 2200))
   let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+  const getRowToken = (row: T, index: number): RowKey => {
+    if (options?.getRowChangeToken) return options.getRowChangeToken(row as unknown, index)
+    return getRowKey(row, index)
+  }
 
   const clearGlowTimeout = () => {
     if (timeoutId) {
@@ -40,37 +45,53 @@ export function useFirstRowNewGlow<T>(
   }
 
   watch(
-    () => rowsSource().length,
-    (currentLength, previousLength) => {
-      if (options?.isLoading?.()) return
-
+    () => {
       const rows = rowsSource()
       const firstRow = rows[0]
-      const currentFirstKey = firstRow ? getRowKey(firstRow, 0) : null
-
+      return {
+        length: rows.length,
+        firstKey: firstRow ? getRowKey(firstRow, 0) : null,
+        firstToken: firstRow ? getRowToken(firstRow, 0) : null,
+        isLoading: Boolean(options?.isLoading?.())
+      }
+    },
+    (current, previous) => {
       if (!initialized.value) {
         initialized.value = true
-        previousFirstRowKey.value = currentFirstKey
         return
       }
 
-      if (currentLength <= 0) {
+      if (current.isLoading) return
+
+      if (current.length <= 0) {
         glowingRowKey.value = null
-        previousFirstRowKey.value = null
         return
       }
 
-      if (
-        typeof previousLength === 'number'
+      const previousLength = Number(previous?.length ?? 0)
+      const previousFirstKey = previous?.firstKey ?? null
+      const previousFirstToken = previous?.firstToken ?? null
+      const loadingFinished = Boolean(previous?.isLoading) && !current.isLoading
+
+      const isNewFirstRow =
+        previousLength > 0
+        && current.length > previousLength
+        && current.firstKey !== null
+        && current.firstKey !== previousFirstKey
+
+      const isUpdatedFirstRow =
+        loadingFinished
         && previousLength > 0
-        && currentLength > previousLength
-        && currentFirstKey !== null
-        && currentFirstKey !== previousFirstRowKey.value
-      ) {
+        && current.length === previousLength
+        && current.firstKey !== null
+        && (
+          current.firstKey !== previousFirstKey
+          || current.firstToken !== previousFirstToken
+        )
+
+      if (isNewFirstRow || isUpdatedFirstRow) {
         triggerGlow()
       }
-
-      previousFirstRowKey.value = currentFirstKey
     },
     { immediate: true }
   )

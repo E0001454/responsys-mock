@@ -1,46 +1,37 @@
-import { ref, computed, onMounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { matchesSearchContains } from '@/composables/shared/listViewUtils'
 import { useFirstRowNewGlow } from '@/composables/shared/useFirstRowNewGlow'
 import { catalogosService } from '@/services/catalogos/catalogosService'
-import { mapeoCampanaService } from '@/services/mapeos/campana/mapeoCampanaService'
-import { mapeoLineaService } from '@/services/mapeos/linea/mapeoLineaService'
 import { tareaMonitorService } from '@/services/tareas/monitor/tareaMonitorService'
 import type {
+  MonitorScope,
   TareaMonitorCampanaData,
   TareaMonitorData,
   TareaMonitorLineaData
 } from '@/types/tareas/monitor'
-import {
-  mapCatalogIdToCode,
-  mapCatalogIdToLabel,
-  mapIdLabelOptions,
-  mapMapeoNameById,
-  resolveMapeoName
-} from '@/utils/tareas/monitor/tareasMonitorData.utils'
+import { mapCatalogIdToLabel } from '@/utils/tareas/monitor/tareasMonitorData.utils'
 import { getStatusClassByCode } from '@/utils/tareas/monitor/tareasMonitorFormat.utils'
 
 export const tabs = [
-  { key: 'campana', label: 'Campañas' },
+  { key: 'campana', label: 'Campanas' },
   { key: 'linea', label: 'Lineas de negocio' }
 ] as const
 
 export type TabKey = typeof tabs[number]['key']
 
+type NumericOption = {
+  label: string
+  value: number
+}
+
+type BooleanOption = {
+  label: string
+  value: boolean
+}
+
+const REFRESH_MS = 1000
+
 export function useTareasMonitorViewModel() {
-  const actividadOrderById: Record<number, number> = {
-    1: 1,
-    2: 2,
-    3: 3
-  }
-
-  const actividadOrderByCode: Record<string, number> = {
-    CARGA: 1,
-    VALIDACION: 2,
-    'VALIDACIÓN': 2,
-    ENVIO: 3,
-    'ENVÍO': 3
-  }
-
   const activeTab = ref<TabKey>('campana')
   const isLoading = ref(false)
   const error = ref<string | null>(null)
@@ -48,90 +39,159 @@ export function useTareasMonitorViewModel() {
   const searchQuery = ref('')
   const pageSize = ref(10)
   const currentPage = ref(1)
+  const showDetailsModal = ref(false)
+  const detailsItem = ref<TareaMonitorData | null>(null)
+  const detailsActionLoading = ref(false)
 
   const tareasMonitorLinea = ref<TareaMonitorLineaData[]>([])
   const tareasMonitorCampana = ref<TareaMonitorCampanaData[]>([])
-
   const lineaLabelById = ref(new Map<number, string>())
   const campanaLabelById = ref(new Map<number, string>())
-  const actividadLabelById = ref(new Map<number, string>())
-  const statusLabelById = ref(new Map<number, string>())
-  const statusCodeById = ref(new Map<number, string>())
-  const mapeoLineaNameById = ref(new Map<number, string>())
-  const mapeoCampanaNameById = ref(new Map<number, string>())
-
-  const currentRows = computed<TareaMonitorData[]>(() =>
-    activeTab.value === 'linea' ? tareasMonitorLinea.value : tareasMonitorCampana.value
-  )
-
-  const lineasOptions = computed(() => mapIdLabelOptions(lineaLabelById.value))
-  const campanasOptions = computed(() => mapIdLabelOptions(campanaLabelById.value))
-  const actividadOptions = computed(() => mapIdLabelOptions(actividadLabelById.value))
-  const estatusOptions = computed(() => mapIdLabelOptions(statusLabelById.value))
-
-  const dictaminarOptions = [
-    { label: 'Pendientes', value: false },
-    { label: 'Aprobados', value: true }
-  ]
 
   const selectedLineas = ref<number[]>([])
   const selectedCampanas = ref<number[]>([])
   const selectedActividades = ref<number[]>([])
   const selectedEstatus = ref<number[]>([])
   const selectedDictaminar = ref<boolean[]>([true, false])
-  const statusToggleLocks = ref(new Set<string>())
-  const showStatusConfirmModal = ref(false)
-  const pendingStatusItem = ref<TareaMonitorData | null>(null)
+  const filtersInitialized = ref(false)
 
-  const statusConfirmLoading = computed(() => {
-    if (!pendingStatusItem.value) return false
-    const key = getStatusLockKey(pendingStatusItem.value)
-    return statusToggleLocks.value.has(key)
+  let refreshTimer: ReturnType<typeof setInterval> | null = null
+
+  const currentRows = computed<TareaMonitorData[]>(() =>
+    activeTab.value === 'linea' ? tareasMonitorLinea.value : tareasMonitorCampana.value
+  )
+
+  const lineasOptions = computed<NumericOption[]>(() => {
+    const map = new Map<number, string>()
+    currentRows.value.forEach(row => {
+      const id = Number(row.idABCCatLineaNegocio ?? 0)
+      if (!id) return
+      map.set(id, lineaLabelById.value.get(id) ?? `Linea ${id}`)
+    })
+
+    return Array.from(map.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([value, label]) => ({ value, label }))
   })
 
-  const statusConfirmTitle = computed(() => {
-    return 'Aprobar registro'
+  const campanasOptions = computed<NumericOption[]>(() => {
+    if (activeTab.value !== 'campana') return []
+
+    const map = new Map<number, string>()
+    currentRows.value.forEach(row => {
+      if (row.scope !== 'campana') return
+      const id = Number(row.idABCCatCampana ?? 0)
+      if (!id) return
+      map.set(id, campanaLabelById.value.get(id) ?? `Campana ${id}`)
+    })
+
+    return Array.from(map.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([value, label]) => ({ value, label }))
   })
 
-  const statusConfirmMessage = computed(() => {
-    if (!pendingStatusItem.value) return '¿Deseas aprobar este registro?'
-    const nombre = pendingStatusItem.value.nombreMapeo || `registro ${pendingStatusItem.value.id}`
-    return `¿Deseas aprobar el registro ${nombre}?`
+  const actividadOptions = computed<NumericOption[]>(() => {
+    const map = new Map<number, string>()
+    currentRows.value.forEach(row => {
+      const id = Number(row.actividad?.id ?? 0)
+      if (!id) return
+      map.set(id, row.actividad?.nombre ?? row.actividad?.codigo ?? `Actividad ${id}`)
+    })
+
+    return Array.from(map.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([value, label]) => ({ value, label }))
   })
+
+  const estatusOptions = computed<NumericOption[]>(() => {
+    const map = new Map<number, string>()
+    currentRows.value.forEach(row => {
+      const id = Number(row.estatus?.id ?? 0)
+      if (!id) return
+      map.set(id, row.estatus?.nombre ?? row.estatus?.codigo ?? `Estatus ${id}`)
+    })
+
+    return Array.from(map.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([value, label]) => ({ value, label }))
+  })
+
+  const dictaminarOptions: BooleanOption[] = [
+    { label: 'Pendientes', value: false },
+    { label: 'Aprobados', value: true }
+  ]
 
   function isValidacionRow(row: TareaMonitorData) {
     const actividadId = Number(row?.actividad?.id ?? 0)
     const actividadCode = String(row?.actividad?.codigo ?? '').trim().toUpperCase()
-    return actividadId === 2 || actividadCode === 'VALIDACION' || actividadCode === 'VALIDACIÓN'
+    return actividadId === 2 || actividadCode === 'VALIDACION' || actividadCode === 'VALIDACION'
+  }
+
+  function reconcileSelection<T>(selected: T[], options: T[], fallbackToAll = true): T[] {
+    const allowed = new Set(options)
+    const cleaned = selected.filter(item => allowed.has(item))
+    if (fallbackToAll && cleaned.length === 0) return [...options]
+    return cleaned
+  }
+
+  function initializeFilters(force = false) {
+    const lineaValues = lineasOptions.value.map(opt => Number(opt.value))
+    const campanaValues = campanasOptions.value.map(opt => Number(opt.value))
+    const actividadValues = actividadOptions.value.map(opt => Number(opt.value))
+    const estatusValues = estatusOptions.value.map(opt => Number(opt.value))
+
+    if (force || !filtersInitialized.value) {
+      selectedLineas.value = [...lineaValues]
+      selectedCampanas.value = [...campanaValues]
+      selectedActividades.value = [...actividadValues]
+      selectedEstatus.value = [...estatusValues]
+      selectedDictaminar.value = [true, false]
+      filtersInitialized.value = true
+      return
+    }
+
+    selectedLineas.value = reconcileSelection(selectedLineas.value, lineaValues)
+    selectedCampanas.value = reconcileSelection(selectedCampanas.value, campanaValues)
+    selectedActividades.value = reconcileSelection(selectedActividades.value, actividadValues)
+    selectedEstatus.value = reconcileSelection(selectedEstatus.value, estatusValues)
+    selectedDictaminar.value = reconcileSelection(selectedDictaminar.value, [true, false], false)
+    if (selectedDictaminar.value.length === 0) selectedDictaminar.value = [true, false]
   }
 
   const filteredRows = computed<TareaMonitorData[]>(() => {
     return currentRows.value
       .filter(row => {
-      const statusId = Number(row?.estatus?.id ?? 0)
-      const actividadId = Number(row?.actividad?.id ?? 0)
-      const campanaId = Number((row as TareaMonitorCampanaData)?.idABCCatCampana ?? 0)
+        const campanaId = Number((row as TareaMonitorCampanaData).idABCCatCampana ?? 0)
+        const statusId = Number(row.estatus?.id ?? 0)
+        const actividadId = Number(row.actividad?.id ?? 0)
 
-      const matchSearch = matchesSearchContains(row.nombreMapeo, searchQuery.value)
-      const matchLinea = selectedLineas.value.length
-        ? selectedLineas.value.includes(Number(row.idABCCatLineaNegocio))
-        : true
-      const matchCampana = activeTab.value === 'campana'
-        ? (selectedCampanas.value.length ? selectedCampanas.value.includes(campanaId) : true)
-        : true
-      const matchActividad = selectedActividades.value.length
-        ? selectedActividades.value.includes(actividadId)
-        : true
-      const matchEstatus = selectedEstatus.value.length
-        ? selectedEstatus.value.includes(statusId)
-        : true
-      const matchDictaminar = !isValidacionRow(row)
-        ? true
-        : selectedDictaminar.value.length
-          ? selectedDictaminar.value.includes(Boolean(row.bolActivo))
+        const matchSearch = searchQuery.value.trim()
+          ? matchesSearchContains(row.nombreMapeo, searchQuery.value)
           : true
 
-      return matchSearch && matchLinea && matchCampana && matchActividad && matchEstatus && matchDictaminar
+        const matchLinea = selectedLineas.value.length
+          ? selectedLineas.value.includes(Number(row.idABCCatLineaNegocio ?? 0))
+          : true
+
+        const matchCampana = activeTab.value === 'campana'
+          ? (selectedCampanas.value.length ? selectedCampanas.value.includes(campanaId) : true)
+          : true
+
+        const matchActividad = selectedActividades.value.length
+          ? selectedActividades.value.includes(actividadId)
+          : true
+
+        const matchEstatus = selectedEstatus.value.length
+          ? selectedEstatus.value.includes(statusId)
+          : true
+
+        const matchDictaminar = !isValidacionRow(row) || !row.dictaminacionRequerida
+          ? true
+          : selectedDictaminar.value.length
+            ? selectedDictaminar.value.includes(Boolean(row.dictaminado))
+            : true
+
+        return matchSearch && matchLinea && matchCampana && matchActividad && matchEstatus && matchDictaminar
       })
       .slice()
       .sort((a, b) => {
@@ -145,19 +205,7 @@ export function useTareasMonitorViewModel() {
           if (campanaA !== campanaB) return campanaA - campanaB
         }
 
-        const mapeoA = Number(a.idABCConfigMapeo ?? 0)
-        const mapeoB = Number(b.idABCConfigMapeo ?? 0)
-        if (mapeoA !== mapeoB) return mapeoA - mapeoB
-
-        const actividadA = Number(a?.actividad?.id ?? 0)
-        const actividadB = Number(b?.actividad?.id ?? 0)
-        const actividadCodeA = String(a?.actividad?.codigo ?? '').toUpperCase()
-        const actividadCodeB = String(b?.actividad?.codigo ?? '').toUpperCase()
-        const actividadSortA = actividadOrderById[actividadA] ?? actividadOrderByCode[actividadCodeA] ?? 999
-        const actividadSortB = actividadOrderById[actividadB] ?? actividadOrderByCode[actividadCodeB] ?? 999
-
-        if (actividadSortA !== actividadSortB) return actividadSortA - actividadSortB
-        return Number(a.id ?? 0) - Number(b.id ?? 0)
+        return String(a.nombreMapeo ?? '').localeCompare(String(b.nombreMapeo ?? ''))
       })
   })
 
@@ -175,30 +223,91 @@ export function useTareasMonitorViewModel() {
 
   const { isRowGlowing } = useFirstRowNewGlow(
     () => paginatedRows.value,
-    row => `${activeTab.value}-${Number(row.id ?? 0)}`,
-    { isLoading: () => isLoading.value }
+    row => `${activeTab.value}-${row.pipelineId}-${row.etapaIndex}`,
+    {
+      isLoading: () => isLoading.value,
+      getRowChangeToken: row => {
+        const item = row as TareaMonitorData
+        return `${item.pipelineId}-${item.etapaIndex}-${item.numeroRegistrosProcesados}-${item.estatus.codigo}`
+      }
+    }
   )
 
   const totals = computed(() => {
     const rows = filteredRows.value
     const totalRegistros = rows.reduce((acc, row) => acc + Number(row.numeroRegistros ?? 0), 0)
     const totalProcesados = rows.reduce((acc, row) => acc + Number(row.numeroRegistrosProcesados ?? 0), 0)
-    const activos = rows.filter(row => Boolean(row.bolActivo)).length
+    const enEjecucion = rows.filter(row => String(row.estatus.codigo).toUpperCase() === 'EJC').length
 
     return {
       tareas: rows.length,
       totalRegistros,
       totalProcesados,
-      activos
+      enEjecucion
     }
   })
 
-  function initializeFilters() {
-    selectedLineas.value = lineasOptions.value.map(opt => Number(opt.value))
-    selectedCampanas.value = campanasOptions.value.map(opt => Number(opt.value))
-    selectedActividades.value = actividadOptions.value.map(opt => Number(opt.value))
-    selectedEstatus.value = estatusOptions.value.map(opt => Number(opt.value))
-    selectedDictaminar.value = [true, false]
+  const detailsCanApprove = computed(() => {
+    if (!detailsItem.value) return false
+    const item = detailsItem.value
+    const mode = item.ejecucion.modo
+    const isPlanned = item.estatus.codigo === 'PLN'
+    const scheduleTs = Date.parse(item.horarioProgramado)
+    const reachedSchedule = Number.isFinite(scheduleTs) ? Date.now() >= scheduleTs : false
+
+    if (mode === 'AUTOMATICA') return false
+    if (mode === 'MANUAL') return isPlanned && reachedSchedule
+    if (mode === 'HIBRIDA') return isPlanned && !reachedSchedule
+    return false
+  })
+
+  const detailsShowApprove = computed(() => {
+    if (!detailsItem.value) return false
+    return detailsItem.value.ejecucion.modo !== 'AUTOMATICA'
+  })
+
+  const detailsCanDictaminar = computed(() => {
+    if (!detailsItem.value) return false
+    const item = detailsItem.value
+    return item.actividad.codigo === 'VALIDACION'
+      && item.dictaminacionRequerida
+      && item.estatus.codigo === 'CMP'
+      && !item.dictaminado
+  })
+
+  const detailsShowDictaminar = computed(() => {
+    if (!detailsItem.value) return false
+    const item = detailsItem.value
+    return item.actividad.codigo === 'VALIDACION' && item.dictaminacionRequerida
+  })
+
+  async function fetchCatalogos() {
+    const catalogos = await catalogosService.getCatalogosAgrupados()
+    lineaLabelById.value = mapCatalogIdToLabel(catalogos, 'LNN')
+    campanaLabelById.value = mapCatalogIdToLabel(catalogos, 'CMP')
+  }
+
+  async function fetchMonitorData() {
+    const [linea, campana] = await Promise.all([
+      tareaMonitorService.getLinea(),
+      tareaMonitorService.getCampana()
+    ])
+    tareasMonitorLinea.value = linea
+    tareasMonitorCampana.value = campana
+
+    if (detailsItem.value) {
+      const source = detailsItem.value.scope === 'linea' ? linea : campana
+      const refreshed = source.find(item =>
+        item.pipelineId === detailsItem.value?.pipelineId && item.etapaIndex === detailsItem.value?.etapaIndex
+      )
+      if (refreshed) detailsItem.value = refreshed
+    }
+
+    initializeFilters()
+  }
+
+  function getScopeFromTab(tab: TabKey): MonitorScope {
+    return tab === 'linea' ? 'linea' : 'campana'
   }
 
   function getLineaLabel(row: TareaMonitorData) {
@@ -206,85 +315,20 @@ export function useTareasMonitorViewModel() {
   }
 
   function getCampanaLabel(row: TareaMonitorData) {
-    if (!('idABCCatCampana' in row)) return '-'
-    return campanaLabelById.value.get(Number(row.idABCCatCampana)) ?? `Campaña ${row.idABCCatCampana}`
+    if (row.scope !== 'campana') return '-'
+    return campanaLabelById.value.get(Number(row.idABCCatCampana)) ?? `Campana ${row.idABCCatCampana}`
   }
 
   function getActividadLabel(row: TareaMonitorData) {
-    const id = Number(row?.actividad?.id ?? 0)
-    const code = String(row?.actividad?.codigo ?? '').toUpperCase()
-    return actividadLabelById.value.get(id) ?? row?.actividad?.nombre ?? code
+    return row.actividad.nombre ?? row.actividad.codigo
   }
 
   function getStatusLabel(row: TareaMonitorData) {
-    const id = Number(row?.estatus?.id ?? 0)
-    const code = String(row?.estatus?.codigo ?? '').toUpperCase()
-    return statusLabelById.value.get(id) ?? row?.estatus?.nombre ?? code
+    return row.estatus.nombre ?? row.estatus.codigo
   }
 
   function getStatusClass(row: TareaMonitorData) {
-    const id = Number(row?.estatus?.id ?? 0)
-    const code = statusCodeById.value.get(id) ?? String(row?.estatus?.codigo ?? '').toUpperCase()
-    return getStatusClassByCode(code)
-  }
-
-  function isCampanaRow(row: TareaMonitorData): row is TareaMonitorCampanaData {
-    return typeof (row as TareaMonitorCampanaData).idABCCatCampana === 'number'
-  }
-
-  function getStatusLockKey(row: TareaMonitorData) {
-    return `${isCampanaRow(row) ? 'campana' : 'linea'}:${Number(row.id)}`
-  }
-
-  function isStatusToggleLocked(row: TareaMonitorData) {
-    return statusToggleLocks.value.has(getStatusLockKey(row))
-  }
-
-  async function toggleDictaminar(row: TareaMonitorData) {
-    if (!isValidacionRow(row)) return
-    if (Boolean(row.bolActivo)) return
-
-    const lockKey = getStatusLockKey(row)
-    if (statusToggleLocks.value.has(lockKey)) return
-
-    statusToggleLocks.value.add(lockKey)
-    const nextActivo = true
-    try {
-      if (isCampanaRow(row)) {
-        await tareaMonitorService.patchDictaminarCampana(Number(row.id), nextActivo, 1)
-        tareasMonitorCampana.value = tareasMonitorCampana.value.map(item =>
-          Number(item.id) === Number(row.id)
-            ? { ...item, bolActivo: nextActivo }
-            : item
-        )
-      } else {
-        await tareaMonitorService.patchDictaminarLinea(Number(row.id), nextActivo, 1)
-        tareasMonitorLinea.value = tareasMonitorLinea.value.map(item =>
-          Number(item.id) === Number(row.id)
-            ? { ...item, bolActivo: nextActivo }
-            : item
-        )
-      }
-    } finally {
-      statusToggleLocks.value.delete(lockKey)
-    }
-  }
-
-  function requestStatusToggle(row: TareaMonitorData) {
-    if (!isValidacionRow(row) || Boolean(row.bolActivo)) return
-    pendingStatusItem.value = row
-    showStatusConfirmModal.value = true
-  }
-
-  function closeStatusConfirmModal() {
-    showStatusConfirmModal.value = false
-    pendingStatusItem.value = null
-  }
-
-  async function confirmStatusToggle() {
-    if (!pendingStatusItem.value) return
-    await toggleDictaminar(pendingStatusItem.value)
-    closeStatusConfirmModal()
+    return getStatusClassByCode(String(row.estatus.codigo).toUpperCase())
   }
 
   function toggleFilter(key: string) {
@@ -298,8 +342,11 @@ export function useTareasMonitorViewModel() {
   function handleTabChange(tab: TabKey) {
     if (activeTab.value === tab) return
     activeTab.value = tab
-    openFilter.value = null
     currentPage.value = 1
+    closeFilter()
+    showDetailsModal.value = false
+    detailsItem.value = null
+    initializeFilters(true)
   }
 
   function handleSearch(value: string) {
@@ -317,54 +364,70 @@ export function useTareasMonitorViewModel() {
     currentPage.value += 1
   }
 
-  async function fetchCatalogos() {
-    const catalogos = await catalogosService.getCatalogosAgrupados()
-    lineaLabelById.value = mapCatalogIdToLabel(catalogos, 'LNN')
-    campanaLabelById.value = mapCatalogIdToLabel(catalogos, 'CMP')
-    actividadLabelById.value = mapCatalogIdToLabel(catalogos, 'ACT')
-    const statusLabelEST = mapCatalogIdToLabel(catalogos, 'EST')
-    const statusCodeEST = mapCatalogIdToCode(catalogos, 'EST')
-    statusLabelById.value = statusLabelEST.size ? statusLabelEST : mapCatalogIdToLabel(catalogos, 'STS')
-    statusCodeById.value = statusCodeEST.size ? statusCodeEST : mapCatalogIdToCode(catalogos, 'STS')
+  function openDetails(row: TareaMonitorData) {
+    detailsItem.value = row
+    showDetailsModal.value = true
   }
 
-  async function fetchMapeos() {
-    const [mapeosLinea, mapeosCampana] = await Promise.all([
-      mapeoLineaService.getAllMapeos(),
-      mapeoCampanaService.getMapeosCampana()
-    ])
-    mapeoLineaNameById.value = mapMapeoNameById(mapeosLinea)
-    mapeoCampanaNameById.value = mapMapeoNameById(mapeosCampana)
+  function closeDetails() {
+    if (detailsActionLoading.value) return
+    showDetailsModal.value = false
+    detailsItem.value = null
   }
 
-  async function fetchMonitorData() {
-    const [linea, campana] = await Promise.all([
-      tareaMonitorService.getLinea(),
-      tareaMonitorService.getCampana()
-    ])
-    tareasMonitorLinea.value = linea.map(row => {
-      const mapeoId = Number(row.idABCConfigMapeo ?? 0)
-      return {
-        ...row,
-        nombreMapeo: resolveMapeoName(mapeoId, 'linea', mapeoLineaNameById.value, mapeoCampanaNameById.value)
-      }
-    })
-    tareasMonitorCampana.value = campana.map(row => {
-      const mapeoId = Number(row.idABCConfigMapeo ?? 0)
-      return {
-        ...row,
-        nombreMapeo: resolveMapeoName(mapeoId, 'campana', mapeoLineaNameById.value, mapeoCampanaNameById.value)
-      }
-    })
+  async function approveCurrentEjecucion() {
+    if (!detailsItem.value || !detailsCanApprove.value) return
+    detailsActionLoading.value = true
+    try {
+      await tareaMonitorService.approveEjecucion(
+        detailsItem.value.scope,
+        detailsItem.value.pipelineId,
+        detailsItem.value.etapaIndex
+      )
+      await fetchMonitorData()
+    } finally {
+      detailsActionLoading.value = false
+    }
+  }
+
+  async function dictaminarCurrent() {
+    if (!detailsItem.value || !detailsCanDictaminar.value) return
+    detailsActionLoading.value = true
+    try {
+      await tareaMonitorService.dictaminar(
+        detailsItem.value.scope,
+        detailsItem.value.pipelineId,
+        detailsItem.value.etapaIndex
+      )
+      await fetchMonitorData()
+    } finally {
+      detailsActionLoading.value = false
+    }
+  }
+
+  function startRefreshLoop() {
+    if (refreshTimer) clearInterval(refreshTimer)
+    refreshTimer = setInterval(() => {
+      fetchMonitorData().catch(() => {
+        // Keep loop alive even if one refresh fails.
+      })
+    }, REFRESH_MS)
+  }
+
+  function stopRefreshLoop() {
+    if (!refreshTimer) return
+    clearInterval(refreshTimer)
+    refreshTimer = null
   }
 
   onMounted(async () => {
     isLoading.value = true
     error.value = null
     try {
-      await Promise.all([fetchCatalogos(), fetchMapeos()])
-      await fetchMonitorData()
-      initializeFilters()
+      tareaMonitorService.resetSimulation()
+      await Promise.all([fetchCatalogos(), fetchMonitorData()])
+      initializeFilters(true)
+      startRefreshLoop()
     } catch (err: any) {
       error.value = err?.message ?? 'No fue posible cargar el monitoreo de tareas.'
     } finally {
@@ -372,10 +435,22 @@ export function useTareasMonitorViewModel() {
     }
   })
 
+  onUnmounted(() => {
+    stopRefreshLoop()
+  })
+
   watch(
     [selectedLineas, selectedCampanas, selectedActividades, selectedEstatus, selectedDictaminar],
     () => {
       currentPage.value = 1
+    },
+    { deep: true }
+  )
+
+  watch(
+    [lineasOptions, campanasOptions, actividadOptions, estatusOptions],
+    () => {
+      if (!isLoading.value) initializeFilters()
     },
     { deep: true }
   )
@@ -388,11 +463,18 @@ export function useTareasMonitorViewModel() {
 
   return {
     activeTab,
+    actividadOptions,
     canNextPage,
     canPrevPage,
     campanasOptions,
     closeFilter,
     currentPage,
+    detailsActionLoading,
+    detailsCanApprove,
+    detailsCanDictaminar,
+    detailsItem,
+    detailsShowApprove,
+    detailsShowDictaminar,
     dictaminarOptions,
     error,
     estatusOptions,
@@ -400,6 +482,7 @@ export function useTareasMonitorViewModel() {
     getActividadLabel,
     getCampanaLabel,
     getLineaLabel,
+    getScopeFromTab,
     getStatusClass,
     getStatusLabel,
     handleSearch,
@@ -408,6 +491,7 @@ export function useTareasMonitorViewModel() {
     isRowGlowing,
     lineasOptions,
     nextPage,
+    openDetails,
     openFilter,
     paginatedRows,
     prevPage,
@@ -416,18 +500,13 @@ export function useTareasMonitorViewModel() {
     selectedDictaminar,
     selectedEstatus,
     selectedLineas,
-    showStatusConfirmModal,
-    statusConfirmLoading,
-    statusConfirmMessage,
-    statusConfirmTitle,
-    isStatusToggleLocked,
+    showDetailsModal,
+    closeDetails,
+    approveCurrentEjecucion,
+    dictaminarCurrent,
     tabs,
-    requestStatusToggle,
-    confirmStatusToggle,
-    closeStatusConfirmModal,
     toggleFilter,
     totalPages,
-    totals,
-    actividadOptions
+    totals
   }
 }

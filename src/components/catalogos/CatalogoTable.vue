@@ -13,7 +13,13 @@ const props = defineProps<Props>()
 const { isRowGlowing } = useFirstRowNewGlow(
   () => props.items,
   row => `${row.codigo}-${row.id}`,
-  { isLoading: () => props.isLoading }
+  {
+    isLoading: () => props.isLoading,
+    getRowChangeToken: row => {
+      const item = row as CatalogoItem
+      return `${item.codigo}-${item.id}-${item.fechaUltimaModificacion ?? item.fechaCreacion ?? ''}`
+    }
+  }
 )
 
 function formatTimestamp(value?: string) {
@@ -61,7 +67,7 @@ function formatTimestamp(value?: string) {
             v-else
             v-for="(item, index) in props.items"
             :key="`${item.codigo}-${item.id}`"
-            :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40', 'text-sm hover:bg-blue-50/30 transition-colors', { 'row-new-record-glow': isRowGlowing(item, index) }]"
+            :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-200/60', 'text-sm hover:bg-blue-50/30 transition-colors', { 'row-new-record-glow': isRowGlowing(item, index) }]"
           >
             <td class="px-4 py-2.5">
               <span

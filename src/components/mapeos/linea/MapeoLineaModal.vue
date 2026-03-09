@@ -42,6 +42,21 @@ const {
   confirmAction,
   closeActionConfirm
 } = useMapeoLineaModal(props, emit)
+
+function handlePorcentajeErrorInput(event: Event) {
+  const input = event.target as HTMLInputElement
+  const digitsOnly = input.value.replace(/\D/g, '')
+
+  if (!digitsOnly) {
+    formData.value.porcentajeError = ''
+    input.value = ''
+    return
+  }
+
+  const nextValue = Math.min(100, Number(digitsOnly))
+  formData.value.porcentajeError = Number.isFinite(nextValue) ? nextValue : ''
+  input.value = formData.value.porcentajeError === '' ? '' : String(formData.value.porcentajeError)
+}
 </script>
 <template>
   <BaseModalShell
@@ -126,14 +141,16 @@ const {
             </label>
             <input
               id="field-porcentaje-error"
-              v-model.number="formData.porcentajeError"
-              type="number"
-              min="0"
-              max="100"
-              step="1"
+              :value="formData.porcentajeError === '' || formData.porcentajeError === undefined ? '' : String(formData.porcentajeError)"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="3"
+              autocomplete="off"
               placeholder="0 - 100"
               class="w-full px-4 py-2.5 border rounded-lg text-gray-700 text-sm focus:ring-2 focus:ring-[#00357F] focus:border-[#00357F] transition-shadow outline-none placeholder-gray-400 bg-gray-50"
               :class="showPorcentajeErrorValidation ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : 'border-gray-300'"
+              @input="handlePorcentajeErrorInput"
               @blur="touchedFields.porcentajeError = true"
             />
             <p v-if="showPorcentajeErrorValidation" class="text-xs text-red-500 mt-1">{{ porcentajeErrorValidationMessage }}</p>

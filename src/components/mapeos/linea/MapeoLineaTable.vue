@@ -67,7 +67,13 @@ const statusOptions = [
 const { isRowGlowing } = useFirstRowNewGlow(
   () => props.filteredMapeos,
   row => Number(row.idABCConfigMapeoLinea ?? 0),
-  { isLoading: () => props.isLoading }
+  {
+    isLoading: () => props.isLoading,
+    getRowChangeToken: row => {
+      const item = row as MapeoLineaData
+      return `${Number(item.idABCConfigMapeoLinea ?? 0)}-${item.fechaUltimaModificacion ?? item.fechaCreacion ?? ''}`
+    }
+  }
 )
 
 const thClass = 'px-4 py-3'
@@ -107,8 +113,8 @@ function formatPorcentajeError(value?: number | null) {
 
 <template>
   <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[72dvh] h-[calc(100dvh-11rem)] max-h-[calc(100dvh-8rem)] max-[650px]:h-[78dvh] max-[650px]:min-h-[68dvh] max-[650px]:max-h-none">
-    <div class="overflow-y-auto overflow-x-auto flex-1 min-h-0">
-      <table class="w-full min-w-[1120px] text-left border-collapse table-fixed">
+    <div class="overflow-y-auto overflow-x-hidden max-[1180px]:overflow-x-auto flex-1 min-h-0">
+      <table class="w-full max-[1180px]:min-w-[1120px] text-left border-collapse table-fixed">
         <colgroup>
           <col class="w-[14%]" />
           <col class="w-[22%]" />
@@ -160,8 +166,8 @@ function formatPorcentajeError(value?: number | null) {
             <th :class="thClass">Columnas</th>
             <th :class="thSmallClass + ' text-center'">Validar</th>
             <th :class="thSmallClass + ' text-center'">Enviar</th>
-            <th :class="thSmallClass + ' text-center'">Dictaminar</th>
             <th :class="thSmallClass + ' text-center'">% Error</th>
+            <th :class="thSmallClass + ' text-center'">Dictaminar</th>
             <th :class="thSmallClass + ' relative'">
               <FilterDropdown
                 label="Estado"
@@ -200,7 +206,7 @@ function formatPorcentajeError(value?: number | null) {
           </tr>
 
           <template v-else v-for="(m, index) in props.filteredMapeos" :key="m.idABCConfigMapeoLinea">
-            <tr :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40', 'hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(m, index) }]">
+            <tr :class="[index % 2 === 0 ? 'bg-white' : 'bg-slate-200/60', 'hover:bg-blue-50/30 transition-colors text-sm', { 'row-new-record-glow': isRowGlowing(m, index) }]">
               <td class="px-4 py-2.5" @dblclick="emit('viewDetails', m)">
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
                   {{ props.getLineaLabel(m.linea?.id) }}
@@ -250,6 +256,10 @@ function formatPorcentajeError(value?: number | null) {
                 </template>
               </td>
 
+              <td class="px-4 py-2.5 text-center text-slate-700 font-semibold" @dblclick="emit('viewDetails', m)">
+                {{ formatPorcentajeError(m.porcentajeError) }}
+              </td>
+
               <td class="px-4 py-2.5 text-center">
                 <template v-for="dictaminarStage in [getDictaminarVisual(Boolean(m.dictaminar ?? m.bolDictaminacion ?? false))]" :key="`dictaminar-${m.idABCConfigMapeoLinea}`">
                   <div class="inline-flex items-center px-2.5 py-1 rounded-lg border text-[11px] font-semibold" :class="dictaminarStage.containerClass">
@@ -265,10 +275,6 @@ function formatPorcentajeError(value?: number | null) {
                     </span>
                   </div>
                 </template>
-              </td>
-
-              <td class="px-4 py-2.5 text-center text-slate-700 font-semibold" @dblclick="emit('viewDetails', m)">
-                {{ formatPorcentajeError(m.porcentajeError) }}
               </td>
 
               <td class="px-4 py-2.5" @dblclick="emit('viewDetails', m)">

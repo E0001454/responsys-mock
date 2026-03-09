@@ -29,8 +29,8 @@ function toTimestamp(value?: string) {
 }
 
 function newestFirstCompare(a: CatalogoItem, b: CatalogoItem) {
-    const left = toTimestamp(a.fechaCreacion)
-    const right = toTimestamp(b.fechaCreacion)
+    const left = toTimestamp(a.fechaUltimaModificacion || a.fechaCreacion)
+    const right = toTimestamp(b.fechaUltimaModificacion || b.fechaCreacion)
     if (right !== left) return right - left
     return Number(b.id ?? 0) - Number(a.id ?? 0)
 }

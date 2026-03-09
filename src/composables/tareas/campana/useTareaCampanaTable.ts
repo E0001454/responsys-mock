@@ -9,6 +9,8 @@ interface HorarioItem {
 
 export interface TareaCampanaTableRow {
   idABCConfigTareaCampana: number
+  fechaCreacion?: string
+  fechaUltimaModificacion?: string
   carga?: { ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
   validacion?: { ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
   envio?: { ejecucion?: string; dia?: string; hora?: string; configurada?: boolean }
@@ -93,7 +95,13 @@ export function useTareaCampanaTable(props: {
   const { isRowGlowing } = useFirstRowNewGlow(
     () => props.filteredTareas,
     row => Number(row.idABCConfigTareaCampana ?? 0),
-    { isLoading: () => props.isLoading }
+    {
+      isLoading: () => props.isLoading,
+      getRowChangeToken: row => {
+        const item = row as TareaCampanaTableRow
+        return `${Number(item.idABCConfigTareaCampana ?? 0)}-${item.fechaUltimaModificacion ?? item.fechaCreacion ?? ''}`
+      }
+    }
   )
 
   return {
