@@ -24,11 +24,6 @@ type NumericOption = {
   value: number
 }
 
-type BooleanOption = {
-  label: string
-  value: boolean
-}
-
 const REFRESH_MS = 1000
 
 export function useTareasMonitorViewModel() {
@@ -53,7 +48,6 @@ export function useTareasMonitorViewModel() {
   const selectedCampanas = ref<number[]>([])
   const selectedActividades = ref<number[]>([])
   const selectedEstatus = ref<number[]>([])
-  const selectedDictaminar = ref<boolean[]>([true, false])
   const filtersInitialized = ref(false)
 
   let refreshTimer: ReturnType<typeof setInterval> | null = null
@@ -117,17 +111,6 @@ export function useTareasMonitorViewModel() {
       .map(([value, label]) => ({ value, label }))
   })
 
-  const dictaminarOptions: BooleanOption[] = [
-    { label: 'Pendientes', value: false },
-    { label: 'Aprobados', value: true }
-  ]
-
-  function isValidacionRow(row: TareaMonitorData) {
-    const actividadId = Number(row?.actividad?.id ?? 0)
-    const actividadCode = String(row?.actividad?.codigo ?? '').trim().toUpperCase()
-    return actividadId === 2 || actividadCode === 'VALIDACION' || actividadCode === 'VALIDACION'
-  }
-
   function reconcileSelection<T>(selected: T[], options: T[], fallbackToAll = true): T[] {
     const allowed = new Set(options)
     const cleaned = selected.filter(item => allowed.has(item))
@@ -146,7 +129,6 @@ export function useTareasMonitorViewModel() {
       selectedCampanas.value = [...campanaValues]
       selectedActividades.value = [...actividadValues]
       selectedEstatus.value = [...estatusValues]
-      selectedDictaminar.value = [true, false]
       filtersInitialized.value = true
       return
     }
@@ -155,8 +137,6 @@ export function useTareasMonitorViewModel() {
     selectedCampanas.value = reconcileSelection(selectedCampanas.value, campanaValues)
     selectedActividades.value = reconcileSelection(selectedActividades.value, actividadValues)
     selectedEstatus.value = reconcileSelection(selectedEstatus.value, estatusValues)
-    selectedDictaminar.value = reconcileSelection(selectedDictaminar.value, [true, false], false)
-    if (selectedDictaminar.value.length === 0) selectedDictaminar.value = [true, false]
   }
 
   const filteredRows = computed<TareaMonitorData[]>(() => {
@@ -186,13 +166,7 @@ export function useTareasMonitorViewModel() {
           ? selectedEstatus.value.includes(statusId)
           : true
 
-        const matchDictaminar = !isValidacionRow(row) || !row.dictaminacionRequerida
-          ? true
-          : selectedDictaminar.value.length
-            ? selectedDictaminar.value.includes(Boolean(row.dictaminado))
-            : true
-
-        return matchSearch && matchLinea && matchCampana && matchActividad && matchEstatus && matchDictaminar
+        return matchSearch && matchLinea && matchCampana && matchActividad && matchEstatus
       })
       .slice()
       .sort((a, b) => {
@@ -475,7 +449,6 @@ export function useTareasMonitorViewModel() {
     if (refreshTimer) clearInterval(refreshTimer)
     refreshTimer = setInterval(() => {
       fetchMonitorData().catch(() => {
-        // Keep loop alive even if one refresh fails.
       })
     }, REFRESH_MS)
   }
@@ -506,7 +479,7 @@ export function useTareasMonitorViewModel() {
   })
 
   watch(
-    [selectedLineas, selectedCampanas, selectedActividades, selectedEstatus, selectedDictaminar],
+    [selectedLineas, selectedCampanas, selectedActividades, selectedEstatus],
     () => {
       currentPage.value = 1
     },
@@ -542,7 +515,6 @@ export function useTareasMonitorViewModel() {
     detailsStages,
     detailsShowApprove,
     detailsShowDictaminar,
-    dictaminarOptions,
     error,
     estatusOptions,
     filteredRows,
@@ -568,7 +540,6 @@ export function useTareasMonitorViewModel() {
     prevPage,
     selectedActividades,
     selectedCampanas,
-    selectedDictaminar,
     selectedEstatus,
     selectedLineas,
     showDetailsModal,

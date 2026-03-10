@@ -10,11 +10,6 @@ type NumericOption = {
   value: number
 }
 
-type BooleanOption = {
-  label: string
-  value: boolean
-}
-
 const props = defineProps<{
   activeTab: 'linea' | 'campana'
   isLoading: boolean
@@ -24,12 +19,10 @@ const props = defineProps<{
   campanasOptions: NumericOption[]
   actividadOptions: NumericOption[]
   estatusOptions: NumericOption[]
-  dictaminarOptions: BooleanOption[]
   selectedLineas: number[]
   selectedCampanas: number[]
   selectedActividades: number[]
   selectedEstatus: number[]
-  selectedDictaminar: boolean[]
   paginatedRows: TareaMonitorData[]
   filteredRows: TareaMonitorData[]
   currentPage: number
@@ -53,7 +46,6 @@ const emit = defineEmits<{
   (e: 'update:selectedCampanas', value: number[]): void
   (e: 'update:selectedActividades', value: number[]): void
   (e: 'update:selectedEstatus', value: number[]): void
-  (e: 'update:selectedDictaminar', value: boolean[]): void
   (e: 'search', value: string): void
   (e: 'prev-page'): void
   (e: 'next-page'): void
@@ -79,29 +71,6 @@ const modelEstatus = computed({
   get: () => props.selectedEstatus,
   set: (value: number[]) => emit('update:selectedEstatus', value)
 })
-
-const modelDictaminar = computed({
-  get: () => props.selectedDictaminar,
-  set: (value: boolean[]) => emit('update:selectedDictaminar', value)
-})
-
-function isValidacionRow(row: TareaMonitorData) {
-  const actividadId = Number(row?.actividad?.id ?? 0)
-  const actividadCode = String(row?.actividad?.codigo ?? '').trim().toUpperCase()
-  return actividadId === 2 || actividadCode === 'VALIDACION' || actividadCode === 'VALIDACION'
-}
-
-function getDictaminarLabel(row: TareaMonitorData) {
-  if (!isValidacionRow(row) || !row.dictaminacionRequerida) return 'No aplica'
-  return row.dictaminado ? 'Aprobado' : 'Pendiente'
-}
-
-function getDictaminarClass(row: TareaMonitorData) {
-  if (!isValidacionRow(row) || !row.dictaminacionRequerida) return 'bg-slate-100 text-slate-500 border-slate-200'
-  return row.dictaminado
-    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-    : 'bg-amber-50 text-amber-700 border-amber-200'
-}
 
 function getProcessedRatio(row: TareaMonitorData) {
   const total = Number(row.numeroRegistros ?? 0)
@@ -227,20 +196,6 @@ function getProcessedTextClass(row: TareaMonitorData) {
                 />
               </th>
 
-              <th class="px-4 py-3 relative">
-                <FilterDropdown
-                  label="Dictaminar"
-                  header-label="Filtrar por dictaminar"
-                  :options="dictaminarOptions"
-                  v-model="modelDictaminar"
-                  :open="openFilter === 'dictaminar'"
-                  :is-filtered="selectedDictaminar.length < dictaminarOptions.length"
-                  :show-select-all="false"
-                  menu-width="w-48"
-                  @toggle="emit('toggle-filter', 'dictaminar')"
-                />
-              </th>
-
               <th class="px-4 py-3">Fecha creacion</th>
               <th class="px-4 py-3 text-right">Num registros</th>
               <th class="px-4 py-3 text-center">Detalles</th>
@@ -265,11 +220,6 @@ function getProcessedTextClass(row: TareaMonitorData) {
               <td class="px-4 py-2.5">
                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold" :class="getStatusClass(row)">
                   {{ getStatusLabel(row) }}
-                </span>
-              </td>
-              <td class="px-4 py-2.5">
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border" :class="getDictaminarClass(row)">
-                  {{ getDictaminarLabel(row) }}
                 </span>
               </td>
               <td class="px-4 py-2.5 text-slate-600 min-w-[130px]">
@@ -306,7 +256,7 @@ function getProcessedTextClass(row: TareaMonitorData) {
             </tr>
 
             <tr v-if="!filteredRows.length">
-              <td :colspan="activeTab === 'campana' ? 10 : 9" class="px-4 py-12">
+              <td :colspan="activeTab === 'campana' ? 9 : 8" class="px-4 py-12">
                 <div class="sticky left-0 mx-auto flex w-fit flex-col items-center justify-center text-slate-400">
                   <Search class="w-8 h-8 mb-2 opacity-50" />
                   <span class="text-sm">No hay registros.</span>

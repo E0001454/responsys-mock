@@ -41,8 +41,12 @@ function parseEnvBoolean(value: unknown): boolean | undefined {
 function getEndpointService(endpoint: string): ApiService {
   const path = String(endpoint || '').toLowerCase()
 
+  const isLineasMapeos = /^\/lineas(?:\/[^/]+)?\/mapeos(?:\/|$)/.test(path)
+  const isLineasMapeosColumnas = /^\/lineas\/mapeos(?:\/[^/]+)?\/columnas(?:\/|$)/.test(path)
   const isLineasCampanasMapeos = /^\/lineas\/[^/]+\/campanas\/[^/]+\/mapeos(?:\/|$)/.test(path)
+  const isLineasActividades = /^\/lineas(?:\/[^/]+)?\/(actividades|tareas)(?:\/|$)/.test(path)
   const isLineasCampanasActividades = /^\/lineas\/[^/]+\/campanas\/[^/]+\/(actividades|tareas)(?:\/|$)/.test(path)
+  const isLineasHorarios = /^\/lineas(?:\/[^/]+)?\/(actividades|tareas)\/[^/]+\/horarios(?:\/|$)/.test(path)
 
   if (path.includes('/bitacoras')) return 'bitacora'
   if (path.includes('/catalogos')) return 'catalogos'
@@ -50,19 +54,18 @@ function getEndpointService(endpoint: string): ApiService {
   if (path.includes('/monitor/tareas/linea') || path.includes('/monitor/actividades/linea')) return 'monitor_linea'
   if (path.includes('/monitor/tareas/campana') || path.includes('/monitor/actividades/campana')) return 'monitor_campana'
 
-  if (path.includes('/lineas/tareas/') && path.includes('/horarios')) return 'horarios_linea'
-  if (path.includes('/lineas/actividades/') && path.includes('/horarios')) return 'horarios_linea'
+  if (isLineasHorarios || (path.includes('/lineas/tareas/') && path.includes('/horarios')) || (path.includes('/lineas/actividades/') && path.includes('/horarios'))) return 'horarios_linea'
   if (path.includes('/campanas/tareas/') && path.includes('/horarios')) return 'horarios_campana'
   if (path.includes('/campanas/actividades/') && path.includes('/horarios')) return 'horarios_campana'
 
-  if (path.includes('/lineas/campanas/mapeos') || isLineasCampanasMapeos) return 'mapeos_campana'
-  if (path.includes('/lineas/mapeos')) return 'mapeos_linea'
+  if ((path.includes('/campanas/mapeos') && path.includes('/columnas'))) return 'columnas_campana'
+  if ((path.includes('/lineas/mapeos') && path.includes('/columnas')) || isLineasMapeosColumnas) return 'columnas_linea'
 
-  if (path.includes('/campanas/mapeos') && path.includes('/columnas')) return 'columnas_campana'
-  if (path.includes('/lineas/mapeos') && path.includes('/columnas')) return 'columnas_linea'
+  if (path.includes('/lineas/campanas/mapeos') || isLineasCampanasMapeos) return 'mapeos_campana'
+  if (path.includes('/lineas/mapeos') || isLineasMapeos) return 'mapeos_linea'
 
   if (path.includes('/lineas/campanas/tareas') || path.includes('/lineas/campanas/actividades') || isLineasCampanasActividades) return 'tareas_campana'
-  if (path.includes('/lineas/tareas') || path.includes('/lineas/actividades')) return 'tareas_linea'
+  if (path.includes('/lineas/tareas') || path.includes('/lineas/actividades') || isLineasActividades) return 'tareas_linea'
 
   return 'default'
 }

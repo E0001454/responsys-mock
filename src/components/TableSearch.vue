@@ -77,7 +77,6 @@ const submit = () => {
   try {
     emit('search', normalized)
   } finally {
-    // Always close the panel after search, even if parent search handler fails.
     emit('toggle')
   }
 }

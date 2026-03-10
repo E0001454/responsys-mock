@@ -145,7 +145,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       scope: 'linea',
       lineaId: 1,
       mapeoId: 8,
-      mapeoNombre: 'Ingesta 1',
+      mapeoNombre: 'Clientes Activos Diario',
       createdAtOffsetMin: -85,
       totalRegistros: 125000,
       dictaminacionRequerida: true,
@@ -160,7 +160,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       scope: 'linea',
       lineaId: 2,
       mapeoId: 14,
-      mapeoNombre: 'Ingesta 2',
+      mapeoNombre: 'Movimientos de Cartera',
       createdAtOffsetMin: -62,
       totalRegistros: 82000,
       dictaminacionRequerida: true,
@@ -175,7 +175,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       scope: 'linea',
       lineaId: 3,
       mapeoId: 12,
-      mapeoNombre: 'Ingesta 3',
+      mapeoNombre: 'Prospectos Prioritarios',
       createdAtOffsetMin: -44,
       totalRegistros: 56400,
       dictaminacionRequerida: false,
@@ -190,7 +190,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       scope: 'linea',
       lineaId: 4,
       mapeoId: 25,
-      mapeoNombre: 'Ingesta 4',
+      mapeoNombre: 'Cobranzas Vencidas',
       createdAtOffsetMin: -130,
       totalRegistros: 153400,
       dictaminacionRequerida: true,
@@ -205,7 +205,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       scope: 'linea',
       lineaId: 5,
       mapeoId: 19,
-      mapeoNombre: 'Ingesta 5',
+      mapeoNombre: 'Pagos Confirmados',
       createdAtOffsetMin: -72,
       totalRegistros: 70300,
       dictaminacionRequerida: true,
@@ -220,7 +220,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       scope: 'linea',
       lineaId: 6,
       mapeoId: 31,
-      mapeoNombre: 'Ingesta 6',
+      mapeoNombre: 'Leads Digitales',
       createdAtOffsetMin: -38,
       totalRegistros: 48600,
       dictaminacionRequerida: false,
@@ -235,7 +235,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       scope: 'linea',
       lineaId: 7,
       mapeoId: 27,
-      mapeoNombre: 'Ingesta 7',
+      mapeoNombre: 'Retenciones y Bajas',
       createdAtOffsetMin: -97,
       totalRegistros: 99800,
       dictaminacionRequerida: true,
@@ -250,7 +250,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       scope: 'linea',
       lineaId: 8,
       mapeoId: 42,
-      mapeoNombre: 'Ingesta 8',
+      mapeoNombre: 'Contactabilidad Omnicanal',
       createdAtOffsetMin: -29,
       totalRegistros: 35800,
       dictaminacionRequerida: false,
@@ -265,7 +265,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       scope: 'linea',
       lineaId: 9,
       mapeoId: 37,
-      mapeoNombre: 'Ingesta 9',
+      mapeoNombre: 'Siniestros Abiertos',
       createdAtOffsetMin: -55,
       totalRegistros: 61400,
       dictaminacionRequerida: true,
@@ -280,7 +280,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       scope: 'linea',
       lineaId: 10,
       mapeoId: 53,
-      mapeoNombre: 'Ingesta 10',
+      mapeoNombre: 'Historico Operativo',
       createdAtOffsetMin: -145,
       totalRegistros: 184700,
       dictaminacionRequerida: true,
@@ -299,7 +299,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       lineaId: 1,
       campanaId: 1,
       mapeoId: 3,
-      mapeoNombre: 'Campana 1',
+      mapeoNombre: 'Campana Bienvenida Q1',
       createdAtOffsetMin: -64,
       totalRegistros: 21000,
       dictaminacionRequerida: true,
@@ -314,7 +314,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       lineaId: 1,
       campanaId: 2,
       mapeoId: 4,
-      mapeoNombre: 'Campana 2',
+      mapeoNombre: 'Campana Reactivacion Plus',
       createdAtOffsetMin: -43,
       totalRegistros: 33000,
       dictaminacionRequerida: true,
@@ -329,7 +329,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       lineaId: 2,
       campanaId: 3,
       mapeoId: 7,
-      mapeoNombre: 'Campana 3',
+      mapeoNombre: 'Campana Upsell Seguros',
       createdAtOffsetMin: -35,
       totalRegistros: 27800,
       dictaminacionRequerida: false,
@@ -344,7 +344,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       lineaId: 3,
       campanaId: 4,
       mapeoId: 11,
-      mapeoNombre: 'Campana 4',
+      mapeoNombre: 'Campana Retencion Prime',
       createdAtOffsetMin: -92,
       totalRegistros: 46700,
       dictaminacionRequerida: true,
@@ -359,7 +359,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       lineaId: 4,
       campanaId: 5,
       mapeoId: 13,
-      mapeoNombre: 'Campana 5',
+      mapeoNombre: 'Campana Cross Sell Vida',
       createdAtOffsetMin: -52,
       totalRegistros: 39100,
       dictaminacionRequerida: true,
@@ -374,7 +374,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       lineaId: 5,
       campanaId: 6,
       mapeoId: 18,
-      mapeoNombre: 'Campana 6',
+      mapeoNombre: 'Campana Recordatorio Pago',
       createdAtOffsetMin: -27,
       totalRegistros: 22400,
       dictaminacionRequerida: false,
@@ -389,7 +389,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       lineaId: 6,
       campanaId: 7,
       mapeoId: 21,
-      mapeoNombre: 'Campana 7',
+      mapeoNombre: 'Campana Renovacion Auto',
       createdAtOffsetMin: -118,
       totalRegistros: 55400,
       dictaminacionRequerida: true,
@@ -404,7 +404,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       lineaId: 7,
       campanaId: 8,
       mapeoId: 26,
-      mapeoNombre: 'Campana 8',
+      mapeoNombre: 'Campana Recuperacion Activa',
       createdAtOffsetMin: -70,
       totalRegistros: 31200,
       dictaminacionRequerida: true,
@@ -419,7 +419,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       lineaId: 8,
       campanaId: 9,
       mapeoId: 30,
-      mapeoNombre: 'Campana 9',
+      mapeoNombre: 'Campana Afinidad Bancaria',
       createdAtOffsetMin: -46,
       totalRegistros: 28900,
       dictaminacionRequerida: false,
@@ -434,7 +434,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       lineaId: 9,
       campanaId: 10,
       mapeoId: 34,
-      mapeoNombre: 'Campana 10',
+      mapeoNombre: 'Campana Fidelizacion Oro',
       createdAtOffsetMin: -140,
       totalRegistros: 73300,
       dictaminacionRequerida: true,
@@ -486,12 +486,18 @@ function getActivityMeta(activityId: 1 | 2 | 3) {
   return { id: 3, code: 'ENVIO', name: 'Envío' }
 }
 
-function statusPriority(code: MonitorStatusCode) {
-  if (code === 'EJC') return 1
-  if (code === 'PLN') return 2
-  if (code === 'CMP') return 3
-  if (code === 'BLQ') return 4
-  return 5
+function pickDisplayStage(states: StageState[]): StageState | undefined {
+  if (!states.length) return undefined
+
+  const orderedByIndex = states.slice().sort((a, b) => a.stageIndex - b.stageIndex)
+  const running = orderedByIndex.find(state => state.status === 'EJC')
+  if (running) return running
+
+  const planned = orderedByIndex.find(state => state.status === 'PLN')
+  if (planned) return planned
+
+  // If all are terminal (CMP/BLQ/CNC/ERR), show the latest stage reached.
+  return orderedByIndex[orderedByIndex.length - 1]
 }
 
 function resolveStageState(
@@ -636,15 +642,7 @@ function toMonitorRow(pipeline: PipelineRuntime, now: number): TareaMonitorData 
   }
 
   const states = pipeline.seed.stages.map((_, idx) => resolveStageState(pipeline, idx, now))
-  const preferred = states
-    .slice()
-    .sort((a, b) => {
-      const byPriority = statusPriority(a.status) - statusPriority(b.status)
-      if (byPriority !== 0) return byPriority
-      return a.stageIndex - b.stageIndex
-    })[0]
-
-  const currentState = preferred ?? states[pipeline.currentIndex] ?? states[0]
+  const currentState = pickDisplayStage(states) ?? states[pipeline.currentIndex] ?? states[0]
   if (!currentState) {
     return {
       id: Number(`${pipeline.seed.scope === 'linea' ? 1 : 2}${String(pipeline.seed.pipelineId).replace(/\D/g, '').slice(-5)}0`),

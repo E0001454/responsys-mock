@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import { watch, onUnmounted } from 'vue'
 import ColumnaLineaCrud from '@/components/columnas/linea/ColumnaLineaCrud.vue'
 import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
@@ -44,4 +44,4 @@ onUnmounted(() => { try { document.body.style.overflow = '' } catch (_) {} })
       </div>
     </template>
   </BaseModalShell>
-</template>
+</template> -->

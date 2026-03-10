@@ -17,10 +17,6 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-// function isCampanaItem(item?: MapeoData | MapeoCampanaData | null): item is MapeoCampanaData {
-//   return !!item && Object.prototype.hasOwnProperty.call(item, 'idABCCatCampana')
-// }
-
 function formatTimestamp(value?: string) {
   if (!value) return ''
   const date = new Date(value)

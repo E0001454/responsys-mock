@@ -16,7 +16,6 @@ const {
   detailsActionLoading,
   detailsItem,
   detailsStages,
-  dictaminarOptions,
   error,
   estatusOptions,
   filteredRows,
@@ -41,7 +40,6 @@ const {
   prevPage,
   selectedActividades,
   selectedCampanas,
-  selectedDictaminar,
   selectedEstatus,
   selectedLineas,
   showDetailsModal,
@@ -70,9 +68,6 @@ function updateSelectedEstatus(value: number[]) {
   selectedEstatus.value = value
 }
 
-function updateSelectedDictaminar(value: boolean[]) {
-  selectedDictaminar.value = value
-}
 </script>
 
 <template>
@@ -100,12 +95,10 @@ function updateSelectedDictaminar(value: boolean[]) {
             :campanas-options="campanasOptions"
             :actividad-options="actividadOptions"
             :estatus-options="estatusOptions"
-            :dictaminar-options="dictaminarOptions"
             :selected-lineas="selectedLineas"
             :selected-campanas="selectedCampanas"
             :selected-actividades="selectedActividades"
             :selected-estatus="selectedEstatus"
-            :selected-dictaminar="selectedDictaminar"
             :paginated-rows="paginatedRows"
             :filtered-rows="filteredRows"
             :current-page="currentPage"
@@ -126,7 +119,6 @@ function updateSelectedDictaminar(value: boolean[]) {
             @update:selected-campanas="updateSelectedCampanas"
             @update:selected-actividades="updateSelectedActividades"
             @update:selected-estatus="updateSelectedEstatus"
-            @update:selected-dictaminar="updateSelectedDictaminar"
             @search="handleSearch"
             @prev-page="prevPage"
             @next-page="nextPage"

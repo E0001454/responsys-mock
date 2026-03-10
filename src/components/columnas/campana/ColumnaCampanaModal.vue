@@ -215,13 +215,6 @@ const showCadenaMaximoError = computed(() => touchedNumericFields.value.cadenaMa
 const showNumeroEnterosError = computed(() => touchedNumericFields.value.numeroEnteros && Boolean(numeroEnterosError.value))
 const showNumeroDecimalesError = computed(() => touchedNumericFields.value.numeroDecimales && Boolean(numeroDecimalesError.value))
 
-// const mapeoNombre = computed(() => {
-// 	if (props.selectedMapeoNombre) return props.selectedMapeoNombre
-// 	const id = props.selectedMapeoId ?? form.value.idABCConfigMapeoCampana ?? null
-// 	const found = props.mapeos.find(m => m.value == id)
-// 	return found ? found.label : `Mapeo ${id ?? ''}`
-// })
-
 const lineaOptions = computed<Option[]>(() => {
 	const base = (props.lineas || []) as Option[]
 	const selectedId = props.selectedLineaId ?? form.value.lineaId ?? null
@@ -284,12 +277,14 @@ const selectedColumnaOption = computed<Option | undefined>(() =>
 	(props.columnas as Option[]).find(option => Number(option.value) === Number(form.value.idABCCatColumna ?? 0))
 )
 
-const missingRequiredCount = computed(() => {
+const showMissingRequiredDropdown = ref(false)
+
+const missingRequiredOptions = computed<Option[]>(() => {
 	const selectedMapeo = Number(form.value.idABCConfigMapeoCampana ?? 0)
-	if (!selectedMapeo) return 0
+	if (!selectedMapeo) return []
 
 	const requiredOptions = (props.columnas as Option[]).filter(option => Boolean(option.isRequired))
-	if (!requiredOptions.length) return 0
+	if (!requiredOptions.length) return []
 
 	const configuredIds = new Set(
 		props.existingItems
@@ -297,7 +292,11 @@ const missingRequiredCount = computed(() => {
 			.map(item => Number(item.columnaId ?? 0))
 	)
 
-	return requiredOptions.filter(option => !configuredIds.has(Number(option.value))).length
+	return requiredOptions.filter(option => !configuredIds.has(Number(option.value)))
+})
+
+const missingRequiredCount = computed(() => {
+	return missingRequiredOptions.value.length
 })
 
 
@@ -474,8 +473,6 @@ watch(
 			form.value.esRequerido = initialData.esRequerido ?? initialData.obligatorio ?? initialData.columna?.esRequerido ?? initialData.columna?.obligatorio ?? null
 			const v = initialData.valor ?? initialData.columna?.valor ?? null
 			if (v) {
-				// const hasCadena = Boolean(v.cadena && (v.cadena.minimo !== null || v.cadena.maximo !== null || (v.cadena.tipo && v.cadena.tipo.id)))
-				// const hasNumero = Boolean(v.numero && (v.numero.enteros !== null || v.numero.decimales !== null || (v.numero.tipo && v.numero.tipo.id)))
 				form.value.valor.tipoSel = v.tipo?.id ?? null
 					form.value.valor.tipoId = v.tipo?.id ?? null
 				form.value.valor.cadena.tipoId = v.cadena?.tipo?.id ?? null
@@ -505,6 +502,7 @@ watch(
 watch(
 	() => form.value.idABCConfigMapeoCampana,
 	() => {
+		showMissingRequiredDropdown.value = false
 		if (!form.value.idABCCatColumna) return
 		const stillAvailable = availableColumnas.value.some(
 			c => c.value === form.value.idABCCatColumna
@@ -558,7 +556,6 @@ async function save() {
 		},
 		fecha: {
 			tipo: {
-				// Tipo/Subtipo: para fecha se toma el tipo desde catálogo, sin default fijo.
 				id: tipoValorId === 3 ? (Number(form.value.valor.fecha.tipoId ?? 0) || null) : null
 			}
 		}
@@ -650,9 +647,30 @@ async function save() {
 							/>
 							
 							<p v-if="attemptedSave && columnaRequiredError" class="text-xs text-red-500 mt-1">{{ columnaRequiredError }}</p>
-							<div v-if="missingRequiredCount > 0" class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
-								Faltan {{ missingRequiredCount }} columnas obligatorias por configurar.
-							</div>
+											<div v-if="missingRequiredCount > 0" class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+												<div class="flex items-center justify-between gap-2">
+													<span class="truncate">Faltan {{ missingRequiredCount }} obligatorias.</span>
+													<button
+														type="button"
+														class="shrink-0 rounded-md border border-amber-300 bg-white px-2 py-1 text-[10px] font-semibold text-amber-800 hover:bg-amber-100"
+														@click="showMissingRequiredDropdown = !showMissingRequiredDropdown"
+													>
+														{{ showMissingRequiredDropdown ? 'Ocultar' : 'Ver cuales' }}
+													</button>
+												</div>
+												<div
+													v-if="showMissingRequiredDropdown"
+													class="mt-2 rounded-md border border-amber-200 bg-white p-2"
+												>
+													<div class="max-h-28 overflow-y-auto pr-1">
+														<ul class="space-y-1 text-[11px] text-amber-900">
+															<li v-for="option in missingRequiredOptions" :key="`req-campana-${option.value}`" class="truncate">
+																- {{ option.label }}
+															</li>
+														</ul>
+													</div>
+												</div>
+											</div>
 						</div>
 					</div>
 

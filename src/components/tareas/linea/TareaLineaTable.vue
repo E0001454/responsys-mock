@@ -106,7 +106,7 @@ const {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[64dvh] h-[calc(100dvh-14rem)] max-h-[calc(100dvh-10rem)] max-[650px]:h-[72dvh] max-[650px]:min-h-[62dvh] max-[650px]:max-h-none">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-visible flex flex-col min-h-[72dvh] h-[calc(100dvh-11rem)] max-h-[calc(100dvh-8rem)] max-[650px]:h-[78dvh] max-[650px]:min-h-[68dvh] max-[650px]:max-h-none">
     <div class="overflow-y-auto overflow-x-hidden max-[1140px]:overflow-x-auto flex-1 min-h-0">
       <table class="w-full max-[1140px]:min-w-[1080px] text-left border-collapse table-fixed">
         <colgroup>

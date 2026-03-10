@@ -136,10 +136,6 @@ function getRequiredVisual(required: boolean) {
 	}
 }
 
-// function getBool(v: any) {
-// 	if (v === undefined || v === null) return '—'
-// 	return v ? 'Sí' : 'No'
-// }
 
 function getValor(item: ColumnaDetailsItem | null) {
 	const valor = item?.columna?.valor ?? item?.valor ?? null
