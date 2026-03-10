@@ -625,7 +625,7 @@ async function save() {
 														class="shrink-0 rounded-md border border-amber-300 bg-white px-2 py-1 text-[10px] font-semibold text-amber-800 hover:bg-amber-100"
 														@click="showMissingRequiredDropdown = !showMissingRequiredDropdown"
 													>
-														{{ showMissingRequiredDropdown ? 'Ocultar' : 'Ver cuales' }}
+														{{ showMissingRequiredDropdown ? 'Ocultar' : 'Detalle' }}
 													</button>
 												</div>
 												<div
