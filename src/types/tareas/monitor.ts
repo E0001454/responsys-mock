@@ -32,11 +32,14 @@ export interface TareaMonitorBase {
   fechaCreacion: string
   fechaInicio: string
   fechaFin: string
+  fechaAprobada?: string
+  fechaDictaminacion?: string
   fechaUltimaModificacion: string
   numeroRegistros: number
   numeroRegistrosProcesados: number
   dictaminacionRequerida: boolean
   dictaminado: boolean
+  error?: { nombre: string; codigo: string; detalle: string }
 }
 
 export interface TareaMonitorLineaData extends TareaMonitorBase {

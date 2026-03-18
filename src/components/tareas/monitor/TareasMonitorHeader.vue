@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Activity, Layers, Megaphone } from 'lucide-vue-next'
+import { Activity, Layers, Megaphone, Download } from 'lucide-vue-next'
 
 interface TabItem {
   key: 'linea' | 'campana'
@@ -13,6 +13,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'tab-change', value: 'linea' | 'campana'): void
+  (e: 'download-report'): void
 }>()
 
 function resolveIcon(key: TabItem['key']) {
@@ -32,18 +33,30 @@ function resolveIcon(key: TabItem['key']) {
       </p>
     </div>
 
-    <div class="bg-white p-1 rounded-lg border border-slate-200 flex w-full md:w-auto">
+    <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
+      <div class="bg-white p-1 rounded-lg border border-slate-200 flex w-full md:w-auto">
+        <button
+          v-for="t in props.tabs"
+          :key="t.key"
+          @click="emit('tab-change', t.key)"
+          class="flex-1 md:flex-none md:min-w-[140px] flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200"
+          :class="props.activeTab === t.key
+            ? 'bg-[#00357F] text-white cursor-pointer'
+            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer'"
+        >
+          <component :is="resolveIcon(t.key)" class="w-4 h-4" />
+          {{ t.label }}
+        </button>
+      </div>
+
       <button
-        v-for="t in props.tabs"
-        :key="t.key"
-        @click="emit('tab-change', t.key)"
-        class="flex-1 md:flex-none md:min-w-[140px] flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200"
-        :class="props.activeTab === t.key
-          ? 'bg-[#00357F] text-white cursor-pointer'
-          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer'"
+        type="button"
+        @click="emit('download-report')"
+        class="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-colors whitespace-nowrap"
+        title="Descargar reporte de monitoreo"
       >
-        <component :is="resolveIcon(t.key)" class="w-4 h-4" />
-        {{ t.label }}
+        <Download class="w-4 h-4" />
+        Descargar reporte
       </button>
     </div>
   </div>

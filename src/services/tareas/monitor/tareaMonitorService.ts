@@ -79,7 +79,7 @@ const COMPLETION_OUTCOMES: MonitorStatusCode[] = ['CMP', 'CMP', 'CMP', 'BLQ', 'C
 let simulationStartedAt = 0
 let lineaPipelines: PipelineRuntime[] = []
 let campanaPipelines: PipelineRuntime[] = []
-const dictaminados = new Set<string>()
+const dictaminados = new Map<string, number>()
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -167,6 +167,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       stages: [
         { activityId: 1, mode: 'HIBRIDA', offsetMin: -36 },
         { activityId: 2, mode: 'AUTOMATICA', offsetMin: -11 },
+        { activityId: 2, mode: 'MANUAL', offsetMin: 2 },
         { activityId: 3, mode: 'AUTOMATICA', offsetMin: 16 }
       ]
     },
@@ -320,6 +321,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       dictaminacionRequerida: true,
       stages: [
         { activityId: 2, mode: 'HIBRIDA', offsetMin: -17 },
+        { activityId: 2, mode: 'AUTOMATICA', offsetMin: -3 },
         { activityId: 3, mode: 'AUTOMATICA', offsetMin: 11 }
       ]
     },
@@ -365,6 +367,7 @@ function buildBaseSeeds(): PipelineSeed[] {
       dictaminacionRequerida: true,
       stages: [
         { activityId: 2, mode: 'AUTOMATICA', offsetMin: -25 },
+        { activityId: 2, mode: 'MANUAL', offsetMin: -9 },
         { activityId: 3, mode: 'HIBRIDA', offsetMin: 3 }
       ]
     },
@@ -670,6 +673,14 @@ function toMonitorRow(pipeline: PipelineRuntime, now: number): TareaMonitorData 
   const actividad = getActivityMeta(currentState.stage.activityId)
   const estatus = getStatusMeta(currentState.status)
   const dictamenKey = `${pipeline.seed.pipelineId}:s${currentState.stageIndex}`
+  const stageRuntime = pipeline.stageRuntime[currentState.stageIndex]
+  const fechaAprobada = stageRuntime?.approvalAt && currentState.stage.executionMode !== 'AUTOMATICA'
+    ? nowIso(stageRuntime.approvalAt) : ''
+  const fechaDictaminacion = dictaminados.has(dictamenKey)
+    ? nowIso(dictaminados.get(dictamenKey)!) : ''
+  const stageError = currentState.status === 'ERR'
+    ? { nombre: 'Error de procesamiento', codigo: `ERR-${pipeline.seed.pipelineId.replace(/[^0-9]/g, '').slice(-3).padStart(3, '0')}`, detalle: `Se produjo un error al procesar los registros en la etapa de ${actividad.name.toLowerCase()}. Verifique la configuración e intente nuevamente.` }
+    : undefined
 
   const base = {
     id: Number(`${pipeline.seed.scope === 'linea' ? 1 : 2}${String(pipeline.seed.pipelineId).replace(/\D/g, '').slice(-5)}${currentState.stageIndex}`),
@@ -703,7 +714,10 @@ function toMonitorRow(pipeline: PipelineRuntime, now: number): TareaMonitorData 
     numeroRegistros: pipeline.seed.totalRegistros,
     numeroRegistrosProcesados: currentState.processed,
     dictaminacionRequerida: pipeline.seed.dictaminacionRequerida,
-    dictaminado: dictaminados.has(dictamenKey)
+    dictaminado: dictaminados.has(dictamenKey),
+    fechaAprobada,
+    fechaDictaminacion,
+    error: stageError
   }
 
   if (pipeline.seed.scope === 'campana') {
@@ -728,6 +742,14 @@ function toMonitorRowByStage(
   const actividad = getActivityMeta(stageState.stage.activityId)
   const estatus = getStatusMeta(stageState.status)
   const dictamenKey = `${pipeline.seed.pipelineId}:s${stageState.stageIndex}`
+  const stageRuntime = pipeline.stageRuntime[stageState.stageIndex]
+  const fechaAprobada = stageRuntime?.approvalAt && stageState.stage.executionMode !== 'AUTOMATICA'
+    ? nowIso(stageRuntime.approvalAt) : ''
+  const fechaDictaminacion = dictaminados.has(dictamenKey)
+    ? nowIso(dictaminados.get(dictamenKey)!) : ''
+  const stageError = stageState.status === 'ERR'
+    ? { nombre: 'Error de procesamiento', codigo: `ERR-${pipeline.seed.pipelineId.replace(/[^0-9]/g, '').slice(-3).padStart(3, '0')}`, detalle: `Se produjo un error al procesar los registros en la etapa de ${actividad.name.toLowerCase()}. Verifique la configuración e intente nuevamente.` }
+    : undefined
 
   const base = {
     id: Number(`${pipeline.seed.scope === 'linea' ? 1 : 2}${String(pipeline.seed.pipelineId).replace(/\D/g, '').slice(-5)}${stageState.stageIndex}`),
@@ -761,7 +783,10 @@ function toMonitorRowByStage(
     numeroRegistros: pipeline.seed.totalRegistros,
     numeroRegistrosProcesados: stageState.processed,
     dictaminacionRequerida: pipeline.seed.dictaminacionRequerida,
-    dictaminado: dictaminados.has(dictamenKey)
+    dictaminado: dictaminados.has(dictamenKey),
+    fechaAprobada,
+    fechaDictaminacion,
+    error: stageError
   }
 
   if (pipeline.seed.scope === 'campana') {
@@ -848,7 +873,7 @@ export const tareaMonitorService = {
     if (!row.dictaminacionRequerida) return null
     if (row.estatus.codigo !== 'CMP') return null
 
-    dictaminados.add(`${pipelineId}:s${stageIndex}`)
+    dictaminados.set(`${pipelineId}:s${stageIndex}`, Date.now())
     return row
   }
 }

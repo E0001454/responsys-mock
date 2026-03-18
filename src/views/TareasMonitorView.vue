@@ -3,6 +3,8 @@ import TareasMonitorHeader from '@/components/tareas/monitor/TareasMonitorHeader
 import TareasMonitorSummaryCards from '@/components/tareas/monitor/TareasMonitorSummaryCards.vue'
 import TareasMonitorTable from '@/components/tareas/monitor/TareasMonitorTable.vue'
 import TareaMonitorDetailsModal from '@/components/tareas/monitor/TareaMonitorDetailsModal.vue'
+import ReportDownloadModal from '@/components/tareas/monitor/ReportDownloadModal.vue'
+import TareaMonitorErrorModal from '@/components/tareas/monitor/TareaMonitorErrorModal.vue'
 import { useTareasMonitorViewModel } from '@/composables/tareas/monitor/useTareasMonitorViewModel'
 import { formatDateLabel, formatNumber, formatTimeLabel } from '@/utils/tareas/monitor/tareasMonitorFormat.utils'
 
@@ -12,10 +14,12 @@ const {
   canNextPage,
   canPrevPage,
   campanasOptions,
+  closeReportModal,
   currentPage,
   detailsActionLoading,
   detailsItem,
   detailsStages,
+  downloadReport,
   error,
   estatusOptions,
   filteredRows,
@@ -28,6 +32,12 @@ const {
   canDictaminarFor,
   showApproveFor,
   showDictaminarFor,
+  showErrorFor,
+  canErrorFor,
+  showErrorModal,
+  errorItem,
+  openErrorModal,
+  closeErrorModal,
   handleSearch,
   handleTabChange,
   isLoading,
@@ -36,13 +46,18 @@ const {
   nextPage,
   openFilter,
   openDetails,
+  openReportModal,
   paginatedRows,
   prevPage,
+  reportDownloadLoading,
   selectedActividades,
   selectedCampanas,
+  selectedFecha,
   selectedEstatus,
   selectedLineas,
   showDetailsModal,
+  showReportModal,
+  maxFechaHoy,
   toggleFilter,
   closeDetails,
   approveStage,
@@ -68,6 +83,10 @@ function updateSelectedEstatus(value: number[]) {
   selectedEstatus.value = value
 }
 
+function updateSelectedFecha(value: string) {
+  selectedFecha.value = value
+}
+
 </script>
 
 <template>
@@ -77,6 +96,7 @@ function updateSelectedEstatus(value: number[]) {
         :tabs="tabs"
         :active-tab="activeTab"
         @tab-change="handleTabChange"
+        @download-report="openReportModal"
       />
 
       <Transition name="tab-fade" mode="out-in" appear>
@@ -99,6 +119,8 @@ function updateSelectedEstatus(value: number[]) {
             :selected-campanas="selectedCampanas"
             :selected-actividades="selectedActividades"
             :selected-estatus="selectedEstatus"
+            :selected-fecha="selectedFecha"
+            :max-fecha-hoy="maxFechaHoy"
             :paginated-rows="paginatedRows"
             :filtered-rows="filteredRows"
             :current-page="currentPage"
@@ -119,6 +141,7 @@ function updateSelectedEstatus(value: number[]) {
             @update:selected-campanas="updateSelectedCampanas"
             @update:selected-actividades="updateSelectedActividades"
             @update:selected-estatus="updateSelectedEstatus"
+            @update:selected-fecha="updateSelectedFecha"
             @search="handleSearch"
             @prev-page="prevPage"
             @next-page="nextPage"
@@ -136,6 +159,8 @@ function updateSelectedEstatus(value: number[]) {
         :can-dictaminar-for="canDictaminarFor"
         :show-approve-for="showApproveFor"
         :show-dictaminar-for="showDictaminarFor"
+        :show-error-for="showErrorFor"
+        :can-error-for="canErrorFor"
         :get-linea-label="getLineaLabel"
         :get-campana-label="getCampanaLabel"
         :get-status-class="getStatusClass"
@@ -145,6 +170,20 @@ function updateSelectedEstatus(value: number[]) {
         @close="closeDetails"
         @approve="approveStage"
         @dictaminar="dictaminarStage"
+        @view-error="openErrorModal"
+      />
+
+      <ReportDownloadModal
+        :show="showReportModal"
+        :loading="reportDownloadLoading"
+        @close="closeReportModal"
+        @download="downloadReport"
+      />
+
+      <TareaMonitorErrorModal
+        :show="showErrorModal"
+        :item="errorItem"
+        @close="closeErrorModal"
       />
     </div>
   </div>

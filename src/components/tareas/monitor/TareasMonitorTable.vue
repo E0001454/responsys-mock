@@ -23,6 +23,8 @@ const props = defineProps<{
   selectedCampanas: number[]
   selectedActividades: number[]
   selectedEstatus: number[]
+  selectedFecha: string
+  maxFechaHoy: string
   paginatedRows: TareaMonitorData[]
   filteredRows: TareaMonitorData[]
   currentPage: number
@@ -46,6 +48,7 @@ const emit = defineEmits<{
   (e: 'update:selectedCampanas', value: number[]): void
   (e: 'update:selectedActividades', value: number[]): void
   (e: 'update:selectedEstatus', value: number[]): void
+  (e: 'update:selectedFecha', value: string): void
   (e: 'search', value: string): void
   (e: 'prev-page'): void
   (e: 'next-page'): void
@@ -70,6 +73,11 @@ const modelActividades = computed({
 const modelEstatus = computed({
   get: () => props.selectedEstatus,
   set: (value: number[]) => emit('update:selectedEstatus', value)
+})
+
+const modelFecha = computed({
+  get: () => props.selectedFecha,
+  set: (value: string) => emit('update:selectedFecha', value)
 })
 
 function getProcessedRatio(row: TareaMonitorData) {
@@ -119,7 +127,7 @@ function getProcessedTextClass(row: TareaMonitorData) {
 
     <div v-else class="flex flex-col flex-1 min-h-0">
       <div class="overflow-y-auto overflow-x-hidden max-[1320px]:overflow-x-auto flex-1 min-h-0">
-        <table class="w-full max-[1320px]:min-w-[1240px] text-left border-collapse text-sm">
+        <table class="w-full max-[1320px]:min-w-[1340px] text-left border-collapse text-sm">
           <thead>
             <tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
               <th class="px-4 py-3 relative">
@@ -196,7 +204,19 @@ function getProcessedTextClass(row: TareaMonitorData) {
                 />
               </th>
 
-              <th class="px-4 py-3">Fecha creacion</th>
+              <th class="px-4 py-3">
+                <div class="flex flex-col gap-1.5">
+                  <span class="font-semibold">Fecha</span>
+                  <input
+                    v-model="modelFecha"
+                    type="date"
+                    :max="maxFechaHoy"
+                    class="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-600 focus:border-[#00357F] focus:outline-none"
+                    title="Filtrar por fecha"
+                    aria-label="Filtrar por fecha"
+                  />
+                </div>
+              </th>
               <th class="px-4 py-3 text-right">Num registros</th>
               <th class="px-4 py-3 text-center">Detalles</th>
             </tr>
@@ -224,8 +244,8 @@ function getProcessedTextClass(row: TareaMonitorData) {
               </td>
               <td class="px-4 py-2.5 text-slate-600 min-w-[130px]">
                 <div class="inline-flex flex-col rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 leading-tight">
-                  <span class="text-xs font-semibold text-slate-700 tabular-nums">{{ formatDateLabel(row.fechaCreacion) }}</span>
-                  <span class="text-[11px] text-slate-500 tabular-nums">{{ formatTimeLabel(row.fechaCreacion) }}</span>
+                  <span class="text-xs font-semibold text-slate-700 tabular-nums">{{ formatDateLabel(row.horarioProgramado) }}</span>
+                  <span class="text-[11px] text-slate-500 tabular-nums">{{ formatTimeLabel(row.horarioProgramado) }}</span>
                 </div>
               </td>
               <td class="px-4 py-2.5 text-right tabular-nums">
