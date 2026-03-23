@@ -28,6 +28,8 @@ export function formatNumber(value?: number) {
 
 export function getStatusClassByCode(code: string) {
   if (code === 'EJC') return 'bg-blue-50 text-[#00357F] border border-blue-200'
+  if (code === 'APB') return 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+  if (code === 'DCT') return 'bg-teal-50 text-teal-700 border border-teal-200'
   if (code === 'CMP') return 'bg-emerald-50 text-emerald-700 border border-emerald-200'
   if (code === 'ERR') return 'bg-red-50 text-[#AD0A0A] border border-red-200'
   if (code === 'BLQ') return 'bg-amber-50 text-amber-700 border border-amber-200'

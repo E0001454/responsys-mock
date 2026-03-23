@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { catalogosService } from '@/services/catalogos/catalogosService'
 import { columnaService } from '@/services/columnas/columnaService'
 import SearchableSelect from '@/components/forms/SearchableSelect.vue'
 import ModalActionConfirmOverlay from '@/components/shared/ModalActionConfirmOverlay.vue'
 import BaseModalActions from '@/components/shared/modal/BaseModalActions.vue'
 import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
+import MissingRequiredLabelsAlert from '@/components/columnas/shared/MissingRequiredLabelsAlert.vue'
 import type { ColumnaCampanaModel } from '@/models/columnas/campana/columnaCampana.model'
 
 interface Option {
@@ -86,9 +87,15 @@ async function fetchTipoOptions() {
 	}
 }
 
-onMounted(() => {
-	fetchTipoOptions()
-})
+watch(
+	() => props.show,
+	(isOpen) => {
+		if (isOpen) {
+			fetchTipoOptions()
+		}
+	},
+	{ immediate: true }
+)
 
 const isEditing = computed(() => props.mode === 'edit')
 const isDirty = computed(() => serializeFormState(form.value) !== initialFormSnapshot.value)
@@ -277,8 +284,6 @@ const selectedColumnaOption = computed<Option | undefined>(() =>
 	(props.columnas as Option[]).find(option => Number(option.value) === Number(form.value.idABCCatColumna ?? 0))
 )
 
-const showMissingRequiredDropdown = ref(false)
-
 const missingRequiredOptions = computed<Option[]>(() => {
 	const selectedMapeo = Number(form.value.idABCConfigMapeoCampana ?? 0)
 	if (!selectedMapeo) return []
@@ -294,12 +299,6 @@ const missingRequiredOptions = computed<Option[]>(() => {
 
 	return requiredOptions.filter(option => !configuredIds.has(Number(option.value)))
 })
-
-const missingRequiredCount = computed(() => {
-	return missingRequiredOptions.value.length
-})
-
-
 function resetForm() {
 	attemptedSave.value = false
 	form.value = {
@@ -502,7 +501,6 @@ watch(
 watch(
 	() => form.value.idABCConfigMapeoCampana,
 	() => {
-		showMissingRequiredDropdown.value = false
 		if (!form.value.idABCCatColumna) return
 		const stillAvailable = availableColumnas.value.some(
 			c => c.value === form.value.idABCCatColumna
@@ -647,30 +645,7 @@ async function save() {
 							/>
 							
 							<p v-if="attemptedSave && columnaRequiredError" class="text-xs text-red-500 mt-1">{{ columnaRequiredError }}</p>
-											<div v-if="missingRequiredCount > 0" class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
-												<div class="flex items-center justify-between gap-2">
-													<span class="truncate">Faltan {{ missingRequiredCount }} obligatorias.</span>
-													<button
-														type="button"
-														class="shrink-0 rounded-md border border-amber-300 bg-white px-2 py-1 text-[10px] font-semibold text-amber-800 hover:bg-amber-100"
-														@click="showMissingRequiredDropdown = !showMissingRequiredDropdown"
-													>
-														{{ showMissingRequiredDropdown ? 'Ocultar' : 'Detalle' }}
-													</button>
-												</div>
-												<div
-													v-if="showMissingRequiredDropdown"
-													class="mt-2 rounded-md border border-amber-200 bg-white p-2"
-												>
-													<div class="max-h-28 overflow-y-auto pr-1">
-														<ul class="space-y-1 text-[11px] text-amber-900">
-															<li v-for="option in missingRequiredOptions" :key="`req-campana-${option.value}`" class="truncate">
-																- {{ option.label }}
-															</li>
-														</ul>
-													</div>
-												</div>
-											</div>
+							<MissingRequiredLabelsAlert class="mt-2" :items="missingRequiredOptions" />
 						</div>
 					</div>
 
@@ -763,15 +738,7 @@ async function save() {
 						</div>
 					</div>
 
-					<!-- <div>
-						<label class="block text-xs font-bold text-[#00357F] uppercase tracking-wider mb-2">Regex</label>
-						<textarea
-							v-model="form.regex"
-							class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 text-sm focus:ring-2 focus:ring-[#00357F] focus:border-[#00357F] transition-shadow outline-none placeholder-gray-400 resize-none font-mono"
-							rows="2"
-							placeholder="Expresión regular para validación"
-						></textarea>
-					</div> -->
+					
 
 					<div v-if="mode === 'edit'" class="flex justify-end">
 						<button

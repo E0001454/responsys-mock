@@ -1,4 +1,4 @@
-<!-- <script setup lang="ts">
+<script setup lang="ts">
 import BaseModalActions from '@/components/shared/modal/BaseModalActions.vue'
 import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
 import type { MapeoLineaData } from '@/types/mapeos/linea'
@@ -206,4 +206,4 @@ function getDictaminarVisual(configured: boolean) {
   background: #cbd5e1;
   border-radius: 10px;
 }
-</style> -->
+</style>

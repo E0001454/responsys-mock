@@ -2,7 +2,7 @@
 import BaseModalActions from '@/components/shared/modal/BaseModalActions.vue'
 import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
 import type { MapeoCampanaData } from '@/types/mapeos/campana'
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { catalogosService } from '@/services/catalogos/catalogosService'
 
 interface Props {
@@ -20,15 +20,20 @@ const emit = defineEmits<Emits>()
 
 const campanas = ref<{ id: number; nombre: string }[]>([])
 
-onMounted(async () => {
-  try {
-    const catalogos = await catalogosService.getCatalogosAgrupados()
-    const list: any[] = catalogos.find(group => group.codigo === 'CMP')?.registros ?? []
-    campanas.value = (list || []).filter(c => c.bolActivo !== false).map(c => ({ id: c.id, nombre: c.nombre }))
-  } catch (_) {
-    campanas.value = []
-  }
-})
+watch(
+  () => props.show,
+  async (isOpen) => {
+    if (!isOpen) return
+    try {
+      const catalogos = await catalogosService.getCatalogosAgrupados()
+      const list: any[] = catalogos.find(group => group.codigo === 'CMP')?.registros ?? []
+      campanas.value = (list || []).filter(c => c.bolActivo !== false).map(c => ({ id: c.id, nombre: c.nombre }))
+    } catch (_) {
+      campanas.value = []
+    }
+  },
+  { immediate: true }
+)
 
 function getCampanaLabel(id?: number) {
   if (id === undefined || id === null) return '-'

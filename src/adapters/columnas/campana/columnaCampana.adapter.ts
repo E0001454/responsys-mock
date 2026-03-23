@@ -1,6 +1,21 @@
 import type { ColumnaCampanaModel } from '@/models/columnas/campana/columnaCampana.model'
 import type { ColumnaCampanaData } from '@/types/columnas/columna'
 
+export interface CampanaColumnaLookupEntry {
+  mapeoId?: number | null
+  columnaId?: number | null
+  bolActivo?: boolean
+  regex?: string | null
+  obligatorio?: boolean | null
+  esRequerido?: boolean | null
+  valor?: unknown
+}
+
+export interface AdaptColumnaCampanaOptions {
+  fallbackMapeoId?: number | null
+  lookupByColumnaId?: Map<number, CampanaColumnaLookupEntry>
+}
+
 function asRecord(v: unknown): Record<string, unknown> {
   return typeof v === 'object' && v !== null ? v as Record<string, unknown> : {}
 }
@@ -70,21 +85,58 @@ function adaptValor(raw: unknown) {
 }
 
 export function adaptColumnaCampana(
-  raw: ColumnaCampanaData
+  raw: ColumnaCampanaData,
+  options: AdaptColumnaCampanaOptions = {}
 ): ColumnaCampanaModel {
   const r = asRecord(raw)
   const columnaRec = asRecord(r.columna)
   const llave = asRecord(r.llaveMapeoCampanaColumna)
   const tipoRecRoot = asRecord(r.tipo)
   const tipoRecLegacy = asRecord(columnaRec.tipo)
+  const lookupByColumnaId = options.lookupByColumnaId
 
-  const mapeoId = toNumber(columnaRec.idABCConfigMapeoCampana ?? llave.idABCConfigMapeoCampana ?? r.idABCConfigMapeoCampana) ?? 0
-  const columnaId = toNumber(tipoRecRoot.id ?? tipoRecRoot.idABCCatColumna ?? tipoRecLegacy.id ?? tipoRecLegacy.idABCCatColumna ?? llave.idABCCatColumna ?? r.idABCCatColumna) ?? 0
+  const rawColumnaId = toNumber(
+    tipoRecRoot.id
+    ?? tipoRecRoot.idABCCatColumna
+    ?? tipoRecLegacy.id
+    ?? tipoRecLegacy.idABCCatColumna
+    ?? llave.idABCCatColumna
+    ?? r.idABCCatColumna
+    ?? r.id
+  )
 
-  const valor = adaptValor(r.valor ?? columnaRec.valor ?? null)
-  const esRequerido = normalizeObligatorio(r.esRequerido ?? r.obligatorio ?? columnaRec.esRequerido ?? columnaRec.obligatorio ?? columnaRec.obligatoria ?? null)
-  const bolActivo = toBoolean(r.activo ?? r.bolActivo ?? columnaRec.activo ?? columnaRec.bolActivo ?? false)
-  const regex = normalizeRegex(r.regex ?? columnaRec.regex ?? null)
+  const lookup = rawColumnaId !== null ? lookupByColumnaId?.get(rawColumnaId) : undefined
+
+  const mapeoId = toNumber(
+    columnaRec.idABCConfigMapeoCampana
+    ?? llave.idABCConfigMapeoCampana
+    ?? r.idABCConfigMapeoCampana
+    ?? lookup?.mapeoId
+    ?? options.fallbackMapeoId
+  ) ?? 0
+
+  const columnaId = toNumber(rawColumnaId ?? lookup?.columnaId) ?? 0
+
+  const valor = adaptValor(r.valor ?? columnaRec.valor ?? lookup?.valor ?? null)
+  const esRequerido = normalizeObligatorio(
+    r.esRequerido
+    ?? r.obligatorio
+    ?? columnaRec.esRequerido
+    ?? columnaRec.obligatorio
+    ?? columnaRec.obligatoria
+    ?? lookup?.esRequerido
+    ?? lookup?.obligatorio
+    ?? null
+  )
+  const bolActivo = toBoolean(
+    r.activo
+    ?? r.bolActivo
+    ?? columnaRec.activo
+    ?? columnaRec.bolActivo
+    ?? lookup?.bolActivo
+    ?? false
+  )
+  const regex = normalizeRegex(r.regex ?? columnaRec.regex ?? lookup?.regex ?? null)
 
   return {
     tipo: 'campana',

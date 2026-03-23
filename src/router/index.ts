@@ -5,7 +5,7 @@ import MapeoView from '../views/MapeoView.vue'
 import ColumnasView from '../views/ColumnasView.vue'
 import TareasView from '../views/TareasView.vue'
 import TareasMonitorView from '../views/TareasMonitorView.vue'
-// import CatalogosView from '../views/CatalogosView.vue'
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -31,11 +31,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'tareas-monitor',
     component: TareasMonitorView
   },
-  // {
-  //   path: '/catalogos',
-  //   name: 'catalogos',
-  //   component: CatalogosView
-  // }
+  
+  
+  
+  
+  
 ]
 
 const router = createRouter({

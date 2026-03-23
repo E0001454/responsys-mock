@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
 import BaseModalActions from '@/components/shared/modal/BaseModalActions.vue'
 import type { TareaMonitorData } from '@/types/tareas/monitor'
@@ -11,6 +12,25 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
+
+const parsedErrorDetails = computed(() => {
+  const raw = String(props.item?.error?.detalle ?? '').trim()
+  if (!raw) return [] as string[]
+
+  const bySemicolon = raw
+    .split(';')
+    .map(chunk => chunk.trim())
+    .filter(Boolean)
+
+  if (bySemicolon.length > 1) return bySemicolon
+
+  const byLine = raw
+    .split(/\r?\n/)
+    .map(chunk => chunk.trim())
+    .filter(Boolean)
+
+  return byLine.length > 1 ? byLine : [raw]
+})
 </script>
 
 <template>
@@ -31,22 +51,25 @@ const emit = defineEmits<{
       <div v-else class="space-y-4 text-sm">
         <div class="bg-red-50 border border-red-200 rounded-xl p-5 space-y-4">
           <div>
-            <span class="text-[10px] uppercase tracking-widest text-red-400 font-bold">Nombre</span>
+            <!-- <span class="text-[10px] uppercase tracking-widest text-red-400 font-bold">Nombre</span> -->
             <p class="mt-1 font-semibold text-red-800 text-base">{{ props.item.error.nombre }}</p>
           </div>
 
-          <div>
+          <!-- <div>
             <span class="text-[10px] uppercase tracking-widest text-red-400 font-bold">Código</span>
             <p class="mt-1">
               <span class="font-mono text-sm font-bold text-red-700 bg-red-100 border border-red-200 px-2.5 py-1 rounded">
                 {{ props.item.error.codigo }}
               </span>
             </p>
-          </div>
+          </div> -->
 
           <div>
-            <span class="text-[10px] uppercase tracking-widest text-red-400 font-bold">Detalle</span>
-            <p class="mt-1 text-red-800 leading-relaxed">{{ props.item.error.detalle }}</p>
+            <!-- <span class="text-[10px] uppercase tracking-widest text-red-400 font-bold">Detalle</span> -->
+            <ul v-if="parsedErrorDetails.length > 1" class="mt-2 space-y-2 list-disc pl-5 text-red-800 leading-relaxed">
+              <li v-for="(detail, index) in parsedErrorDetails" :key="`${index}-${detail}`">{{ detail }}</li>
+            </ul>
+            <p v-else class="mt-1 text-red-800 leading-relaxed">{{ parsedErrorDetails[0] ?? '-' }}</p>
           </div>
         </div>
 

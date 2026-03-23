@@ -19,6 +19,7 @@ const props = defineProps<{
   getLineaLabel: (row: TareaMonitorData) => string
   getCampanaLabel: (row: TareaMonitorData) => string
   getStatusClass: (row: TareaMonitorData) => string
+  getHorarioLabel: (row: TareaMonitorData) => string
   formatDateLabel: (value?: string) => string
   formatTimeLabel: (value?: string) => string
   formatNumber: (value?: number) => string
@@ -93,6 +94,16 @@ function formattedDateTime(value?: string) {
   return `${props.formatDateLabel(value)} ${props.formatTimeLabel(value)}`
 }
 
+function shouldShowApprovedBadge(stage: TareaMonitorData) {
+  const status = String(stage.estatus.codigo ?? '').toUpperCase()
+  if (status === 'APB' || Boolean(stage.fechaAprobada)) return true
+
+  const isValidation = String(stage.actividad.codigo).toUpperCase() === 'VALIDACION'
+  const mode = String(stage.ejecucion.modo).toUpperCase()
+  const isManualOrHybrid = mode === 'MANUAL' || mode === 'HIBRIDA'
+  return isValidation && isManualOrHybrid && Boolean(stage.fechaInicio)
+}
+
 const orderedStages = computed(() => {
   const source = props.stages?.length ? props.stages : (props.item ? [props.item] : [])
   const order: Record<string, number> = { CARGA: 1, VALIDACION: 2, ENVIO: 3 }
@@ -103,8 +114,6 @@ const orderedStages = computed(() => {
     return Number(a.etapaIndex ?? 0) - Number(b.etapaIndex ?? 0)
   })
 })
-
-const expandedGroup = ref<Record<string, boolean>>({})
 
 const groupedActivities = computed(() => {
   const groups = new Map<string, { key: string; label: string; items: TareaMonitorData[] }>()
@@ -135,18 +144,6 @@ const groupedActivities = computed(() => {
   })
 })
 
-function isGroupOpen(key: string, index: number) {
-  if (Object.prototype.hasOwnProperty.call(expandedGroup.value, key)) {
-    return Boolean(expandedGroup.value[key])
-  }
-  return index === 0
-}
-
-function toggleGroup(key: string, index: number) {
-  const current = isGroupOpen(key, index)
-  expandedGroup.value = { ...expandedGroup.value, [key]: !current }
-}
-
 function resolveGroupRepresentative(items: TareaMonitorData[]): TareaMonitorData {
   const priority: Record<string, number> = { EJC: 1, PLN: 2, ERR: 3, CMP: 4, BLQ: 5, CNC: 6 }
   return (items.slice().sort((a, b) => {
@@ -163,6 +160,7 @@ function formatExecutionMode(mode?: string) {
   if (normalized === 'AUTOMATICA') return 'Automatica'
   return '-'
 }
+
 </script>
 
 <template>
@@ -209,110 +207,116 @@ function formatExecutionMode(mode?: string) {
 
         <div class="space-y-2">
           <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">Actividades y horarios</h3>
-
-          <div
-            v-for="(group, groupIndex) in groupedActivities"
-            :key="group.key"
-            class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"
-          >
-            <button
-              type="button"
-              class="w-full flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50/70 hover:bg-slate-100 transition-colors"
-              @click="toggleGroup(group.key, groupIndex)"
-            >
-              <div class="flex items-center gap-2 min-w-0">
-                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform" :class="isGroupOpen(group.key, groupIndex) ? 'rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                <span class="text-sm font-bold text-slate-800 truncate">{{ group.label }}</span>
-                <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 font-semibold">{{ group.items.length }} horario{{ group.items.length === 1 ? '' : 's' }}</span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold" :class="getStatusClass(group.representative)">
-                  {{ group.representative.estatus.nombre }}
-                </span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
-                  {{ formatExecutionMode(group.representative.ejecucion.modo) }}
-                </span>
-              </div>
-            </button>
-
-            <div v-if="isGroupOpen(group.key, groupIndex)" class="divide-y divide-slate-100">
+          <div class="overflow-x-auto">
+            <div class="min-w-[1400px] space-y-2">
               <div
-                v-for="stage in group.items"
-                :key="`${stage.pipelineId}-${stage.etapaIndex}`"
-                class="px-3 py-2.5"
+                v-for="group in groupedActivities"
+                :key="group.key"
+                class="bg-white border border-slate-200 rounded-xl overflow-visible shadow-sm"
               >
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs">
-                  <div>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">Horario</p>
-                    <p class="font-semibold text-slate-700 tabular-nums">{{ formattedDateTime(stage.horarioProgramado) }}</p>
-                  </div>
-                  <div>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">Inicio</p>
-                    <p class="font-semibold text-slate-700 tabular-nums">{{ formattedDateTime(stage.fechaInicio) }}</p>
-                  </div>
-                  <div>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">Fin</p>
-                    <p class="font-semibold text-slate-700 tabular-nums">{{ formattedDateTime(stage.fechaFin) }}</p>
-                  </div>
-                  <div>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">Aprobada</p>
-                    <p class="font-semibold tabular-nums" :class="stage.fechaAprobada ? 'text-slate-700' : 'text-slate-300'">{{ formattedDateTime(stage.fechaAprobada) }}</p>
-                  </div>
-                  <div>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">Dictaminada</p>
-                    <p class="font-semibold tabular-nums" :class="stage.fechaDictaminacion ? 'text-slate-700' : 'text-slate-300'">{{ formattedDateTime(stage.fechaDictaminacion) }}</p>
-                  </div>
-                  <div>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">Registros</p>
-                    <p class="font-bold text-slate-800 tabular-nums inline-flex items-center gap-1.5">
-                      <span
-                        class="inline-block w-2 h-2 rounded-full"
-                        :class="stage.estatus.codigo === 'ERR' ? 'bg-red-400' : stage.estatus.codigo === 'CMP' ? 'bg-emerald-500' : 'bg-[#00357F]'"
-                      ></span>
-                      <span>{{ formatNumber(stage.numeroRegistrosProcesados) }} <span class="text-slate-400 font-medium">/ {{ formatNumber(stage.numeroRegistros) }}</span></span>
-                    </p>
+                <div class="w-full flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50/70">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="text-sm font-bold text-slate-800 truncate">{{ group.label }}</span>
+                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 font-semibold">{{ group.items.length }} horario{{ group.items.length === 1 ? '' : 's' }}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+                      {{ formatExecutionMode(group.representative.ejecucion.modo) }}
+                    </span>
                   </div>
                 </div>
 
-                <div class="mt-2 flex items-center justify-end gap-1.5">
-                    <button
-                      v-if="props.showApproveFor(stage)"
-                      type="button"
-                      class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors"
-                      :class="props.canApproveFor(stage)
-                        ? 'bg-[#00357F] text-white hover:bg-[#002A64]'
-                        : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'"
-                      :disabled="loading || !props.canApproveFor(stage)"
-                      @click="openApproveConfirm(stage)"
-                    >
-                      Aprobar
-                    </button>
-
-                    <template v-if="props.showDictaminarFor(stage)">
-                      <button
-                        v-if="!stage.dictaminado"
-                        type="button"
-                        class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors"
-                        :class="props.canDictaminarFor(stage)
-                          ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                          : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'"
-                        :disabled="loading || !props.canDictaminarFor(stage)"
-                        @click="openDictaminarConfirm(stage)"
-                      >
-                        Dictaminar
-                      </button>
-                      <span v-else class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Dictaminado
-                      </span>
-                    </template>
-
-                    <button
-                      v-if="props.showErrorFor(stage)"
-                      type="button"
-                      class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
-                      @click="emit('view-error', stage)"
-                    >
-                      Ver error
-                    </button>
-                </div>
+                <table class="w-full table-fixed text-xs border-collapse whitespace-nowrap">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px]">
+                    <th class="px-2.5 py-2 text-left">Horario</th>
+                    <th class="px-2.5 py-2 text-left">Fecha inicio</th>
+                    <th class="px-2.5 py-2 text-left">Fecha fin</th>
+                    <th class="px-2.5 py-2 text-left">Fecha planificacion</th>
+                    <th class="px-2.5 py-2 text-center"></th>
+                    <th class="px-2.5 py-2 text-left">Fecha ejecucion</th>
+                    <th class="px-2.5 py-2 text-center"></th>
+                    <th class="px-2.5 py-2 text-left">Fecha dictaminacion</th>
+                    <th class="px-2.5 py-2 text-left">Fecha completada</th>
+                    <th class="px-2.5 py-2 text-right">Num registros</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template v-for="stage in group.items" :key="`${stage.pipelineId}-${stage.etapaIndex}`">
+                    <tr class="border-t border-slate-100 align-top">
+                      <td class="px-2.5 py-2 text-slate-700">{{ getHorarioLabel(stage) || formatTimeLabel(stage.horarioProgramado) || '-' }}</td>
+                      <td class="px-2.5 py-2 text-slate-700 tabular-nums">{{ formattedDateTime(stage.fechaInicio) }}</td>
+                      <td class="px-2.5 py-2 text-slate-700 tabular-nums">{{ formattedDateTime(stage.fechaFin) }}</td>
+                      <td class="px-2.5 py-2 font-semibold text-slate-700 tabular-nums">{{ formattedDateTime(stage.fechaCreacion) }}</td>
+                      <td class="px-2.5 py-2 text-center">
+                        <template v-if="props.showApproveFor(stage)">
+                          <span
+                            v-if="shouldShowApprovedBadge(stage)"
+                            class="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          >
+                            Aprobado
+                          </span>
+                          <button
+                            v-else
+                            type="button"
+                            class="px-2 py-1 rounded-lg text-[11px] font-semibold transition-colors"
+                            :class="props.canApproveFor(stage)
+                              ? 'bg-[#00357F] text-white hover:bg-[#002A64]'
+                              : 'bg-transparent text-slate-400 cursor-not-allowed border border-slate-200'"
+                            :disabled="loading || !props.canApproveFor(stage)"
+                            @click="openApproveConfirm(stage)"
+                          >
+                            Aprobar
+                          </button>
+                        </template>
+                      </td>
+                      <td class="px-2.5 py-2 text-slate-700 tabular-nums">{{ formattedDateTime(stage.fechaInicio) }}</td>
+                      <td class="px-2.5 py-2 text-center">
+                        <template v-if="props.showDictaminarFor(stage)">
+                          <button
+                            v-if="!stage.dictaminado"
+                            type="button"
+                            class="px-2 py-1 rounded-lg text-[11px] font-semibold transition-colors"
+                            :class="props.canDictaminarFor(stage)
+                              ? 'bg-[#00357F] text-white hover:bg-[#002A64]'
+                              : 'bg-transparent text-slate-400 cursor-not-allowed border border-slate-200'"
+                            :disabled="loading || !props.canDictaminarFor(stage)"
+                            @click="openDictaminarConfirm(stage)"
+                          >
+                            Dictaminar
+                          </button>
+                          <span v-else class="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Dictaminado
+                          </span>
+                        </template>
+                      </td>
+                      <td class="px-2.5 py-2 text-slate-700 tabular-nums">{{ formattedDateTime(stage.fechaDictaminacion) }}</td>
+                      <td class="px-2.5 py-2">
+                        <div class="flex max-w-full flex-col items-start gap-1">
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold" :class="getStatusClass(stage)">
+                            {{ stage.estatus.nombre }}
+                          </span>
+                          <button
+                            v-if="props.showErrorFor(stage)"
+                            type="button"
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border transition-colors"
+                            :class="props.canErrorFor(stage)
+                              ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                              : 'bg-transparent text-slate-400 border-slate-200 cursor-not-allowed'"
+                            :disabled="loading || !props.canErrorFor(stage)"
+                            title="Abrir detalle del error"
+                            aria-label="Abrir detalle del error"
+                            @click="emit('view-error', stage)"
+                          >
+                            <span aria-hidden="true">!</span>
+                            Ver detalle del error
+                          </button>
+                          <span class="text-slate-700 tabular-nums text-[11px] leading-tight whitespace-normal break-words">{{ formattedDateTime(stage.fechaFin) }}</span>
+                        </div>
+                      </td>
+                      <td class="px-2.5 py-2 text-right tabular-nums font-semibold text-slate-700">{{ formatNumber(stage.numeroRegistrosProcesados) }} / {{ formatNumber(stage.numeroRegistros) }}</td>
+                    </tr>
+                  </template>
+                </tbody>
+                </table>
               </div>
             </div>
           </div>

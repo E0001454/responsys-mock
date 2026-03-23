@@ -4,6 +4,7 @@ import { useColumnasLinea } from '@/composables/columnas/linea/useColumnasLinea'
 import ColumnaLineaTable from './ColumnaLineaTable.vue'
 import ColumnaLineaModal from './ColumnaLineaModal.vue'
 import ColumnaDetailsModal from '../ColumnaDetailsModal.vue'
+import MissingRequiredLabelsAlert from '@/components/columnas/shared/MissingRequiredLabelsAlert.vue'
 import FormActionConfirmModal from '@/components/shared/FormActionConfirmModal.vue'
 import type { ColumnaLineaModel } from '@/models/columnas/linea/columnaLinea.model'
 
@@ -39,26 +40,23 @@ const lineasCatalogo = ref<Option[]>([])
 
 import type { CatalogoItem } from '@/types/catalogos/catalogos'
 
-async function fetchCatalogosColumnas() {
+async function fetchCatalogos() {
 	const catalogos = await catalogosService.getCatalogosAgrupados()
-	const list: CatalogoItem[] = (
+	const columnasList: CatalogoItem[] = (
 		catalogos.find(group => String(group.codigo).toUpperCase() === 'CLI')?.registros
 		?? catalogos.find(group => String(group.codigo).toUpperCase() === 'CLM')?.registros
 		?? []
 	)
-	columnasCatalogo.value = list
+	columnasCatalogo.value = columnasList
 		.filter((c: CatalogoItem) => c.bolActivo)
 		.map((c: CatalogoItem) => ({
 			label: c.nombre,
 			value: c.id,
 			isRequired: Boolean(c.esRequerido ?? c.obligatorio ?? false)
 		}))
-}
 
-async function fetchCatalogosLineas() {
-	const catalogos = await catalogosService.getCatalogosAgrupados()
-	const list: CatalogoItem[] = catalogos.find(group => group.codigo === 'LNN')?.registros ?? []
-	lineasCatalogo.value = list
+	const lineasList: CatalogoItem[] = catalogos.find(group => group.codigo === 'LNN')?.registros ?? []
+	lineasCatalogo.value = lineasList
 		.filter((c: CatalogoItem) => c.bolActivo)
 		.map((c: CatalogoItem) => ({
 			label: c.nombre,
@@ -132,10 +130,6 @@ const missingRequiredColumnas = computed<Option[]>(() => {
 	return requiredOptions.filter(option => !configuredIds.has(Number(option.value)))
 })
 
-const missingRequiredLabel = computed(() =>
-	missingRequiredColumnas.value.map(option => option.label).join(', ')
-)
-
 const totalPages = computed(() =>
 	Math.max(1, Math.ceil(filtered.value.length / pageSize.value))
 )
@@ -183,10 +177,10 @@ function openDetails(item: ColumnaLineaModel) {
 }
 
 async function handleSaved() {
-	await Promise.all([
-		fetchAll(props.mapeoId ?? null),
-		fetchMapeos()
-	])
+	await fetchAll(props.mapeoId ?? null)
+	if (props.mapeoId === undefined || props.mapeoId === null) {
+		await fetchMapeos()
+	}
 	emit('saved')
 }
 
@@ -217,9 +211,10 @@ onMounted(() => {
 		selectedFilters.mapeos = [Number(props.mapeoId)]
 	}
 	fetchAll(props.mapeoId)
-	fetchCatalogosColumnas()
-	fetchMapeos()
-	fetchCatalogosLineas()
+	fetchCatalogos()
+	if (props.mapeoId === undefined || props.mapeoId === null) {
+		fetchMapeos()
+	}
 	updatePageSize()
 	window.addEventListener('resize', updatePageSize)
 })
@@ -258,9 +253,7 @@ defineExpose({ openAdd })
 
 <template>
 	<div class="min-h-[72dvh]" @click.self="openFilter = null">
-		<div v-if="missingRequiredColumnas.length" class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-			Faltan {{ missingRequiredColumnas.length }} columnas obligatorias por configurar: {{ missingRequiredLabel }}.
-		</div>
+		<MissingRequiredLabelsAlert class="mb-3" :items="missingRequiredColumnas" />
 
 		<ColumnaLineaTable
 			:columnas="paginated"

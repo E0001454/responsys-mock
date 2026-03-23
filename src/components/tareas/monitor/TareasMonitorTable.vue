@@ -117,6 +117,7 @@ function getProcessedTextClass(row: TareaMonitorData) {
   if (ratio > 0) return 'text-orange-700'
   return 'text-slate-700'
 }
+
 </script>
 
 <template>
@@ -250,7 +251,7 @@ function getProcessedTextClass(row: TareaMonitorData) {
               </td>
               <td class="px-4 py-2.5 text-right tabular-nums">
                 <div class="inline-flex min-w-[150px] flex-col items-end gap-1.5 rounded-lg border px-2.5 py-1.5" :class="getProcessedWrapClass(row)">
-                  <span class="text-sm font-semibold" :class="getProcessedTextClass(row)">
+                  <span class="text-sm font-semibold tabular-nums" :class="getProcessedTextClass(row)">
                     {{ formatNumber(row.numeroRegistrosProcesados) }} / {{ formatNumber(row.numeroRegistros) }}
                   </span>
                   <div class="h-1.5 w-full rounded-full bg-white/85">

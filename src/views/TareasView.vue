@@ -24,7 +24,6 @@ import {
   type Option as CatalogOption
 } from '@/composables/tareas/tareaScheduleUtils'
 import {
-  enrichTareaWithMapeoName,
   mapCatalogosToOptions,
   resolveTareaMapeoId,
   stageKeys,
@@ -99,14 +98,11 @@ const allTareasLinea = ref<TareaLineaRow[]>([])
 const allTareasCampana = ref<TareaCampanaRow[]>([])
 const allMapeosLinea = ref<MapeoLineaData[]>([])
 const allMapeosCampana = ref<MapeoCampanaData[]>([])
+const mapeosLoaded = ref(false)
 
-const tareasLineaEnriched = computed(() =>
-  allTareasLinea.value.map(item => enrichTareaWithMapeoName(item, allMapeosLinea.value))
-)
+const tareasLineaEnriched = computed(() => allTareasLinea.value)
 
-const tareasCampanaEnriched = computed(() =>
-  allTareasCampana.value.map(item => enrichTareaWithMapeoName(item, allMapeosCampana.value))
-)
+const tareasCampanaEnriched = computed(() => allTareasCampana.value)
 
 const selectedEditMapeoId = computed(() => {
   if (modalMode.value !== 'edit' || !selectedItem.value) return 0
@@ -423,9 +419,15 @@ async function fetchMapeos() {
     ])
     allMapeosLinea.value = linea
     allMapeosCampana.value = campana
+    mapeosLoaded.value = true
   } catch (e: any) {
     error.value = e.message
   }
+}
+
+async function ensureMapeosLoaded() {
+  if (mapeosLoaded.value) return
+  await fetchMapeos()
 }
 
 const toggleFilterMenuLinea = (column: string) => {
@@ -596,6 +598,7 @@ function closeDetailsModal() {
 }
 function openEdit(item: TareaLineaRow | TareaCampanaRow) {
   const run = async () => {
+    await ensureMapeosLoaded()
     modalMode.value = 'edit'
     modalTab.value = activeTab.value
 
@@ -756,10 +759,17 @@ async function confirmStatusToggle() {
 }
 
 function openAddModal() {
-  modalMode.value = 'add'
-  modalTab.value = activeTab.value
-  selectedItem.value = null
-  showModal.value = true
+  const run = async () => {
+    await ensureMapeosLoaded()
+    modalMode.value = 'add'
+    modalTab.value = activeTab.value
+    selectedItem.value = null
+    showModal.value = true
+  }
+
+  run().catch((e: any) => {
+    error.value = e?.message ?? 'No se pudo cargar la configuración de mapeos.'
+  })
 }
 
 function closeModal() {
@@ -873,7 +883,6 @@ onMounted(() => {
   fetchCatalogos()
   fetchTareasLinea()
   fetchTareasCampana()
-  fetchMapeos()
   window.addEventListener('resize', updatePageSize)
 })
 

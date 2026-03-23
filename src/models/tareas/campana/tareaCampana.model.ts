@@ -140,7 +140,10 @@ export function toCreateTareaCampanaPayloads(
     .filter(stage => stage.slots.length > 0)
     .map(stage => ({
       actividad: {
-        mapeo: { id: mapeoId },
+        mapeo: {
+          id: mapeoId,
+          ...(String(form.ingesta ?? '').trim() ? { nombre: String(form.ingesta).trim() } : {})
+        },
         tipo: { id: stage.typeId },
         ejecucion: { id: resolveExecutionId(stage.execution) }
       },
@@ -233,7 +236,14 @@ export function toUpdateTareaCampanaOperations(
     const stageHorariosActivarIds = horariosActivarIds.filter(id => stageHorarioIds.has(id))
 
     const commonTarea = {
-      ...(mapeoId > 0 ? { mapeo: { id: mapeoId } } : {}),
+      ...(mapeoId > 0
+        ? {
+          mapeo: {
+            id: mapeoId,
+            ...(String(form.ingesta ?? '').trim() ? { nombre: String(form.ingesta).trim() } : {})
+          }
+        }
+        : {}),
       linea: {
         id: Number(form.idABCCatLineaNegocio ?? 0),
         catCampana: {

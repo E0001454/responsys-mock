@@ -282,7 +282,7 @@ async function loadCatalogos() {
       return
     }
   } catch {
-    // fallback a archivos individuales
+    
   }
 
   const codes = Object.keys(CATALOGOS_META)

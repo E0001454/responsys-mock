@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, watch } from 'vue'
 import BaseModalActions from '@/components/shared/modal/BaseModalActions.vue'
 import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
 import { catalogosService } from '@/services/catalogos/catalogosService'
@@ -192,9 +192,15 @@ async function fetchValorCatalogs() {
 	}
 }
 
-onMounted(() => {
-	fetchValorCatalogs()
-})
+watch(
+	() => props.show,
+	(isOpen) => {
+		if (isOpen) {
+			fetchValorCatalogs()
+		}
+	},
+	{ immediate: true }
+)
 
 function mapTipoName(id: number | null | undefined) {
 	if (id === null || id === undefined) return '(Sin configuración)'

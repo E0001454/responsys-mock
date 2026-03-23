@@ -1,4 +1,4 @@
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { matchesSearchContains } from '@/composables/shared/listViewUtils'
 import { useFirstRowNewGlow } from '@/composables/shared/useFirstRowNewGlow'
 import { catalogosService } from '@/services/catalogos/catalogosService'
@@ -11,6 +11,8 @@ import type {
 } from '@/types/tareas/monitor'
 import { mapCatalogIdToLabel } from '@/utils/tareas/monitor/tareasMonitorData.utils'
 import { getStatusClassByCode } from '@/utils/tareas/monitor/tareasMonitorFormat.utils'
+import { canApproveStageByRules, canDictaminarStageByRules } from '@/utils/tareas/monitor/monitorStatusRules.utils'
+import { useTareasMonitorReport } from '@/composables/tareas/monitor/useTareasMonitorReport'
 
 export const tabs = [
   { key: 'campana', label: 'Campanas' },
@@ -23,8 +25,6 @@ type NumericOption = {
   label: string
   value: number
 }
-
-const REFRESH_MS = 1000
 
 export function useTareasMonitorViewModel() {
   const activeTab = ref<TabKey>('campana')
@@ -39,7 +39,6 @@ export function useTareasMonitorViewModel() {
   const detailsStages = ref<TareaMonitorData[]>([])
   const detailsActionLoading = ref(false)
   const showReportModal = ref(false)
-  const reportDownloadLoading = ref(false)
   const showErrorModal = ref(false)
   const errorItem = ref<TareaMonitorData | null>(null)
 
@@ -47,6 +46,8 @@ export function useTareasMonitorViewModel() {
   const tareasMonitorCampana = ref<TareaMonitorCampanaData[]>([])
   const lineaLabelById = ref(new Map<number, string>())
   const campanaLabelById = ref(new Map<number, string>())
+  const diaLabelById = ref(new Map<number, string>())
+  const horaLabelById = ref(new Map<number, string>())
 
   const selectedLineas = ref<number[]>([])
   const selectedCampanas = ref<number[]>([])
@@ -54,8 +55,6 @@ export function useTareasMonitorViewModel() {
   const selectedEstatus = ref<number[]>([])
   const selectedFecha = ref('')
   const filtersInitialized = ref(false)
-
-  let refreshTimer: ReturnType<typeof setInterval> | null = null
 
   const currentRows = computed<TareaMonitorData[]>(() =>
     activeTab.value === 'linea' ? tareasMonitorLinea.value : tareasMonitorCampana.value
@@ -193,7 +192,7 @@ export function useTareasMonitorViewModel() {
         const mapeoCompare = String(a.nombreMapeo ?? '').localeCompare(String(b.nombreMapeo ?? ''))
         if (mapeoCompare !== 0) return mapeoCompare
 
-        const statusOrder: Record<string, number> = { EJC: 1, PLN: 2, CMP: 3, ERR: 4 }
+        const statusOrder: Record<string, number> = { EJC: 1, PLN: 2, APB: 3, CMP: 4, DCT: 5, ERR: 6 }
         const pa = statusOrder[String(a.estatus.codigo).toUpperCase()] ?? 5
         const pb = statusOrder[String(b.estatus.codigo).toUpperCase()] ?? 5
         if (pa !== pb) return pa - pb
@@ -262,16 +261,7 @@ export function useTareasMonitorViewModel() {
 
   const detailsCanApprove = computed(() => {
     if (!detailsItem.value) return false
-    const item = detailsItem.value
-    const mode = item.ejecucion.modo
-    const isPlanned = item.estatus.codigo === 'PLN'
-    const scheduleTs = Date.parse(item.horarioProgramado)
-    const reachedSchedule = Number.isFinite(scheduleTs) ? Date.now() >= scheduleTs : false
-
-    if (mode === 'AUTOMATICA') return false
-    if (mode === 'MANUAL') return isPlanned && reachedSchedule
-    if (mode === 'HIBRIDA') return isPlanned && !reachedSchedule
-    return false
+    return canApproveStageByRules(detailsItem.value)
   })
 
   const detailsShowApprove = computed(() => {
@@ -281,11 +271,7 @@ export function useTareasMonitorViewModel() {
 
   const detailsCanDictaminar = computed(() => {
     if (!detailsItem.value) return false
-    const item = detailsItem.value
-    return item.actividad.codigo === 'VALIDACION'
-      && item.dictaminacionRequerida
-      && item.estatus.codigo === 'CMP'
-      && !item.dictaminado
+    return canDictaminarStageByRules(detailsItem.value)
   })
 
   const detailsShowDictaminar = computed(() => {
@@ -295,15 +281,7 @@ export function useTareasMonitorViewModel() {
   })
 
   function canApproveFor(item: TareaMonitorData) {
-    const mode = item.ejecucion.modo
-    const isPlanned = item.estatus.codigo === 'PLN'
-    const scheduleTs = Date.parse(item.horarioProgramado)
-    const reachedSchedule = Number.isFinite(scheduleTs) ? Date.now() >= scheduleTs : false
-
-    if (mode === 'AUTOMATICA') return false
-    if (mode === 'MANUAL') return isPlanned && reachedSchedule
-    if (mode === 'HIBRIDA') return isPlanned && !reachedSchedule
-    return false
+    return canApproveStageByRules(item)
   }
 
   function showApproveFor(item: TareaMonitorData) {
@@ -311,10 +289,7 @@ export function useTareasMonitorViewModel() {
   }
 
   function canDictaminarFor(item: TareaMonitorData) {
-    return item.actividad.codigo === 'VALIDACION'
-      && item.dictaminacionRequerida
-      && item.estatus.codigo === 'CMP'
-      && !item.dictaminado
+    return canDictaminarStageByRules(item)
   }
 
   function showDictaminarFor(item: TareaMonitorData) {
@@ -349,6 +324,8 @@ export function useTareasMonitorViewModel() {
     const catalogos = await catalogosService.getCatalogosAgrupados()
     lineaLabelById.value = mapCatalogIdToLabel(catalogos, 'LNN')
     campanaLabelById.value = mapCatalogIdToLabel(catalogos, 'CMP')
+    diaLabelById.value = mapCatalogIdToLabel(catalogos, 'DIA')
+    horaLabelById.value = mapCatalogIdToLabel(catalogos, 'HRS')
   }
 
   async function fetchMonitorData() {
@@ -364,6 +341,18 @@ export function useTareasMonitorViewModel() {
     }
 
     initializeFilters()
+  }
+
+  async function refreshMonitorData() {
+    isLoading.value = true
+    error.value = null
+    try {
+      await fetchMonitorData()
+    } catch (err: any) {
+      error.value = err?.message ?? 'No fue posible actualizar el monitoreo de tareas.'
+    } finally {
+      isLoading.value = false
+    }
   }
 
   function getScopeFromTab(tab: TabKey): MonitorScope {
@@ -389,6 +378,46 @@ export function useTareasMonitorViewModel() {
 
   function getStatusClass(row: TareaMonitorData) {
     return getStatusClassByCode(String(row.estatus.codigo).toUpperCase())
+  }
+
+  function formatCatalogHourLabel(label: string) {
+    const raw = String(label ?? '').trim()
+    if (!raw) return ''
+
+    const normalized = raw.toLowerCase()
+    if (normalized.includes('am') || normalized.includes('pm')) {
+      const compact = normalized.replace(/\s+/g, '')
+      const richMatch = compact.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)$/)
+      if (richMatch) {
+        const hour = String(Number(richMatch[1]) || 0)
+        const minute = richMatch[2] ?? '00'
+        const suffix = richMatch[3]
+        return `${hour}:${minute} ${suffix}`
+      }
+      return raw
+    }
+
+    const hourMatch = normalized.match(/\b([01]?\d|2[0-3])\b/)
+    if (!hourMatch) return raw
+
+    const hour24 = Number(hourMatch[1])
+    if (!Number.isFinite(hour24)) return raw
+    const suffix = hour24 >= 12 ? 'pm' : 'am'
+    const hour12 = hour24 % 12 || 12
+    return `${hour12}:00 ${suffix}`
+  }
+
+  function getHorarioLabel(row: TareaMonitorData) {
+    const dia = Number(row.horarioDiaId ?? 0)
+    const hora = Number(row.horarioHoraId ?? 0)
+    const diaNombre = dia > 0 ? (diaLabelById.value.get(dia) ?? '') : ''
+    const horaNombreRaw = hora > 0 ? (horaLabelById.value.get(hora) ?? '') : ''
+    const horaNombre = formatCatalogHourLabel(horaNombreRaw)
+
+    if (diaNombre && horaNombre) return `${diaNombre} ${horaNombre}`
+    if (diaNombre) return diaNombre
+    if (horaNombre) return horaNombre
+    return ''
   }
 
   function toggleFilter(key: string) {
@@ -509,276 +538,22 @@ export function useTareasMonitorViewModel() {
     showReportModal.value = false
   }
 
-  async function downloadReport(options: { format: 'csv' | 'xlsx' | 'pdf'; includeDetails: boolean; contentType: 'all' | 'en-curso' }) {
-    reportDownloadLoading.value = true
-    try {
-      if (options.format === 'csv') {
-        downloadCsvReport(options.includeDetails, options.contentType)
-      } else if (options.format === 'xlsx') {
-        downloadXlsxReport(options.includeDetails, options.contentType)
-      } else {
-        await downloadPdfReport(options.includeDetails, options.contentType)
-      }
-      closeReportModal()
-    } catch (err: any) {
-      console.error('Error descargando reporte:', err)
-    } finally {
-      reportDownloadLoading.value = false
+  const { reportDownloadLoading, downloadReport } = useTareasMonitorReport({
+    activeTab,
+    filteredRows,
+    getScopeFromTab,
+    getLineaLabel,
+    getCampanaLabel,
+    getActividadLabel,
+    getStatusLabel,
+    getHorarioLabel,
+    showDictaminarFor,
+    canDictaminarFor,
+    closeReportModal,
+    onError: (err) => {
+      error.value = (err as { message?: string } | null)?.message ?? 'No fue posible descargar el reporte.'
     }
-  }
-
-  function escapeXmlValue(str: string): string {
-    return String(str ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .normalize('NFC')
-  }
-
-  function buildXlsxSheet(name: string, headers: string[], rows: string[][]): string {
-    const hCells = headers.map(h =>
-      `<Cell ss:StyleID="H"><Data ss:Type="String">${escapeXmlValue(h)}</Data></Cell>`
-    ).join('')
-    const dRows = rows.map(r =>
-      `<Row>${r.map(c => `<Cell><Data ss:Type="String">${escapeXmlValue(c)}</Data></Cell>`).join('')}</Row>`
-    ).join('\n')
-    return `<Worksheet ss:Name="${escapeXmlValue(name)}"><Table><Row>${hCells}</Row>\n${dRows}</Table></Worksheet>`
-  }
-
-  function downloadXlsxFile(sheets: string[], fileName: string) {
-    const xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="H"><Font ss:Bold="1"/><Interior ss:Color="#DBEAFE" ss:Pattern="Solid"/></Style></Styles>${sheets.join('')}</Workbook>`
-    const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', fileName)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-  }
-
-  function downloadXlsxReport(includeDetails: boolean, contentType: 'all' | 'en-curso' = 'all') {
-    const sourceRows = contentType === 'en-curso'
-      ? filteredRows.value.filter(row => String(row.estatus.codigo).toUpperCase() === 'EJC')
-      : filteredRows.value
-    const hasCampana = activeTab.value === 'campana'
-    const summaryHeaders = [
-      'Línea',
-      ...(hasCampana ? ['Campaña'] : []),
-      'Nombre de ingesta',
-      'Actividad',
-      'Estatus',
-      'Fecha',
-      'Registros procesados',
-      'Total registros'
-    ]
-    const summaryRows = sourceRows.map(row => [
-      getLineaLabel(row),
-      ...(hasCampana ? [getCampanaLabel(row)] : []),
-      String(row.nombreMapeo ?? ''),
-      getActividadLabel(row),
-      getStatusLabel(row),
-      row.horarioProgramado ? new Date(row.horarioProgramado).toLocaleString() : '-',
-      String(row.numeroRegistrosProcesados),
-      String(row.numeroRegistros)
-    ])
-    const sheetName = hasCampana ? 'Campañas' : 'Líneas'
-    const sheets = [buildXlsxSheet(sheetName, summaryHeaders, summaryRows)]
-
-    if (includeDetails && detailsStages.value.length > 0) {
-      const dHeaders = ['Actividad', 'Estatus', 'Ejecución', 'Registros', 'Horario', 'Inicio', 'Fin', 'Fecha aprobada', 'Fecha dictaminación']
-      const dRows = detailsStages.value.map(stage => [
-        String(stage.actividad.nombre ?? ''),
-        String(stage.estatus.nombre ?? ''),
-        String(stage.ejecucion.nombre ?? ''),
-        `${stage.numeroRegistrosProcesados}/${stage.numeroRegistros}`,
-        stage.horarioProgramado ? new Date(stage.horarioProgramado).toLocaleString() : '-',
-        stage.fechaInicio ? new Date(stage.fechaInicio).toLocaleString() : '-',
-        stage.fechaFin ? new Date(stage.fechaFin).toLocaleString() : '-',
-        stage.fechaAprobada ? new Date(stage.fechaAprobada).toLocaleString() : '-',
-        stage.fechaDictaminacion ? new Date(stage.fechaDictaminacion).toLocaleString() : '-'
-      ])
-      sheets.push(buildXlsxSheet('Detalle', dHeaders, dRows))
-    }
-
-    const fileName = `reporte-monitoreo-${activeTab.value}-${new Date().toISOString().split('T')[0]}.xls`
-    downloadXlsxFile(sheets, fileName)
-  }
-
-  function downloadCsvReport(includeDetails: boolean, contentType: 'all' | 'en-curso' = 'all') {
-    const sourceRows = contentType === 'en-curso'
-      ? filteredRows.value.filter(row => String(row.estatus.codigo).toUpperCase() === 'EJC')
-      : filteredRows.value
-    const summaryData = sourceRows.map(row => ({
-      Linea: getLineaLabel(row),
-      ...(activeTab.value === 'campana' && { Campana: getCampanaLabel(row) }),
-      'Nombre de ingesta': row.nombreMapeo,
-      Actividad: getActividadLabel(row),
-      Estatus: getStatusLabel(row),
-      Fecha: row.horarioProgramado ? new Date(row.horarioProgramado).toLocaleString() : '-',
-      'Registros procesados': row.numeroRegistrosProcesados,
-      'Total registros': row.numeroRegistros
-    }))
-
-    let csvContent = convertToCSV(summaryData)
-
-    if (includeDetails && detailsStages.value.length > 0) {
-      const detailsData = detailsStages.value.map(stage => ({
-        Actividad: stage.actividad.nombre,
-        Estatus: stage.estatus.nombre,
-        Ejecucion: stage.ejecucion.nombre,
-        'Registros procesados': stage.numeroRegistrosProcesados,
-        'Total registros': stage.numeroRegistros,
-        'Horario programado': stage.horarioProgramado ? new Date(stage.horarioProgramado).toLocaleString() : '-',
-        'Fecha inicio': stage.fechaInicio ? new Date(stage.fechaInicio).toLocaleString() : '-',
-        'Fecha fin': stage.fechaFin ? new Date(stage.fechaFin).toLocaleString() : '-'
-      }))
-
-      csvContent += '\n\n--- DETALLE DE ACTIVIDADES ---\n'
-      csvContent += convertToCSV(detailsData)
-    }
-
-    const fileName = `reporte-monitoreo-${activeTab.value}-${new Date().toISOString().split('T')[0]}.csv`
-    downloadCSV(csvContent, fileName)
-  }
-
-  function convertToCSV(data: any[]): string {
-    if (data.length === 0) return ''
-
-    const headers = Object.keys(data[0])
-    const csvHeaders = headers.map(h => `"${String(h).normalize('NFC').replace(/"/g, '""')}"`).join(',')
-
-    const csvRows = data.map(row =>
-      headers.map(header => {
-        const value = row[header] ?? ''
-        const stringValue = String(value).normalize('NFC')
-        return `"${stringValue.replace(/"/g, '""')}"`
-      }).join(',')
-    )
-
-    return [csvHeaders, ...csvRows].join('\n')
-  }
-
-  function downloadCSV(csvContent: string, fileName: string) {
-    const utf8Bom = '\uFEFF'
-    const blob = new Blob([utf8Bom, csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-
-    link.setAttribute('href', url)
-    link.setAttribute('download', fileName)
-    link.style.visibility = 'hidden'
-
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    URL.revokeObjectURL(url)
-  }
-
-  async function downloadPdfReport(includeDetails: boolean, contentType: 'all' | 'en-curso' = 'all') {
-    const sourceRows = contentType === 'en-curso'
-      ? filteredRows.value.filter(row => String(row.estatus.codigo).toUpperCase() === 'EJC')
-      : filteredRows.value
-    const [{ jsPDF }, autoTableModule] = await Promise.all([
-      import('jspdf'),
-      import('jspdf-autotable')
-    ])
-    const autoTable = autoTableModule.default
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
-
-    const title = `Reporte de Monitoreo de Tareas - ${activeTab.value === 'linea' ? 'Lineas de Negocio' : 'Campanas'}`
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(13)
-    doc.text(title.normalize('NFC'), 14, 14)
-
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text(`Total de tareas: ${totals.value.tareas}`, 14, 22)
-    doc.text(`Total registros: ${totals.value.totalRegistros}`, 14, 27)
-    doc.text(`Registros procesados: ${totals.value.totalProcesados}`, 14, 32)
-    doc.text(`En ejecucion: ${totals.value.enEjecucion}`, 14, 37)
-    doc.text(`Generado: ${new Date().toLocaleString()}`.normalize('NFC'), 14, 42)
-
-    const summaryHead = [[
-      'Linea',
-      ...(activeTab.value === 'campana' ? ['Campana'] : []),
-      'Nombre de ingesta',
-      'Actividad',
-      'Estatus',
-      'Fecha',
-      'Registros'
-    ]]
-
-    const summaryBody = sourceRows.map(row => ([
-      getLineaLabel(row).normalize('NFC'),
-      ...(activeTab.value === 'campana' ? [getCampanaLabel(row).normalize('NFC')] : []),
-      String(row.nombreMapeo ?? '').normalize('NFC'),
-      getActividadLabel(row).normalize('NFC'),
-      getStatusLabel(row).normalize('NFC'),
-      row.horarioProgramado ? new Date(row.horarioProgramado).toLocaleString().normalize('NFC') : '-',
-      `${row.numeroRegistrosProcesados}/${row.numeroRegistros}`
-    ]))
-
-    autoTable(doc, {
-      startY: 48,
-      head: summaryHead,
-      body: summaryBody,
-      styles: { font: 'helvetica', fontSize: 8 }
-    })
-
-    if (includeDetails && detailsStages.value.length > 0) {
-      const detailsHead = [[
-        'Actividad',
-        'Estatus',
-        'Ejecucion',
-        'Registros',
-        'Horario programado',
-        'Inicio',
-        'Fin'
-      ]]
-
-      const detailsBody = detailsStages.value.map(stage => ([
-        String(stage.actividad.nombre ?? '').normalize('NFC'),
-        String(stage.estatus.nombre ?? '').normalize('NFC'),
-        String(stage.ejecucion.nombre ?? '').normalize('NFC'),
-        `${stage.numeroRegistrosProcesados}/${stage.numeroRegistros}`,
-        stage.horarioProgramado ? new Date(stage.horarioProgramado).toLocaleString().normalize('NFC') : '-',
-        stage.fechaInicio ? new Date(stage.fechaInicio).toLocaleString().normalize('NFC') : '-',
-        stage.fechaFin ? new Date(stage.fechaFin).toLocaleString().normalize('NFC') : '-'
-      ]))
-
-      const finalY = (doc as any).lastAutoTable?.finalY ?? 48
-      doc.setFont('helvetica', 'bold')
-      doc.text('Detalle de Actividades', 14, finalY + 8)
-      autoTable(doc, {
-        startY: finalY + 11,
-        head: detailsHead,
-        body: detailsBody,
-        styles: { font: 'helvetica', fontSize: 8 }
-      })
-    }
-
-    const fileName = `reporte-monitoreo-${activeTab.value}-${new Date().toISOString().split('T')[0]}.pdf`
-    doc.save(fileName)
-  }
-
-  function startRefreshLoop() {
-    if (refreshTimer) clearInterval(refreshTimer)
-    refreshTimer = setInterval(() => {
-      fetchMonitorData().catch(() => {
-      })
-    }, REFRESH_MS)
-  }
-
-  function stopRefreshLoop() {
-    if (!refreshTimer) return
-    clearInterval(refreshTimer)
-    refreshTimer = null
-  }
+  })
 
   onMounted(async () => {
     isLoading.value = true
@@ -787,16 +562,11 @@ export function useTareasMonitorViewModel() {
       tareaMonitorService.resetSimulation()
       await Promise.all([fetchCatalogos(), fetchMonitorData()])
       initializeFilters(true)
-      startRefreshLoop()
     } catch (err: any) {
       error.value = err?.message ?? 'No fue posible cargar el monitoreo de tareas.'
     } finally {
       isLoading.value = false
     }
-  })
-
-  onUnmounted(() => {
-    stopRefreshLoop()
   })
 
   watch(
@@ -845,6 +615,7 @@ export function useTareasMonitorViewModel() {
     getCampanaLabel,
     getLineaLabel,
     getScopeFromTab,
+    getHorarioLabel,
     getStatusClass,
     getStatusLabel,
     showApproveFor,
@@ -869,6 +640,7 @@ export function useTareasMonitorViewModel() {
     paginatedRows,
     prevPage,
     reportDownloadLoading,
+    refreshMonitorData,
     selectedActividades,
     selectedCampanas,
     selectedEstatus,

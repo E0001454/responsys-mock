@@ -9,6 +9,7 @@ import type { ColumnaCampanaModel } from '@/models/columnas/campana/columnaCampa
 import ColumnaCampanaTable from './ColumnaCampanaTable.vue'
 import ColumnaCampanaModal from './ColumnaCampanaModal.vue'
 import ColumnaDetailsModal from '../ColumnaDetailsModal.vue'
+import MissingRequiredLabelsAlert from '@/components/columnas/shared/MissingRequiredLabelsAlert.vue'
 import FormActionConfirmModal from '@/components/shared/FormActionConfirmModal.vue'
 
 const props = defineProps<{
@@ -100,10 +101,6 @@ const missingRequiredColumnas = computed<Option[]>(() => {
 	return requiredOptions.filter(option => !configuredIds.has(Number(option.value)))
 })
 
-const missingRequiredLabel = computed(() =>
-	missingRequiredColumnas.value.map(option => option.label).join(', ')
-)
-
 const totalPages = computed(() =>
 	Math.max(1, Math.ceil(filtered.value.length / pageSize.value))
 )
@@ -135,18 +132,24 @@ const statusConfirmMessage = computed(() => {
 
 async function fetchCatalogos() {
 	const catalogos = await catalogosService.getCatalogosAgrupados()
-	const list: CatalogoItem[] = (
+	const columnasList: CatalogoItem[] = (
 		catalogos.find(group => String(group.codigo).toUpperCase() === 'CCM')?.registros
 		?? catalogos.find(group => String(group.codigo).toUpperCase() === 'CLM')?.registros
 		?? []
 	)
-	columnasCatalogo.value = list
+	columnasCatalogo.value = columnasList
 		.filter(c => c.bolActivo)
 		.map(c => ({
 			label: c.nombre,
 			value: c.id,
 			isRequired: Boolean(c.esRequerido ?? c.obligatorio ?? false)
 		}))
+
+	const lineasList: CatalogoItem[] = catalogos.find(group => group.codigo === 'LNN')?.registros ?? []
+  lineasCatalogo.value = lineasList.filter(c => c.bolActivo).map(c => ({ label: c.nombre, value: c.id }))
+
+	const campanasList: CatalogoItem[] = catalogos.find(group => group.codigo === 'CMP')?.registros ?? []
+  campanasCatalogo.value = campanasList.filter(c => c.bolActivo).map(c => ({ label: c.nombre, value: c.id }))
 }
 
 
@@ -168,10 +171,10 @@ function openDetails(item: ColumnaCampanaModel) {
 }
 
 async function handleSaved() {
-	await Promise.all([
-		fetchAll(props.mapeoId ?? null),
-		fetchMapeos()
-	])
+	await fetchAll(props.mapeoId ?? null)
+	if (props.mapeoId === undefined || props.mapeoId === null) {
+		await fetchMapeos()
+	}
 	emit('saved')
 }
 
@@ -203,20 +206,12 @@ onMounted(() => {
 	}
 	fetchAll(props.mapeoId)
 	fetchCatalogos()
-	fetchMapeos()
-	fetchCatalogosLineasYCampanas()
+	if (props.mapeoId === undefined || props.mapeoId === null) {
+		fetchMapeos()
+	}
 	updatePageSize()
 	window.addEventListener('resize', updatePageSize)
 })
-
-async function fetchCatalogosLineasYCampanas() {
-	const catalogos = await catalogosService.getCatalogosAgrupados()
-	const listL: CatalogoItem[] = catalogos.find(group => group.codigo === 'LNN')?.registros ?? []
-  lineasCatalogo.value = listL.filter(c => c.bolActivo).map(c => ({ label: c.nombre, value: c.id }))
-
-	const listC: CatalogoItem[] = catalogos.find(group => group.codigo === 'CMP')?.registros ?? []
-  campanasCatalogo.value = listC.filter(c => c.bolActivo).map(c => ({ label: c.nombre, value: c.id }))
-}
 
 onUnmounted(() => {
 	window.removeEventListener('resize', updatePageSize)
@@ -251,9 +246,7 @@ defineExpose({ openAdd })
 </script>
 <template>
 	<div @click.self="openFilter = null">
-		<div v-if="missingRequiredColumnas.length" class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-			Faltan {{ missingRequiredColumnas.length }} columnas obligatorias por configurar: {{ missingRequiredLabel }}.
-		</div>
+		<MissingRequiredLabelsAlert class="mb-3" :items="missingRequiredColumnas" />
 
 		<div class="">
 			<div class="">

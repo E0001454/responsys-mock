@@ -8,14 +8,6 @@ export const stageTypeByKey: Record<StageKey, number> = {
 
 export const stageKeys = Object.keys(stageTypeByKey) as StageKey[]
 
-export function resolveMapeoDisplayName(mapeo: { nombre?: string; descripcion?: string } | undefined): string {
-  const nombre = String(mapeo?.nombre ?? '').trim()
-  if (nombre) return nombre
-  const descripcion = String(mapeo?.descripcion ?? '').trim()
-  if (descripcion) return descripcion
-  return ''
-}
-
 export function resolveTareaMapeoId(item: any): number {
   return Number(
     item?.tareasPorTipo?.carga?.mapeo?.id
@@ -28,23 +20,6 @@ export function resolveTareaMapeoId(item: any): number {
     ?? item?.idABCConfigMapeoLinea
     ?? 0
   )
-}
-
-export function enrichTareaWithMapeoName<T extends { ingesta?: string }>(
-  item: T,
-  mapeos: Array<{ idABCConfigMapeoLinea: number; nombre?: string; descripcion?: string }>
-): T {
-  const mapeoId = resolveTareaMapeoId(item)
-  if (!mapeoId) return item
-
-  const mapeo = mapeos.find(m => Number(m.idABCConfigMapeoLinea ?? 0) === mapeoId)
-  const mapeoName = resolveMapeoDisplayName(mapeo)
-  if (!mapeoName) return item
-
-  return {
-    ...item,
-    ingesta: mapeoName
-  }
 }
 
 export function mapCatalogosToOptions(items: { id: number; nombre: string; bolActivo: boolean }[]) {

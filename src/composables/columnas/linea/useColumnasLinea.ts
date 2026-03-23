@@ -22,7 +22,9 @@ export function useColumnasLinea() {
       } else {
         raw = await columnaService.getColumnasLinea()
       }
-      items.value = adaptColumnasLinea(raw)
+      items.value = adaptColumnasLinea(raw, {
+        fallbackMapeoId: toNumber(mapeoId ?? currentMapeo.value)
+      })
     } catch (e: any) {
       error.value = e.message
     } finally {
@@ -68,4 +70,10 @@ export function useColumnasLinea() {
   }
 
   return { items, loading, error, fetchAll, toggle }
+}
+
+function toNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
 }

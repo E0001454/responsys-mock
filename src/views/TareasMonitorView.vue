@@ -25,6 +25,7 @@ const {
   filteredRows,
   getActividadLabel,
   getCampanaLabel,
+  getHorarioLabel,
   getLineaLabel,
   getStatusClass,
   getStatusLabel,
@@ -50,6 +51,7 @@ const {
   paginatedRows,
   prevPage,
   reportDownloadLoading,
+  refreshMonitorData,
   selectedActividades,
   selectedCampanas,
   selectedFecha,
@@ -96,6 +98,7 @@ function updateSelectedFecha(value: string) {
         :tabs="tabs"
         :active-tab="activeTab"
         @tab-change="handleTabChange"
+        @refresh="refreshMonitorData"
         @download-report="openReportModal"
       />
 
@@ -164,6 +167,7 @@ function updateSelectedFecha(value: string) {
         :get-linea-label="getLineaLabel"
         :get-campana-label="getCampanaLabel"
         :get-status-class="getStatusClass"
+        :get-horario-label="getHorarioLabel"
         :format-date-label="formatDateLabel"
         :format-time-label="formatTimeLabel"
         :format-number="formatNumber"

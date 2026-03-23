@@ -85,7 +85,7 @@ function toastStyle(id: number) {
         </div>
 
         <div class="flex-1 pt-1">
-          <!-- <p class="font-bold text-xs uppercase opacity-80 mb-0.5">{{ t.type }}</p> -->
+          
           <p class="text-sm font-medium leading-snug">{{ t.message }}</p>
         </div>
 

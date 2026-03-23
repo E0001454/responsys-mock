@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Activity, Layers, Megaphone, Download } from 'lucide-vue-next'
+import { Activity, Layers, Megaphone, Download, RefreshCw } from 'lucide-vue-next'
 
 interface TabItem {
   key: 'linea' | 'campana'
@@ -13,6 +13,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'tab-change', value: 'linea' | 'campana'): void
+  (e: 'refresh'): void
   (e: 'download-report'): void
 }>()
 
@@ -49,15 +50,27 @@ function resolveIcon(key: TabItem['key']) {
         </button>
       </div>
 
-      <button
-        type="button"
-        @click="emit('download-report')"
-        class="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-colors whitespace-nowrap"
-        title="Descargar reporte de monitoreo"
-      >
-        <Download class="w-4 h-4" />
-        Descargar reporte
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          @click="emit('refresh')"
+          class="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-100 transition-colors whitespace-nowrap"
+          title="Actualizar monitoreo"
+        >
+          <RefreshCw class="w-4 h-4" />
+          Refrescar
+        </button>
+
+        <button
+          type="button"
+          @click="emit('download-report')"
+          class="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-colors whitespace-nowrap"
+          title="Descargar reporte de monitoreo"
+        >
+          <Download class="w-4 h-4" />
+          Descargar reporte
+        </button>
+      </div>
     </div>
   </div>
 </template>

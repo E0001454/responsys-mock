@@ -48,10 +48,12 @@ export function useFirstRowNewGlow<T>(
     () => {
       const rows = rowsSource()
       const firstRow = rows[0]
+      const rowKeys = rows.map((row, index) => getRowKey(row, index))
       return {
         length: rows.length,
         firstKey: firstRow ? getRowKey(firstRow, 0) : null,
         firstToken: firstRow ? getRowToken(firstRow, 0) : null,
+        rowKeys,
         isLoading: Boolean(options?.isLoading?.())
       }
     },
@@ -71,6 +73,9 @@ export function useFirstRowNewGlow<T>(
       const previousLength = Number(previous?.length ?? 0)
       const previousFirstKey = previous?.firstKey ?? null
       const previousFirstToken = previous?.firstToken ?? null
+      const previousFirstStillPresent =
+        previousFirstKey !== null
+        && current.rowKeys.some(key => key === previousFirstKey)
       const loadingFinished = Boolean(previous?.isLoading) && !current.isLoading
 
       const isNewFirstRow =
@@ -78,12 +83,17 @@ export function useFirstRowNewGlow<T>(
         && current.length > previousLength
         && current.firstKey !== null
         && current.firstKey !== previousFirstKey
+        && previousFirstStillPresent
 
       const isUpdatedFirstRow =
         loadingFinished
         && previousLength > 0
         && current.length === previousLength
         && current.firstKey !== null
+        && (
+          current.firstKey === previousFirstKey
+          || previousFirstStillPresent
+        )
         && (
           current.firstKey !== previousFirstKey
           || current.firstToken !== previousFirstToken

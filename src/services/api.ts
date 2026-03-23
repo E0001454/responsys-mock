@@ -44,18 +44,17 @@ function getEndpointService(endpoint: string): ApiService {
   const isLineasMapeos = /^\/lineas(?:\/[^/]+)?\/mapeos(?:\/|$)/.test(path)
   const isLineasMapeosColumnas = /^\/lineas\/mapeos(?:\/[^/]+)?\/columnas(?:\/|$)/.test(path)
   const isLineasCampanasMapeos = /^\/lineas\/[^/]+\/campanas\/[^/]+\/mapeos(?:\/|$)/.test(path)
-  const isLineasActividades = /^\/lineas(?:\/[^/]+)?\/(actividades|tareas)(?:\/|$)/.test(path)
-  const isLineasCampanasActividades = /^\/lineas\/[^/]+\/campanas\/[^/]+\/(actividades|tareas)(?:\/|$)/.test(path)
-  const isLineasHorarios = /^\/lineas(?:\/[^/]+)?\/(actividades|tareas)\/[^/]+\/horarios(?:\/|$)/.test(path)
+  const isLineasActividades = /^\/lineas(?:\/[^/]+)?\/actividades(?:\/|$)/.test(path)
+  const isLineasCampanasActividades = /^\/lineas\/[^/]+\/campanas\/[^/]+\/actividades(?:\/|$)/.test(path)
+  const isLineasHorarios = /^\/lineas(?:\/[^/]+)?\/actividades\/[^/]+\/horarios(?:\/|$)/.test(path)
 
   if (path.includes('/bitacoras')) return 'bitacora'
   if (path.includes('/catalogos')) return 'catalogos'
 
-  if (path.includes('/monitor/tareas/linea') || path.includes('/monitor/actividades/linea')) return 'monitor_linea'
-  if (path.includes('/monitor/tareas/campana') || path.includes('/monitor/actividades/campana')) return 'monitor_campana'
+  if (path.includes('/lineas/campanas/tareas')) return 'monitor_campana'
+  if (path.includes('/lineas/tareas')) return 'monitor_linea'
 
-  if (isLineasHorarios || (path.includes('/lineas/tareas/') && path.includes('/horarios')) || (path.includes('/lineas/actividades/') && path.includes('/horarios'))) return 'horarios_linea'
-  if (path.includes('/campanas/tareas/') && path.includes('/horarios')) return 'horarios_campana'
+  if (isLineasHorarios || (path.includes('/lineas/actividades/') && path.includes('/horarios'))) return 'horarios_linea'
   if (path.includes('/campanas/actividades/') && path.includes('/horarios')) return 'horarios_campana'
 
   if ((path.includes('/campanas/mapeos') && path.includes('/columnas'))) return 'columnas_campana'
@@ -64,8 +63,8 @@ function getEndpointService(endpoint: string): ApiService {
   if (path.includes('/lineas/campanas/mapeos') || isLineasCampanasMapeos) return 'mapeos_campana'
   if (path.includes('/lineas/mapeos') || isLineasMapeos) return 'mapeos_linea'
 
-  if (path.includes('/lineas/campanas/tareas') || path.includes('/lineas/campanas/actividades') || isLineasCampanasActividades) return 'tareas_campana'
-  if (path.includes('/lineas/tareas') || path.includes('/lineas/actividades') || isLineasActividades) return 'tareas_linea'
+  if (path.includes('/lineas/campanas/actividades') || isLineasCampanasActividades) return 'tareas_campana'
+  if (path.includes('/lineas/actividades') || isLineasActividades) return 'tareas_linea'
 
   return 'default'
 }
@@ -415,16 +414,16 @@ export const api = {
     }),
 
   // Monitor de actividades (solo lectura)
-  getTareasMonitorLinea: () => http.get('/monitor/actividades/linea'),
-  getTareasMonitorCampana: () => http.get('/monitor/actividades/campana'),
+  getTareasMonitorLinea: () => http.get('/lineas/tareas'),
+  getTareasMonitorCampana: () => http.get('/lineas/campanas/tareas'),
   patchActivarTareaMonitorLinea: (payload: any) =>
-    http.patch('/monitor/actividades/linea/activar', payload),
+    http.patch('/lineas/tareas/activar', payload),
   patchDesactivarTareaMonitorLinea: (payload: any) =>
-    http.patch('/monitor/actividades/linea/desactivar', payload),
+    http.patch('/lineas/tareas/desactivar', payload),
   patchActivarTareaMonitorCampana: (payload: any) =>
-    http.patch('/monitor/actividades/campana/activar', payload),
+    http.patch('/lineas/campanas/tareas/activar', payload),
   patchDesactivarTareaMonitorCampana: (payload: any) =>
-    http.patch('/monitor/actividades/campana/desactivar', payload),
+    http.patch('/lineas/campanas/tareas/desactivar', payload),
 
   // Columna mapeo (línea)
   getColumnasLinea: () => http.get('/lineas/mapeos/0/columnas'),

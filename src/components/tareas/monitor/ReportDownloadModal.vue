@@ -11,19 +11,18 @@ interface Props {
 
 interface Emits {
   (e: 'close'): void
-  (e: 'download', options: { format: 'csv' | 'xlsx' | 'pdf'; includeDetails: boolean; contentType: 'all' | 'en-curso' }): void
+  (e: 'download', options: { format: 'csv' | 'pdf'; includeDetails: boolean; contentType: 'all' | 'en-curso' }): void
 }
 
 defineProps<Props>()
 defineEmits<Emits>()
 
-const selectedFormat = ref<'csv' | 'xlsx' | 'pdf'>('csv')
+const selectedFormat = ref<'csv' | 'pdf'>('csv')
 const includeDetails = ref(false)
-const contentType = ref<'all' | 'en-curso'>('all')
+const contentType = ref<'all' | 'en-curso'>('en-curso')
 
 const formatLabel = computed(() => {
   if (selectedFormat.value === 'csv') return 'CSV'
-  if (selectedFormat.value === 'xlsx') return 'XLSX'
   return 'PDF'
 })
 </script>
@@ -58,19 +57,6 @@ const formatLabel = computed(() => {
             </button>
             <button
               type="button"
-              @click="selectedFormat = 'xlsx'"
-              :class="[
-                'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 border-2',
-                selectedFormat === 'xlsx'
-                  ? 'bg-amber-50 border-amber-500 text-amber-700'
-                  : 'bg-white border-slate-200 text-slate-600 hover:border-amber-300'
-              ]"
-            >
-              <FileText class="w-4 h-4" />
-              XLSX
-            </button>
-            <button
-              type="button"
               @click="selectedFormat = 'pdf'"
               :class="[
                 'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 border-2',
@@ -92,24 +78,24 @@ const formatLabel = computed(() => {
               <input
                 type="radio"
                 v-model="contentType"
-                value="all"
+                value="en-curso"
                 class="w-4 h-4 text-[#00357F] focus:ring-2 focus:ring-[#00357F]"
               />
               <div class="flex-1">
-                <p class="text-sm font-semibold text-slate-700">Todas las tareas</p>
-                <p class="text-xs text-slate-500 mt-0.5">Se incluyen todos los registros visibles</p>
+                <p class="text-sm font-semibold text-slate-700">Solo tareas en curso</p>
+                <p class="text-xs text-slate-500 mt-0.5">Incluye exactamente las tareas visibles en la tabla principal (segun filtros actuales)</p>
               </div>
             </label>
             <label class="flex items-center gap-3 cursor-pointer">
               <input
                 type="radio"
                 v-model="contentType"
-                value="en-curso"
+                value="all"
                 class="w-4 h-4 text-[#00357F] focus:ring-2 focus:ring-[#00357F]"
               />
               <div class="flex-1">
-                <p class="text-sm font-semibold text-slate-700">Solo tareas en curso</p>
-                <p class="text-xs text-slate-500 mt-0.5">Filtra únicamente las tareas con estatus En ejecución</p>
+                <p class="text-sm font-semibold text-slate-700">Todas las tareas</p>
+                <p class="text-xs text-slate-500 mt-0.5">Incluye también las históricas (Carga, Validación y Envío) por mapeo</p>
               </div>
             </label>
           </div>

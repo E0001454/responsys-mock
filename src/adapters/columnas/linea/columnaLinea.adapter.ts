@@ -1,5 +1,9 @@
 import type { ColumnaLineaModel, ColumnaValor, ColumnaValorCadena, ColumnaValorNumero } from '@/models/columnas/linea/columnaLinea.model'
 
+export interface AdaptColumnasLineaOptions {
+  fallbackMapeoId?: number | null
+}
+
 function asRecord(v: unknown): Record<string, unknown> {
   return typeof v === 'object' && v !== null ? v as Record<string, unknown> : {}
 }
@@ -22,6 +26,14 @@ function normalizeObligatorio(v: unknown): boolean | null {
   if (typeof v === 'boolean') return v
   if (v === 1 || v === 0) return Boolean(v)
   return null
+}
+
+function normalizeList(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw
+  const rec = asRecord(raw)
+  if (Array.isArray(rec.data)) return rec.data as unknown[]
+  if (Array.isArray(rec.items)) return rec.items as unknown[]
+  return Object.keys(rec).length ? [raw] : []
 }
 
 function adaptValor(raw: unknown): ColumnaValor | null {
@@ -68,12 +80,14 @@ function adaptValor(raw: unknown): ColumnaValor | null {
   }
 }
 
-export function adaptColumnasLinea(raw: unknown): ColumnaLineaModel[] {
-  if (!Array.isArray(raw)) return []
+export function adaptColumnasLinea(raw: unknown, options: AdaptColumnasLineaOptions = {}): ColumnaLineaModel[] {
+  const list = normalizeList(raw)
+  if (!list.length) return []
 
   const out: ColumnaLineaModel[] = []
+  const fallbackMapeoId = toNumber(options.fallbackMapeoId)
 
-  for (const item of raw) {
+  for (const item of list) {
     const rec = asRecord(item)
 
     const columnaRec = asRecord(rec.columna)
@@ -82,8 +96,8 @@ export function adaptColumnasLinea(raw: unknown): ColumnaLineaModel[] {
     const tipoRecLegacy = asRecord(columnaRec.tipo)
     const valorRec = rec.valor ?? columnaRec.valor ?? null
 
-    const mapeoId = toNumber(columnaRec.idABCConfigMapeoLinea ?? llaveRec.idABCConfigMapeoLinea ?? rec.idABCConfigMapeoLinea)
-    const columnaId = toNumber(tipoRecRoot.id ?? tipoRecRoot.idABCCatColumna ?? tipoRecLegacy.id ?? tipoRecLegacy.idABCCatColumna ?? llaveRec.idABCCatColumna ?? rec.idABCCatColumna)
+    const mapeoId = toNumber(columnaRec.idABCConfigMapeoLinea ?? llaveRec.idABCConfigMapeoLinea ?? rec.idABCConfigMapeoLinea ?? fallbackMapeoId)
+    const columnaId = toNumber(tipoRecRoot.id ?? tipoRecRoot.idABCCatColumna ?? tipoRecLegacy.id ?? tipoRecLegacy.idABCCatColumna ?? llaveRec.idABCCatColumna ?? rec.idABCCatColumna ?? rec.id)
 
     if (mapeoId === null || columnaId === null) continue
 

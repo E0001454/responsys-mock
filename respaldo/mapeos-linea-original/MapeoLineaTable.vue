@@ -1,4 +1,4 @@
-<!-- <script setup lang="ts">
+<script setup lang="ts">
 import { computed } from 'vue'
 import { Edit3, Search, Eye, Columns, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import FilterDropdown from '@/components/FilterDropdown.vue'
@@ -529,4 +529,4 @@ function formatPorcentajeError(value?: number | null) {
       </div>
     </div>
   </div>
-</template> -->
+</template>
