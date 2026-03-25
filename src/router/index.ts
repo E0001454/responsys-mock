@@ -32,10 +32,6 @@ const routes: Array<RouteRecordRaw> = [
     component: TareasMonitorView
   },
   
-  
-  
-  
-  
 ]
 
 const router = createRouter({
@@ -44,3 +40,25 @@ const router = createRouter({
 })
 
 export default router
+
+
+// import { createRouter, createWebHistory } from 'vue-router'
+// import { LoginCallback, navigationGuard } from '@okta/okta-vue'
+
+// const routes=[
+//     {path:'/', component: () => import('../views/HomeView.vue')},
+//     {path:'/login/callback', component: LoginCallback},
+//     {
+//         path: '/dashboard',
+//         component:() => import('../views/DashboardView.vue'),
+//         meta: { requiresAuth: true }
+//     }
+// ]
+
+// const router = createRouter({
+//     history: createWebHistory(),
+//     routes
+// })
+
+// router.beforeEach(navigationGuard)
+// export default router

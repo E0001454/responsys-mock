@@ -118,6 +118,21 @@ watch(
   </div>
 </template>
 
+<!-- <script setup lang="ts">
+import { inject } from 'vue'
+import type { OktaAuth } from '@okta/okta-auth-js'
+
+// Obtener oktaAuth del contexto de la app
+const oktaAuth = inject<OktaAuth>('oktaAuth')
+</script>
+
+<template>
+<router-view />
+</template>
+
+<style scoped></style> -->
+
+
 <style scoped>
 
 .custom-scrollbar::-webkit-scrollbar {

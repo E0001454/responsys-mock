@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@okta/okta-auth-js": "^8.0.0",
+    "@okta/okta-vue": "^5.9.0",
     "@tailwindcss/vite": "^4.1.18",
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",

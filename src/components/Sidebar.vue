@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { useAuth } from '@/composables/okta/useAuth'
 import logo from '../assets/img/logo.webp'
 import { 
   LayoutGrid, 
@@ -27,6 +28,13 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const logoUrl = logo
+
+
+const { oktaAuth } = useAuth()
+
+const logout = async () => {
+  await oktaAuth.signOut()
+}
 </script>
 
 <template>
@@ -158,7 +166,7 @@ const logoUrl = logo
           </p>
         </div>
 
-        <button class="text-blue-300 hover:text-red-400 transition-colors" title="Cerrar sesión">
+        <button class="text-blue-300 hover:text-red-400 transition-colors" title="Cerrar sesión" @click="logout">
             <LogOut class="w-4 h-4" />
         </button>
       </div>
