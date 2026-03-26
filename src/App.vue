@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import { RouterView } from 'vue-router'
 import Toasts from './components/Toasts.vue'
@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-vue-next'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
+const isAuthRoute = computed(() => route.path === '/login' || route.path === '/login/callback')
 const isSidebarOpenMobile = ref(false)
 const isMobileViewport = ref(false)
 const hasOpenModal = ref(false)
@@ -73,7 +74,9 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-screen bg-slate-50 overflow-hidden font-sans">
+  <RouterView v-if="isAuthRoute" />
+
+  <div v-else class="flex h-screen bg-slate-50 overflow-hidden font-sans">
     <button
       v-if="isMobileViewport"
       @click="toggleMobileSidebar"

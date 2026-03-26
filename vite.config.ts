@@ -4,6 +4,9 @@ import { resolve } from 'path'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
+  optimizeDeps: {
+    include: ['@okta/okta-vue']
+  },
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {

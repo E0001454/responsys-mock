@@ -39,6 +39,9 @@ interface ImportMetaEnv {
   readonly VITE_MS_MONITOR_CAMPANA_REAL?: string
   readonly VITE_MS_MONITOR_CAMPANA_MOCK?: string
   readonly VITE_MS_MONITOR_CAMPANA_USE_MOCK?: string
+  readonly VITE_OKTA_ISSUER?: string
+  readonly VITE_OKTA_CLIENT_ID?: string
+  readonly VITE_OKTA_REDIRECT_URI?: string
 }
 
 interface ImportMeta {
