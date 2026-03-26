@@ -54,7 +54,7 @@ const login = async () => {
 
             <div class="max-w-md">
               <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">Gestión de campañas</p>
-              <h1 class="mt-3 text-3xl font-bold leading-tight text-white sm:text-4xl">ABC Responsys</h1>
+              <h1 class="mt-3 text-3xl font-bold leading-tight text-white sm:text-4xl">ABC Responsys </h1>
               <div class="mt-4 h-1 w-24 rounded-full bg-white"></div>
               <!-- <p class="mt-6 text-sm leading-relaxed text-slate-600 sm:text-base">
                 Plataforma institucional para acceso seguro con autenticacion centralizada.
