@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuth } from '@/composables/okta/useAuth'
+import { useAuthStore } from '@/stores/authStore'
+import LogoutConfirmModal from '@/components/shared/LogoutConfirmModal.vue'
 import logo from '../assets/img/logo.webp'
 import { 
   LayoutGrid, 
@@ -28,11 +31,14 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const logoUrl = logo
-
-
 const { oktaAuth } = useAuth()
+const authStore = useAuthStore()
+const showLogoutModal = ref(false)
 
 const logout = async () => {
+  showLogoutModal.value = false
+  authStore.isLoggingOut.value = true
+  authStore.clearUser()
   await oktaAuth.signOut()
 }
 </script>
@@ -153,26 +159,33 @@ const logout = async () => {
 
     <div class="p-4 border-t border-white/10 bg-[#002a66]">
       <div class="flex items-center gap-3 group cursor-pointer">
-        <div class="w-9 h-9 rounded-full bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-200 group-hover:bg-[#FFD100] group-hover:text-[#00357F] transition-colors">
-          <UserCircle class="w-5 h-5" />
+        <div class="w-9 h-9 rounded-full bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-200 group-hover:bg-[#FFD100] group-hover:text-[#00357F] transition-colors font-bold text-sm select-none">
+          <span v-if="authStore.userInitials.value !== '?'">{{ authStore.userInitials.value }}</span>
+          <UserCircle v-else class="w-5 h-5" />
         </div>
         
         <div class="flex-1 min-w-0">
           <p class="text-sm font-semibold text-white truncate group-hover:text-[#FFD100] transition-colors">
-            Admin User
+            {{ authStore.userDisplayName.value || 'Usuario' }}
           </p>
           <p class="text-[11px] text-blue-300 truncate">
-            admin@abc.com
+            {{ authStore.user.value?.email || '' }}
           </p>
         </div>
 
-        <button class="text-blue-300 hover:text-red-400 transition-colors" title="Cerrar sesión" @click="logout">
-            <LogOut class="w-4 h-4" />
+        <button
+          class="text-blue-300 hover:text-red-400 transition-colors"
+          title="Cerrar sesión"
+          @click="showLogoutModal = true"
+        >
+          <LogOut class="w-4 h-4" />
         </button>
       </div>
     </div>
 
   </aside>
+
+  <LogoutConfirmModal v-model="showLogoutModal" @confirm="logout" />
 </template>
 
 <style scoped>

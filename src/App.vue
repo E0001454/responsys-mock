@@ -3,15 +3,37 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import { RouterView } from 'vue-router'
 import Toasts from './components/Toasts.vue'
+import AuthOverlay from './components/auth/AuthOverlay.vue'
 import { Menu, X } from 'lucide-vue-next'
 import { useRoute } from 'vue-router'
+import { oktaAuth } from './lib/okta'
+import { useAuthStore } from './stores/authStore'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const isAuthRoute = computed(() => route.path === '/login' || route.path === '/login/callback')
 const isSidebarOpenMobile = ref(false)
 const isMobileViewport = ref(false)
 const hasOpenModal = ref(false)
 let modalObserver = null
+
+const overlayState = computed(() => {
+  if (authStore.isLoggingOut.value) return 'logging-out'
+  if (authStore.showSuccessOverlay.value) return 'success'
+  return null
+})
+
+async function loadUserInfo() {
+  if (!authStore.user.value) {
+    try {
+      const info = await oktaAuth.getUser()
+      if (info?.email) {
+        authStore.setUser(info)
+      }
+    } catch {
+    }
+  }
+}
 
 function updateHasOpenModal() {
   if (typeof document === 'undefined') {
@@ -37,7 +59,7 @@ function toggleMobileSidebar() {
   isSidebarOpenMobile.value = !isSidebarOpenMobile.value
 }
 
-onMounted(() => {
+onMounted(async () => {
   handleResize()
   updateHasOpenModal()
   window.addEventListener('resize', handleResize)
@@ -50,6 +72,10 @@ onMounted(() => {
       childList: true,
       subtree: true
     })
+  }
+
+  if (!isAuthRoute.value) {
+    await loadUserInfo()
   }
 })
 
@@ -71,9 +97,24 @@ watch(
     isSidebarOpenMobile.value = false
   }
 )
+
+watch(isAuthRoute, async (isAuthNow, wasAuth) => {
+  if (wasAuth && !isAuthNow) {
+    await loadUserInfo()
+    // If not already shown, briefly show success overlay (shorter)
+    if (!authStore.showSuccessOverlay.value) {
+      authStore.showSuccessOverlay.value = true
+      setTimeout(() => {
+        authStore.showSuccessOverlay.value = false
+      }, 700)
+    }
+  }
+})
 </script>
 
 <template>
+  <AuthOverlay :state="overlayState" />
+
   <RouterView v-if="isAuthRoute" />
 
   <div v-else class="flex h-screen bg-slate-50 overflow-hidden font-sans">
@@ -120,21 +161,6 @@ watch(
     <Toasts />
   </div>
 </template>
-
-<!-- <script setup lang="ts">
-import { inject } from 'vue'
-import type { OktaAuth } from '@okta/okta-auth-js'
-
-// Obtener oktaAuth del contexto de la app
-const oktaAuth = inject<OktaAuth>('oktaAuth')
-</script>
-
-<template>
-<router-view />
-</template>
-
-<style scoped></style> -->
-
 
 <style scoped>
 

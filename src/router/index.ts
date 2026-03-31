@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { LoginCallback, navigationGuard } from '@okta/okta-vue'
+import { navigationGuard } from '@okta/okta-vue'
+import LoginCallbackWrapper from '@/components/auth/LoginCallbackWrapper.vue'
+import { oktaAuth } from '@/lib/okta'
 
 import MapeoView from '../views/MapeoView.vue'
 import ColumnasView from '../views/ColumnasView.vue'
@@ -17,7 +19,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/login/callback',
     name: 'login-callback',
-    component: LoginCallback
+    component: LoginCallbackWrapper
   },
   {
     path: '/',
@@ -47,6 +49,10 @@ const routes: Array<RouteRecordRaw> = [
     name: 'tareas-monitor',
     component: TareasMonitorView,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/login'
   }
 ]
 
@@ -57,26 +63,21 @@ const router = createRouter({
 
 router.beforeEach(navigationGuard)
 
+router.beforeEach(async (to) => {
+  if (to.meta.requiresAuth) {
+    const isAuthenticated = await oktaAuth.isAuthenticated()
+    if (!isAuthenticated) {
+      return { path: '/login' }
+    }
+  }
+  if (to.path === '/login') {
+    const isAuthenticated = await oktaAuth.isAuthenticated()
+    if (isAuthenticated) {
+      return { path: '/mapeo' }
+    }
+  }
+  return undefined
+})
+
 export default router
 
-
-// import { createRouter, createWebHistory } from 'vue-router'
-// import { LoginCallback, navigationGuard } from '@okta/okta-vue'
-
-// const routes=[
-//     {path:'/', component: () => import('../views/HomeView.vue')},
-//     {path:'/login/callback', component: LoginCallback},
-//     {
-//         path: '/dashboard',
-//         component:() => import('../views/DashboardView.vue'),
-//         meta: { requiresAuth: true }
-//     }
-// ]
-
-// const router = createRouter({
-//     history: createWebHistory(),
-//     routes
-// })
-
-// router.beforeEach(navigationGuard)
-// export default router

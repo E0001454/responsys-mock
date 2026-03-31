@@ -51,21 +51,10 @@ const parsedErrorDetails = computed(() => {
       <div v-else class="space-y-4 text-sm">
         <div class="bg-red-50 border border-red-200 rounded-xl p-5 space-y-4">
           <div>
-            <!-- <span class="text-[10px] uppercase tracking-widest text-red-400 font-bold">Nombre</span> -->
             <p class="mt-1 font-semibold text-red-800 text-base">{{ props.item.error.nombre }}</p>
           </div>
 
-          <!-- <div>
-            <span class="text-[10px] uppercase tracking-widest text-red-400 font-bold">Código</span>
-            <p class="mt-1">
-              <span class="font-mono text-sm font-bold text-red-700 bg-red-100 border border-red-200 px-2.5 py-1 rounded">
-                {{ props.item.error.codigo }}
-              </span>
-            </p>
-          </div> -->
-
           <div>
-            <!-- <span class="text-[10px] uppercase tracking-widest text-red-400 font-bold">Detalle</span> -->
             <ul v-if="parsedErrorDetails.length > 1" class="mt-2 space-y-2 list-disc pl-5 text-red-800 leading-relaxed">
               <li v-for="(detail, index) in parsedErrorDetails" :key="`${index}-${detail}`">{{ detail }}</li>
             </ul>
