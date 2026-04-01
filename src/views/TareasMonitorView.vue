@@ -69,19 +69,19 @@ const {
   totals
 } = useTareasMonitorViewModel()
 
-function updateSelectedLineas(value: number[]) {
+function updateSelectedLineas(value: string[]) {
   selectedLineas.value = value
 }
 
-function updateSelectedCampanas(value: number[]) {
+function updateSelectedCampanas(value: string[]) {
   selectedCampanas.value = value
 }
 
-function updateSelectedActividades(value: number[]) {
+function updateSelectedActividades(value: string[]) {
   selectedActividades.value = value
 }
 
-function updateSelectedEstatus(value: number[]) {
+function updateSelectedEstatus(value: string[]) {
   selectedEstatus.value = value
 }
 

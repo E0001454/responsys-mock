@@ -139,8 +139,8 @@ export function useTareasMonitorReport(deps: UseTareasMonitorReportDeps) {
 
   async function downloadCsvReport(baseRows: TareaMonitorData[], detailRows: TareaMonitorData[], includeDetails: boolean) {
     const detailsData = (detailRows.length ? detailRows : baseRows).map(stage => ({
-      Linea: deps.getLineaLabel(stage),
-      ...(deps.activeTab.value === 'campana' && { Campana: deps.getCampanaLabel(stage) }),
+      Línea: deps.getLineaLabel(stage),
+      ...(deps.activeTab.value === 'campana' && { Campaña: deps.getCampanaLabel(stage) }),
       'Nombre de ingesta': stage.nombreMapeo,
       Pipeline: stage.pipelineId,
       Etapa: Number(stage.etapaIndex ?? 0) + 1,
@@ -148,24 +148,24 @@ export function useTareasMonitorReport(deps: UseTareasMonitorReportDeps) {
       Estatus: stage.estatus.nombre,
       'Fecha inicio': stage.fechaInicio ? new Date(stage.fechaInicio).toLocaleString() : '-',
       'Fecha fin': stage.fechaFin ? new Date(stage.fechaFin).toLocaleString() : '-',
-      'Fecha planificacion': stage.fechaCreacion ? new Date(stage.fechaCreacion).toLocaleString() : '-',
+      'Fecha planificación': stage.fechaCreacion ? new Date(stage.fechaCreacion).toLocaleString() : '-',
       Horario: deps.getHorarioLabel(stage) || (stage.horarioProgramado ? formatTimeLabel(stage.horarioProgramado) : '-'),
-      Aprobacion: getApproveExportState(stage),
-      'Fecha ejecucion': stage.fechaInicio ? new Date(stage.fechaInicio).toLocaleString() : '-',
-      Dictaminacion: getDictamenExportState(stage),
-      'Fecha dictaminacion': stage.fechaDictaminacion ? new Date(stage.fechaDictaminacion).toLocaleString() : '-',
+      Aprobación: getApproveExportState(stage),
+      'Fecha ejecución': stage.fechaInicio ? new Date(stage.fechaInicio).toLocaleString() : '-',
+      Dictaminación: getDictamenExportState(stage),
+      'Fecha dictaminación': stage.fechaDictaminacion ? new Date(stage.fechaDictaminacion).toLocaleString() : '-',
       'Fecha completada': stage.fechaFin ? new Date(stage.fechaFin).toLocaleString() : '-',
-      'Num registros': `${Number(stage.numeroRegistrosProcesados ?? 0)}/${Number(stage.numeroRegistros ?? 0)}`
+      'Núm. registros': `${Number(stage.numeroRegistrosProcesados ?? 0)}/${Number(stage.numeroRegistros ?? 0)}`
     }))
 
     const summaryData = baseRows.map(row => ({
-      Linea: deps.getLineaLabel(row),
-      ...(deps.activeTab.value === 'campana' && { Campana: deps.getCampanaLabel(row) }),
+      Línea: deps.getLineaLabel(row),
+      ...(deps.activeTab.value === 'campana' && { Campaña: deps.getCampanaLabel(row) }),
       'Nombre de ingesta': row.nombreMapeo,
       Actividad: deps.getActividadLabel(row),
       Estatus: deps.getStatusLabel(row),
       Fecha: row.horarioProgramado ? new Date(row.horarioProgramado).toLocaleString() : '-',
-      'Num registros': `${Number(row.numeroRegistrosProcesados ?? 0)}/${Number(row.numeroRegistros ?? 0)}`
+      'Núm. registros': `${Number(row.numeroRegistrosProcesados ?? 0)}/${Number(row.numeroRegistros ?? 0)}`
     }))
 
     const csvContent = includeDetails

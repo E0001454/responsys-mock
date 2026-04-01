@@ -6,7 +6,7 @@ import { catalogosService } from '@/services/catalogos/catalogosService'
 
 interface Option {
 	label: string
-	value: number
+	value: string | number
 }
 
 interface ColumnaDetailsItem {
@@ -87,20 +87,20 @@ const columnaLabel = computed(() => {
 const lineaLabel = computed(() => {
 	const item = props.item as ColumnaDetailsItem | null
 	if (!item) return ''
-	const id = (props.selectedLineaId ?? (item.columna?.lineaId ?? undefined)) as number | undefined
+	const id = (props.selectedLineaId ?? (item.columna?.lineaId ?? undefined)) as number | string | undefined
 	if (props.selectedLineaNombre) return props.selectedLineaNombre
 	return (
-		props.lineas?.find(l => l.value === id)?.label ?? `Línea ${id ?? ''}`
+		props.lineas?.find(l => l.value == id)?.label ?? `Línea ${id ?? ''}`
 	)
 })
 
 const campanaLabel = computed(() => {
 	const item = props.item as ColumnaDetailsItem | null
 	if (!item) return ''
-	const id = (props.selectedCampanaId ?? (item.columna?.campanaId ?? undefined)) as number | undefined
+	const id = (props.selectedCampanaId ?? (item.columna?.campanaId ?? undefined)) as number | string | undefined
 	if (props.selectedCampanaNombre) return props.selectedCampanaNombre
 	return (
-		props.campanas?.find(c => c.value === id)?.label ?? `Campaña ${id ?? ''}`
+		props.campanas?.find(c => c.value == id)?.label ?? `Campaña ${id ?? ''}`
 	)
 })
 
@@ -128,11 +128,11 @@ function getRequiredVisual(required: boolean) {
 		required,
 		label: required ? '' : '',
 		containerClass: required
-			? 'bg-emerald-50 border-emerald-200 text-[#00357F]'
-			: 'bg-rose-50 border-rose-200 text-rose-600',
+			? 'bg-emerald-50/80 border-emerald-200 text-emerald-700'
+			: 'bg-rose-50/70 border-rose-200 text-rose-700',
 		iconWrapClass: required
-			? 'bg-emerald-100 text-[#00357F]'
-			: 'bg-rose-200 text-rose-600'
+			? 'bg-emerald-100 text-emerald-700'
+			: 'bg-rose-100 text-rose-700'
 	}
 }
 
@@ -279,9 +279,23 @@ function mapFechaTipoName(id: number | null | undefined) {
 
 						<div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
 							<span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Estatus</span>
-							<p class="mt-3 font-semibold" :class="statusIsActive ? 'text-[#00357F]' : 'text-slate-500'">
-								{{ statusIsActive ? 'Activo' : 'Inactivo' }}
-							</p>
+							<span
+								class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200"
+								:class="statusIsActive
+									? 'bg-blue-50 border-blue-200'
+									: 'bg-slate-50 border-slate-200'"
+							>
+								<span
+									class="h-2 w-2 rounded-full"
+									:class="statusIsActive ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
+								></span>
+								<span
+									class="text-xs font-semibold"
+									:class="statusIsActive ? 'text-[#00357F]' : 'text-slate-500'"
+								>
+									{{ statusIsActive ? 'Activo' : 'Inactivo' }}
+								</span>
+							</span>
 						</div>
 
 						<div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
@@ -427,7 +441,7 @@ function mapFechaTipoName(id: number | null | undefined) {
 		</template>
 		<template #footer>
 			<BaseModalActions
-				confirm-text="Cerrar"
+				confirm-text="Aceptar"
 				:show-cancel="false"
 				@confirm="emit('close')"
 			/>

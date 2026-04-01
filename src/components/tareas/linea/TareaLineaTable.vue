@@ -58,7 +58,7 @@ export interface TareaLineaRow {
 
 interface Option {
   label: string
-  value: number
+  value: string | number
 }
 
 interface SelectedFilters {
@@ -122,8 +122,8 @@ const {
           <tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
             <th :class="thClass + ' relative'">
               <FilterDropdown
-                label="Linea"
-                header-label="Filtrar por linea"
+                label="Línea"
+                header-label="Filtrar por línea"
                 :options="props.lineasDisponibles"
                 v-model="selectedLineas"
                 :open="props.openFilter === 'linea'"

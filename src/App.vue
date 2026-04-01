@@ -101,7 +101,6 @@ watch(
 watch(isAuthRoute, async (isAuthNow, wasAuth) => {
   if (wasAuth && !isAuthNow) {
     await loadUserInfo()
-    // If not already shown, briefly show success overlay (shorter)
     if (!authStore.showSuccessOverlay.value) {
       authStore.showSuccessOverlay.value = true
       setTimeout(() => {

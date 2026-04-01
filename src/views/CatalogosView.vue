@@ -32,7 +32,7 @@ function newestFirstCompare(a: CatalogoItem, b: CatalogoItem) {
     const left = toTimestamp(a.fechaUltimaModificacion || a.fechaCreacion)
     const right = toTimestamp(b.fechaUltimaModificacion || b.fechaCreacion)
     if (right !== left) return right - left
-    return Number(b.id ?? 0) - Number(a.id ?? 0)
+    return String(b.codigo ?? '').localeCompare(String(a.codigo ?? ''))
 }
 
 function syncItemsBySelection() {

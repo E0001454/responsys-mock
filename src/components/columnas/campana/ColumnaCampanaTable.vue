@@ -7,11 +7,11 @@ import { useFirstRowNewGlow } from '@/composables/shared/useFirstRowNewGlow'
 
 interface Option {
 	label: string
-	value: number
+	value: string | number
 }
 
 interface SelectedFilters {
-	columnas: number[]
+	columnas: (string | number)[]
 	status: boolean[]
 }
 
@@ -38,8 +38,8 @@ const emit = defineEmits<{
 	(e: 'next'): void
 }>()
 
-function getColumnaLabel(id: number) {
-	return props.columnasCatalogo.find(c => c.value === id)?.label ?? `Columna ${id}`
+function getColumnaLabel(id: number | string) {
+	return props.columnasCatalogo.find(c => c.value === String(id))?.label ?? `Columna ${id}`
 }
 
 const selectedColumnas = computed({

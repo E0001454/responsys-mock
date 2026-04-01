@@ -9,21 +9,21 @@ import type {
   TareaMonitorData,
   TareaMonitorLineaData
 } from '@/types/tareas/monitor'
-import { mapCatalogIdToLabel } from '@/utils/tareas/monitor/tareasMonitorData.utils'
+import { mapCatalogByNumericId, mapCatalogNumericIdToCodigo } from '@/utils/tareas/monitor/tareasMonitorData.utils'
 import { getStatusClassByCode } from '@/utils/tareas/monitor/tareasMonitorFormat.utils'
 import { canApproveStageByRules, canDictaminarStageByRules } from '@/utils/tareas/monitor/monitorStatusRules.utils'
 import { useTareasMonitorReport } from '@/composables/tareas/monitor/useTareasMonitorReport'
 
 export const tabs = [
-  { key: 'campana', label: 'Campanas' },
-  { key: 'linea', label: 'Lineas de negocio' }
+  { key: 'campana', label: 'Campañas' },
+  { key: 'linea', label: 'Líneas de negocio' }
 ] as const
 
 export type TabKey = typeof tabs[number]['key']
 
-type NumericOption = {
+type FilterOption = {
   label: string
-  value: number
+  value: string
 }
 
 export function useTareasMonitorViewModel() {
@@ -48,11 +48,13 @@ export function useTareasMonitorViewModel() {
   const campanaLabelById = ref(new Map<number, string>())
   const diaLabelById = ref(new Map<number, string>())
   const horaLabelById = ref(new Map<number, string>())
+  const lineaCodigoById = ref(new Map<number, string>())
+  const campanaCodigoById = ref(new Map<number, string>())
 
-  const selectedLineas = ref<number[]>([])
-  const selectedCampanas = ref<number[]>([])
-  const selectedActividades = ref<number[]>([])
-  const selectedEstatus = ref<number[]>([])
+  const selectedLineas = ref<string[]>([])
+  const selectedCampanas = ref<string[]>([])
+  const selectedActividades = ref<string[]>([])
+  const selectedEstatus = ref<string[]>([])
   const selectedFecha = ref('')
   const filtersInitialized = ref(false)
 
@@ -60,58 +62,62 @@ export function useTareasMonitorViewModel() {
     activeTab.value === 'linea' ? tareasMonitorLinea.value : tareasMonitorCampana.value
   )
 
-  const lineasOptions = computed<NumericOption[]>(() => {
-    const map = new Map<number, string>()
+  const lineasOptions = computed<FilterOption[]>(() => {
+    const map = new Map<string, string>()
     currentRows.value.forEach(row => {
       const id = Number(row.idABCCatLineaNegocio ?? 0)
       if (!id) return
-      map.set(id, lineaLabelById.value.get(id) ?? `Linea ${id}`)
+      const codigo = lineaCodigoById.value.get(id) ?? ''
+      if (!codigo) return
+      map.set(codigo, lineaLabelById.value.get(id) ?? `Linea ${id}`)
     })
 
     return Array.from(map.entries())
-      .sort((a, b) => a[0] - b[0])
+      .sort((a, b) => a[1].localeCompare(b[1]))
       .map(([value, label]) => ({ value, label }))
   })
 
-  const campanasOptions = computed<NumericOption[]>(() => {
+  const campanasOptions = computed<FilterOption[]>(() => {
     if (activeTab.value !== 'campana') return []
 
-    const map = new Map<number, string>()
+    const map = new Map<string, string>()
     currentRows.value.forEach(row => {
       if (row.scope !== 'campana') return
       const id = Number(row.idABCCatCampana ?? 0)
       if (!id) return
-      map.set(id, campanaLabelById.value.get(id) ?? `Campana ${id}`)
+      const codigo = campanaCodigoById.value.get(id) ?? ''
+      if (!codigo) return
+      map.set(codigo, campanaLabelById.value.get(id) ?? `Campana ${id}`)
     })
 
     return Array.from(map.entries())
-      .sort((a, b) => a[0] - b[0])
+      .sort((a, b) => a[1].localeCompare(b[1]))
       .map(([value, label]) => ({ value, label }))
   })
 
-  const actividadOptions = computed<NumericOption[]>(() => {
-    const map = new Map<number, string>()
+  const actividadOptions = computed<FilterOption[]>(() => {
+    const map = new Map<string, string>()
     currentRows.value.forEach(row => {
-      const id = Number(row.actividad?.id ?? 0)
-      if (!id) return
-      map.set(id, row.actividad?.nombre ?? row.actividad?.codigo ?? `Actividad ${id}`)
+      const codigo = String(row.actividad?.codigo ?? '').toUpperCase()
+      if (!codigo) return
+      map.set(codigo, row.actividad?.nombre ?? codigo)
     })
 
     return Array.from(map.entries())
-      .sort((a, b) => a[0] - b[0])
+      .sort((a, b) => a[1].localeCompare(b[1]))
       .map(([value, label]) => ({ value, label }))
   })
 
-  const estatusOptions = computed<NumericOption[]>(() => {
-    const map = new Map<number, string>()
+  const estatusOptions = computed<FilterOption[]>(() => {
+    const map = new Map<string, string>()
     currentRows.value.forEach(row => {
-      const id = Number(row.estatus?.id ?? 0)
-      if (!id) return
-      map.set(id, row.estatus?.nombre ?? row.estatus?.codigo ?? `Estatus ${id}`)
+      const codigo = String(row.estatus?.codigo ?? '').toUpperCase()
+      if (!codigo) return
+      map.set(codigo, row.estatus?.nombre ?? codigo)
     })
 
     return Array.from(map.entries())
-      .sort((a, b) => a[0] - b[0])
+      .sort((a, b) => a[1].localeCompare(b[1]))
       .map(([value, label]) => ({ value, label }))
   })
 
@@ -123,10 +129,10 @@ export function useTareasMonitorViewModel() {
   }
 
   function initializeFilters(force = false) {
-    const lineaValues = lineasOptions.value.map(opt => Number(opt.value))
-    const campanaValues = campanasOptions.value.map(opt => Number(opt.value))
-    const actividadValues = actividadOptions.value.map(opt => Number(opt.value))
-    const estatusValues = estatusOptions.value.map(opt => Number(opt.value))
+    const lineaValues = lineasOptions.value.map(opt => opt.value)
+    const campanaValues = campanasOptions.value.map(opt => opt.value)
+    const actividadValues = actividadOptions.value.map(opt => opt.value)
+    const estatusValues = estatusOptions.value.map(opt => opt.value)
 
     if (force || !filtersInitialized.value) {
       selectedLineas.value = [...lineaValues]
@@ -146,28 +152,29 @@ export function useTareasMonitorViewModel() {
   const filteredRows = computed<TareaMonitorData[]>(() => {
     return currentRows.value
       .filter(row => {
-        const campanaId = Number((row as TareaMonitorCampanaData).idABCCatCampana ?? 0)
-        const statusId = Number(row.estatus?.id ?? 0)
-        const actividadId = Number(row.actividad?.id ?? 0)
+        const lineaCodigo = lineaCodigoById.value.get(Number(row.idABCCatLineaNegocio ?? 0)) ?? ''
+        const campanaCodigo = campanaCodigoById.value.get(Number((row as TareaMonitorCampanaData).idABCCatCampana ?? 0)) ?? ''
+        const actividadCodigo = String(row.actividad?.codigo ?? '').toUpperCase()
+        const estatusCodigo = String(row.estatus?.codigo ?? '').toUpperCase()
 
         const matchSearch = searchQuery.value.trim()
           ? matchesSearchContains(row.nombreMapeo, searchQuery.value)
           : true
 
         const matchLinea = selectedLineas.value.length
-          ? selectedLineas.value.includes(Number(row.idABCCatLineaNegocio ?? 0))
+          ? selectedLineas.value.includes(lineaCodigo)
           : true
 
         const matchCampana = activeTab.value === 'campana'
-          ? (selectedCampanas.value.length ? selectedCampanas.value.includes(campanaId) : true)
+          ? (selectedCampanas.value.length ? selectedCampanas.value.includes(campanaCodigo) : true)
           : true
 
         const matchActividad = selectedActividades.value.length
-          ? selectedActividades.value.includes(actividadId)
+          ? selectedActividades.value.includes(actividadCodigo)
           : true
 
         const matchEstatus = selectedEstatus.value.length
-          ? selectedEstatus.value.includes(statusId)
+          ? selectedEstatus.value.includes(estatusCodigo)
           : true
 
         const rowFecha = formatDateForFilter(row.horarioProgramado)
@@ -322,10 +329,12 @@ export function useTareasMonitorViewModel() {
 
   async function fetchCatalogos() {
     const catalogos = await catalogosService.getCatalogosAgrupados()
-    lineaLabelById.value = mapCatalogIdToLabel(catalogos, 'LNN')
-    campanaLabelById.value = mapCatalogIdToLabel(catalogos, 'CMP')
-    diaLabelById.value = mapCatalogIdToLabel(catalogos, 'DIA')
-    horaLabelById.value = mapCatalogIdToLabel(catalogos, 'HRS')
+    lineaLabelById.value = mapCatalogByNumericId(catalogos, 'LNN')
+    campanaLabelById.value = mapCatalogByNumericId(catalogos, 'CMP')
+    diaLabelById.value = mapCatalogByNumericId(catalogos, 'DIA')
+    horaLabelById.value = mapCatalogByNumericId(catalogos, 'HRS')
+    lineaCodigoById.value = mapCatalogNumericIdToCodigo(catalogos, 'LNN')
+    campanaCodigoById.value = mapCatalogNumericIdToCodigo(catalogos, 'CMP')
   }
 
   async function fetchMonitorData() {

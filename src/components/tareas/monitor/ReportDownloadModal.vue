@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Download, FileText, File } from 'lucide-vue-next'
 import BaseModalShell from '@/components/shared/modal/BaseModalShell.vue'
 import BaseModalActions from '@/components/shared/modal/BaseModalActions.vue'
@@ -14,12 +14,20 @@ interface Emits {
   (e: 'download', options: { format: 'csv' | 'pdf'; includeDetails: boolean; contentType: 'all' | 'en-curso' }): void
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 defineEmits<Emits>()
 
 const selectedFormat = ref<'csv' | 'pdf'>('csv')
 const includeDetails = ref(false)
 const contentType = ref<'all' | 'en-curso'>('en-curso')
+
+watch(() => props.show, (open) => {
+  if (open) {
+    selectedFormat.value = 'csv'
+    includeDetails.value = false
+    contentType.value = 'en-curso'
+  }
+})
 
 const formatLabel = computed(() => {
   if (selectedFormat.value === 'csv') return 'CSV'
@@ -134,7 +142,7 @@ const formatLabel = computed(() => {
 
     <template #footer>
       <BaseModalActions
-        :confirm-text="`Descargar como ${formatLabel}`"
+        confirm-text="Guardar"
         cancel-text="Cancelar"
         :loading="loading"
         @confirm="$emit('download', { format: selectedFormat, includeDetails, contentType })"

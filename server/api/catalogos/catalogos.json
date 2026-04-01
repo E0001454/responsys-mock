@@ -4,133 +4,133 @@
         "nombre": "COLUMNA_LINEA",
         "registros": [
             {
-                "id": 68,
+                "id": 1,
                 "codigo": "C01",
                 "nombre": "RIID_\t",
                 "esRequerido": true
             },
             {
-                "id": 69,
+                "id": 2,
                 "codigo": "C02",
                 "nombre": "NOMBRE\t",
                 "esRequerido": true
             },
             {
-                "id": 70,
+                "id": 3,
                 "codigo": "C03",
                 "nombre": "APELLIDO_PATERNO\t",
                 "esRequerido": true
             },
             {
-                "id": 71,
+                "id": 4,
                 "codigo": "C04",
                 "nombre": "APELLIDO_MATERNO",
                 "esRequerido": false
             },
             {
-                "id": 72,
+                "id": 5,
                 "codigo": "C05",
                 "nombre": "EMAIL_ADDRESS_",
                 "esRequerido": true
             },
             {
-                "id": 73,
+                "id": 6,
                 "codigo": "C06",
                 "nombre": "MOBILE_NUMBER_",
                 "esRequerido": true
             },
             {
-                "id": 74,
+                "id": 7,
                 "codigo": "C07",
                 "nombre": "MOBILE_COUNTRY_",
                 "esRequerido": false
             },
             {
-                "id": 75,
+                "id": 8,
                 "codigo": "C08",
                 "nombre": "LINEA_DE_NEGOCIO",
                 "esRequerido": true
             },
             {
-                "id": 76,
+                "id": 9,
                 "codigo": "C09",
                 "nombre": "NUMERO_DE_CUENTA",
                 "esRequerido": false
             },
             {
-                "id": 77,
+                "id": 10,
                 "codigo": "C10",
                 "nombre": "NSS",
                 "esRequerido": false
             },
             {
-                "id": 78,
+                "id": 11,
                 "codigo": "C11",
                 "nombre": "CURP",
                 "esRequerido": false
             },
             {
-                "id": 79,
+                "id": 12,
                 "codigo": "C12",
                 "nombre": "RFC",
                 "esRequerido": false
             },
             {
-                "id": 80,
+                "id": 13,
                 "codigo": "C13",
                 "nombre": "DATE_OF_BIRTH",
                 "esRequerido": false
             },
             {
-                "id": 81,
+                "id": 14,
                 "codigo": "C14",
                 "nombre": "POSTAL_STREET_1_",
                 "esRequerido": false
             },
             {
-                "id": 82,
+                "id": 15,
                 "codigo": "C15",
                 "nombre": "POSTAL_STREET_2_",
                 "esRequerido": false
             },
             {
-                "id": 83,
+                "id": 16,
                 "codigo": "C16",
                 "nombre": "CITY_",
                 "esRequerido": false
             },
             {
-                "id": 84,
+                "id": 17,
                 "codigo": "C17",
                 "nombre": "STATE_",
                 "esRequerido": false
             },
             {
-                "id": 85,
+                "id": 18,
                 "codigo": "C18",
                 "nombre": "POSTAL_CODE_",
                 "esRequerido": false
             },
             {
-                "id": 86,
+                "id": 19,
                 "codigo": "C19",
                 "nombre": "POLIZA",
                 "esRequerido": false
             },
             {
-                "id": 87,
+                "id": 20,
                 "codigo": "C20",
                 "nombre": "SUSPENSION_LOGICA",
                 "esRequerido": false
             },
             {
-                "id": 88,
+                "id": 21,
                 "codigo": "C21",
                 "nombre": "USUARIO PRUEBA",
                 "esRequerido": false
             },
             {
-                "id": 89,
+                "id": 22,
                 "codigo": "C22",
                 "nombre": "GENERO",
                 "esRequerido": false
@@ -142,52 +142,52 @@
         "nombre": "CAMPANA",
         "registros": [
             {
-                "id": 12,
+                "id": 1,
                 "codigo": "C01",
                 "nombre": "BIENVENIDA"
             },
             {
-                "id": 13,
+                "id": 2,
                 "codigo": "C02",
                 "nombre": "BOLETÍN"
             },
             {
-                "id": 14,
+                "id": 3,
                 "codigo": "C03",
                 "nombre": "BIENVENIDA "
             },
             {
-                "id": 15,
+                "id": 4,
                 "codigo": "C04",
                 "nombre": "PROFUKIDS"
             },
             {
-                "id": 16,
+                "id": 5,
                 "codigo": "C05",
                 "nombre": "WEBINAR"
             },
             {
-                "id": 17,
+                "id": 6,
                 "codigo": "C06",
                 "nombre": "APOVOL RESPONSYS"
             },
             {
-                "id": 18,
+                "id": 7,
                 "codigo": "C07",
                 "nombre": "CUMPLEAÑOS "
             },
             {
-                "id": 19,
+                "id": 8,
                 "codigo": "C08",
                 "nombre": "UNIVERSOS IMSS E ISSSTE"
             },
             {
-                "id": 20,
+                "id": 9,
                 "codigo": "C09",
                 "nombre": "ESTADO DE CUENTA"
             },
             {
-                "id": 21,
+                "id": 10,
                 "codigo": "C10",
                 "nombre": "EXPEDIENTE IDENTIFICACIÓN"
             }
@@ -198,22 +198,22 @@
         "nombre": "CADENA",
         "registros": [
             {
-                "id": 2,
+                "id": 1,
                 "codigo": "ALF",
                 "nombre": "ALFABETO"
             },
             {
-                "id": 3,
+                "id": 2,
                 "codigo": "ALN",
                 "nombre": "ALFANUMERICO"
             },
             {
-                "id": 4,
+                "id": 3,
                 "codigo": "ALE",
                 "nombre": "ALFABETO Y ESPECIALES"
             },
             {
-                "id": 5,
+                "id": 4,
                 "codigo": "ANE",
                 "nombre": "ALFANUMÉRICO Y ESPECIALES"
             }
@@ -235,8 +235,8 @@
             },
             {
                 "id": 3,
-                "codigo": "BLQ",
-                "nombre": "Bloqueada"
+                "codigo": "APB",
+                "nombre": "Aprobada"
             },
             {
                 "id": 4,
@@ -250,8 +250,8 @@
             },
             {
                 "id": 6,
-                "codigo": "CNC",
-                "nombre": "Cancelada "
+                "codigo": "DCT",
+                "nombre": "Dictaminada"
             }
         ]
     },
@@ -286,381 +286,381 @@
         "nombre": "COLUMNA_CAMPANA",
         "registros": [
             {
-                "id": 39,
+                "id": 37,
                 "codigo": "C01",
-                "nombre": "ID_AFORE \t\t\t",
+                "nombre": "ID_AFORE",
+                "esRequerido": false
+            },
+            {
+                "id": 38,
+                "codigo": "C02",
+                "nombre": "DESCRIPCION_DE_AFORE",
+                "esRequerido": false
+            },
+            {
+                "id": 39,
+                "codigo": "C03",
+                "nombre": "SIEFORE",
                 "esRequerido": false
             },
             {
                 "id": 40,
-                "codigo": "C02",
-                "nombre": "DESCRIPCION_DE_AFORE\t\t\t",
+                "codigo": "C04",
+                "nombre": "SEGMENTO",
                 "esRequerido": false
             },
             {
                 "id": 41,
-                "codigo": "C03",
-                "nombre": "SIEFORE\t\t\t",
+                "codigo": "C05",
+                "nombre": "REGIMEN",
                 "esRequerido": false
             },
             {
                 "id": 42,
-                "codigo": "C04",
-                "nombre": "SEGMENTO\t\t\t",
+                "codigo": "C06",
+                "nombre": "ID_CLIENTE_AHORRADOR",
                 "esRequerido": false
             },
             {
                 "id": 43,
-                "codigo": "C05",
-                "nombre": "REGIMEN\t\t\t",
+                "codigo": "C07",
+                "nombre": "ID_PRESTAMO_PENSIONADO",
                 "esRequerido": false
             },
             {
                 "id": 44,
-                "codigo": "C06",
-                "nombre": "ID_CLIENTE_AHORRADOR\t\t\t",
+                "codigo": "C08",
+                "nombre": "ID_SUSCEPTIBLE_PRESTAMO",
                 "esRequerido": false
             },
             {
                 "id": 45,
-                "codigo": "C07",
-                "nombre": "ID_PRESTAMO_PENSIONADO\t\t\t",
+                "codigo": "C09",
+                "nombre": "TIPO_PENSION",
                 "esRequerido": false
             },
             {
                 "id": 46,
-                "codigo": "C08",
-                "nombre": "ID_SUSCEPTIBLE_PRESTAMO\t\t\t",
+                "codigo": "C10",
+                "nombre": "GRUPO_PAGO",
                 "esRequerido": false
             },
             {
                 "id": 47,
-                "codigo": "C09",
-                "nombre": "TIPO_PENSION\t\t\t",
-                "esRequerido": false
+                "codigo": "C11",
+                "nombre": "CUSTOMER_ID_",
+                "esRequerido": true
             },
             {
                 "id": 48,
-                "codigo": "C10",
-                "nombre": "GRUPO_PAGO\t\t\t",
-                "esRequerido": false
+                "codigo": "C12",
+                "nombre": "NUM_LOTE",
+                "esRequerido": true
             },
             {
                 "id": 49,
-                "codigo": "C11",
-                "nombre": "CUSTOMER_ID_\t\t\t\t\t\t",
+                "codigo": "C13",
+                "nombre": "NOMBRE_CAMPANA",
                 "esRequerido": true
             },
             {
                 "id": 50,
-                "codigo": "C12",
-                "nombre": "NUM_LOTE\t\t\t\t\t\t\t",
+                "codigo": "C14",
+                "nombre": "ID_CAMPANA",
                 "esRequerido": true
             },
             {
                 "id": 51,
-                "codigo": "C13",
-                "nombre": "NOMBRE_CAMPANA\t\t\t\t\t\t",
-                "esRequerido": true
+                "codigo": "C15",
+                "nombre": "ID_BAJA_CAMBIO",
+                "esRequerido": false
             },
             {
                 "id": 52,
-                "codigo": "C14",
-                "nombre": "ID_CAMPANA\t\t\t\t\t\t\t",
-                "esRequerido": true
+                "codigo": "C16",
+                "nombre": "FECHA_BAJA_CAMBIO",
+                "esRequerido": false
             },
             {
                 "id": 53,
-                "codigo": "C15",
-                "nombre": "ID_BAJA_CAMBIO\t\t\t",
+                "codigo": "C17",
+                "nombre": "REGIMEN_IMSS",
                 "esRequerido": false
             },
             {
                 "id": 54,
-                "codigo": "C16",
-                "nombre": "FECHA_BAJA_CAMBIO\t\t\t",
+                "codigo": "C18",
+                "nombre": "SEGMENTO_AFO",
                 "esRequerido": false
             },
             {
                 "id": 55,
-                "codigo": "C17",
-                "nombre": "REGIMEN_IMSS\t\t\t",
+                "codigo": "C19",
+                "nombre": "EDAD",
                 "esRequerido": false
             },
             {
                 "id": 56,
-                "codigo": "C18",
-                "nombre": "SEGMENTO_AFO\t\t\t",
+                "codigo": "C20",
+                "nombre": "GENERO",
                 "esRequerido": false
             },
             {
                 "id": 57,
-                "codigo": "C19",
-                "nombre": "EDAD\t\t\t",
+                "codigo": "C21",
+                "nombre": "LIGA_RSALDOS",
                 "esRequerido": false
             },
             {
                 "id": 58,
-                "codigo": "C20",
-                "nombre": "GENERO\t\t\t",
-                "esRequerido": false
+                "codigo": "C22",
+                "nombre": "LINEA_DE_NEGOCIO",
+                "esRequerido": true
             },
             {
                 "id": 59,
-                "codigo": "C21",
-                "nombre": "LIGA_RSALDOS\t\t\t",
+                "codigo": "C23",
+                "nombre": "SEGMENTO_PRE",
                 "esRequerido": false
             },
             {
                 "id": 60,
-                "codigo": "C22",
-                "nombre": "LINEA_DE_NEGOCIO\t\t\t\t\t",
-                "esRequerido": true
+                "codigo": "C24",
+                "nombre": "FIRST_NAME",
+                "esRequerido": false
             },
             {
                 "id": 61,
-                "codigo": "C23",
-                "nombre": "SEGMENTO_PRE\t\t\t",
+                "codigo": "C25",
+                "nombre": "LAST_NAME",
                 "esRequerido": false
             },
             {
                 "id": 62,
-                "codigo": "C24",
-                "nombre": "FIRST_NAME\t\t\t",
+                "codigo": "C26",
+                "nombre": "ID_COMUNICACION",
                 "esRequerido": false
             },
             {
                 "id": 63,
-                "codigo": "C25",
-                "nombre": "LAST_NAME\t\t\t",
+                "codigo": "C27",
+                "nombre": "DOMICILIO_PREFERENTE",
                 "esRequerido": false
             },
             {
                 "id": 64,
-                "codigo": "C26",
-                "nombre": "ID_COMUNICACION\t\t\t",
+                "codigo": "C28",
+                "nombre": "EMPRESA",
                 "esRequerido": false
             },
             {
                 "id": 65,
-                "codigo": "C27",
-                "nombre": "DOMICILIO_PREFERENTE\t\t\t",
+                "codigo": "C29",
+                "nombre": "SEGMENTO_PROY",
                 "esRequerido": false
             },
             {
                 "id": 66,
-                "codigo": "C28",
-                "nombre": "EMPRESA\t\t\t ",
+                "codigo": "C30",
+                "nombre": "IDPERSONA",
                 "esRequerido": false
             },
             {
                 "id": 67,
-                "codigo": "C29",
-                "nombre": "SEGMENTO_PROY\t\t\t\t",
+                "codigo": "C31",
+                "nombre": "PATERNO",
                 "esRequerido": false
             },
             {
                 "id": 68,
-                "codigo": "C30",
-                "nombre": "IDPERSONA\t\t\t",
+                "codigo": "C32",
+                "nombre": "LIGA_TITULAR",
                 "esRequerido": false
             },
             {
                 "id": 69,
-                "codigo": "C31",
-                "nombre": "PATERNO\t\t\t",
+                "codigo": "C33",
+                "nombre": "INSTITUTO",
                 "esRequerido": false
             },
             {
                 "id": 70,
-                "codigo": "C32",
-                "nombre": "LIGA_TITULAR\t\t\t",
+                "codigo": "C34",
+                "nombre": "TRABAJADOR",
                 "esRequerido": false
             },
             {
                 "id": 71,
-                "codigo": "C33",
-                "nombre": "INSTITUTO\t\t\t",
+                "codigo": "C35",
+                "nombre": "ENTIDAD",
                 "esRequerido": false
             },
             {
                 "id": 72,
-                "codigo": "C34",
-                "nombre": "TRABAJADOR\t\t\t",
+                "codigo": "C36",
+                "nombre": "MEDIOS_DIGITALES",
                 "esRequerido": false
             },
             {
                 "id": 73,
-                "codigo": "C35",
-                "nombre": "ENTIDAD\t\t\t",
+                "codigo": "C37",
+                "nombre": "APERTURA",
                 "esRequerido": false
             },
             {
                 "id": 74,
-                "codigo": "C36",
-                "nombre": "MEDIOS_DIGITALES\t\t\t",
+                "codigo": "C38",
+                "nombre": "NUMERO_HIJOS",
                 "esRequerido": false
             },
             {
                 "id": 75,
-                "codigo": "C37",
-                "nombre": "APERTURA\t\t\t",
+                "codigo": "C39",
+                "nombre": "MASY65",
                 "esRequerido": false
             },
             {
                 "id": 76,
-                "codigo": "C38",
-                "nombre": "NUMERO_HIJOS\t\t\t",
+                "codigo": "C40",
+                "nombre": "MENORES",
                 "esRequerido": false
             },
             {
                 "id": 77,
-                "codigo": "C39",
-                "nombre": "MASY65\t\t\t",
+                "codigo": "C41",
+                "nombre": "CUENTA_MENOR_1",
                 "esRequerido": false
             },
             {
                 "id": 78,
-                "codigo": "C40",
-                "nombre": "MENORES\t\t\t",
+                "codigo": "C42",
+                "nombre": "NOMBRE_HIJO_1",
                 "esRequerido": false
             },
             {
                 "id": 79,
-                "codigo": "C41",
-                "nombre": "CUENTA_MENOR_1\t\t\t",
+                "codigo": "C43",
+                "nombre": "LIGA_HIJO_1",
                 "esRequerido": false
             },
             {
                 "id": 80,
-                "codigo": "C42",
-                "nombre": "NOMBRE_HIJO_1\t\t\t",
+                "codigo": "C44",
+                "nombre": "CUENTA_MENOR_2",
                 "esRequerido": false
             },
             {
                 "id": 81,
-                "codigo": "C43",
-                "nombre": "LIGA_HIJO_1\t\t\t",
+                "codigo": "C45",
+                "nombre": "NOMBRE_HIJO_2",
                 "esRequerido": false
             },
             {
                 "id": 82,
-                "codigo": "C44",
-                "nombre": "CUENTA_MENOR_2\t\t\t",
+                "codigo": "C46",
+                "nombre": "LIGA_HIJO_2",
                 "esRequerido": false
             },
             {
                 "id": 83,
-                "codigo": "C45",
-                "nombre": "NOMBRE_HIJO_2\t\t\t",
+                "codigo": "C47",
+                "nombre": "CUENTA_MENOR_3",
                 "esRequerido": false
             },
             {
                 "id": 84,
-                "codigo": "C46",
-                "nombre": "LIGA_HIJO_2\t\t\t",
+                "codigo": "C48",
+                "nombre": "NOMBRE_HIJO_3",
                 "esRequerido": false
             },
             {
                 "id": 85,
-                "codigo": "C47",
-                "nombre": "CUENTA_MENOR_3\t\t\t",
+                "codigo": "C49",
+                "nombre": "LIGA_HIJO_3",
                 "esRequerido": false
             },
             {
                 "id": 86,
-                "codigo": "C48",
-                "nombre": "NOMBRE_HIJO_3\t\t\t ",
+                "codigo": "C50",
+                "nombre": "CUENTA_MENOR_4",
                 "esRequerido": false
             },
             {
                 "id": 87,
-                "codigo": "C49",
-                "nombre": "LIGA_HIJO_3\t\t\t\t",
+                "codigo": "C51",
+                "nombre": "NOMBRE_HIJO_4",
                 "esRequerido": false
             },
             {
                 "id": 88,
-                "codigo": "C50",
-                "nombre": "CUENTA_MENOR_4\t\t\t",
+                "codigo": "C52",
+                "nombre": "LIGA_HIJO_4",
                 "esRequerido": false
             },
             {
                 "id": 89,
-                "codigo": "C51",
-                "nombre": "NOMBRE_HIJO_4\t\t\t",
+                "codigo": "C53",
+                "nombre": "CUENTA_MENOR_5",
                 "esRequerido": false
             },
             {
                 "id": 90,
-                "codigo": "C52",
-                "nombre": "LIGA_HIJO_4\t\t\t",
+                "codigo": "C54",
+                "nombre": "NOMBRE_HIJO_5",
                 "esRequerido": false
             },
             {
                 "id": 91,
-                "codigo": "C53",
-                "nombre": "CUENTA_MENOR_5\t\t\t",
+                "codigo": "C55",
+                "nombre": "LIGA_HIJO_5",
                 "esRequerido": false
             },
             {
                 "id": 92,
-                "codigo": "C54",
-                "nombre": "NOMBRE_HIJO_5\t\t\t",
+                "codigo": "C56",
+                "nombre": "CUENTA_MENOR_6",
                 "esRequerido": false
             },
             {
                 "id": 93,
-                "codigo": "C55",
-                "nombre": "LIGA_HIJO_5\t\t\t",
+                "codigo": "C57",
+                "nombre": "NOMBRE_HIJO_6",
                 "esRequerido": false
             },
             {
                 "id": 94,
-                "codigo": "C56",
-                "nombre": "CUENTA_MENOR_6\t\t\t",
+                "codigo": "C58",
+                "nombre": "LIGA_HIJO_6",
                 "esRequerido": false
             },
             {
                 "id": 95,
-                "codigo": "C57",
-                "nombre": "NOMBRE_HIJO_6\t\t\t",
+                "codigo": "C59",
+                "nombre": "PERFIL",
                 "esRequerido": false
             },
             {
                 "id": 96,
-                "codigo": "C58",
-                "nombre": "LIGA_HIJO_6\t\t\t",
+                "codigo": "C60",
+                "nombre": "HIJOS",
                 "esRequerido": false
             },
             {
                 "id": 97,
-                "codigo": "C59",
-                "nombre": "PERFIL\t\t\t",
+                "codigo": "C61",
+                "nombre": "ESTATUS_EXP",
                 "esRequerido": false
             },
             {
                 "id": 98,
-                "codigo": "C60",
-                "nombre": "HIJOS\t\t\t",
+                "codigo": "C62",
+                "nombre": "SUCURSAL",
                 "esRequerido": false
             },
             {
                 "id": 99,
-                "codigo": "C61",
-                "nombre": "ESTATUS_EXP\t\t\t ",
-                "esRequerido": false
-            },
-            {
-                "id": 100,
-                "codigo": "C62",
-                "nombre": "SUCURSAL\t\t\t\t",
-                "esRequerido": false
-            },
-            {
-                "id": 101,
                 "codigo": "C63",
-                "nombre": "DOM_SUCURSAL\t\t\t",
+                "nombre": "DOM_SUCURSAL",
                 "esRequerido": false
             }
         ]
@@ -690,6 +690,11 @@
         "codigo": "HRS",
         "nombre": "HORA",
         "registros": [
+            {
+                "id": 99,
+                "codigo": "RRR",
+                "nombre": "16:47"
+            },
             {
                 "id": 1,
                 "codigo": "000",
@@ -818,33 +823,33 @@
         "registros": [
             {
                 "id": 1,
-                "codigo": "FH1",
-                "nombre": "AAAA-MM-DD "
-            },
-            {
-                "id": 2,
                 "codigo": "FH2",
                 "nombre": "DD/MM/AAAA "
             },
             {
-                "id": 3,
+                "id": 2,
                 "codigo": "FH3",
                 "nombre": "DD-MM-AAAA "
             },
             {
-                "id": 4,
+                "id": 3,
                 "codigo": "FH4",
                 "nombre": "MM/DD/AAAA "
             },
             {
-                "id": 5,
+                "id": 4,
                 "codigo": "FH5",
                 "nombre": "MM-DD-AAAA "
             },
             {
-                "id": 6,
+                "id": 5,
                 "codigo": "FH6",
                 "nombre": "Día de Mes de Año "
+            },
+            {
+                "id": 6,
+                "codigo": "FH1",
+                "nombre": "AAAA-MM-DD "
             }
         ]
     },
@@ -894,6 +899,11 @@
         "codigo": "DIA",
         "nombre": "DIA",
         "registros": [
+            {
+                "id": 6,
+                "codigo": "SBD",
+                "nombre": "SABADO"
+            },
             {
                 "id": 1,
                 "codigo": "LNS",

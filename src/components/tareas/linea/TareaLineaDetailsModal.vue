@@ -93,11 +93,25 @@ const { formatTimestamp, horarios, stageDetails } = useTareaLineaDetails(props)
             <p class="mt-1 font-semibold text-slate-700">{{ item.ingesta || '-' }}</p>
           </div>
 
-          <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+          <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
             <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Estatus</span>
-            <p class="mt-1 font-semibold" :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'">
-              {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
-            </p>
+            <span
+              class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200"
+              :class="item.bolActivo
+                ? 'bg-blue-50 border-blue-200'
+                : 'bg-slate-50 border-slate-200'"
+            >
+              <span
+                class="h-2 w-2 rounded-full"
+                :class="item.bolActivo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
+              ></span>
+              <span
+                class="text-xs font-semibold"
+                :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'"
+              >
+                {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </span>
           </div>
 
           <div class="grid grid-cols-1 gap-3">
@@ -165,7 +179,7 @@ const { formatTimestamp, horarios, stageDetails } = useTareaLineaDetails(props)
     </template>
     <template #footer>
       <BaseModalActions
-        confirm-text="Cerrar"
+        confirm-text="Aceptar"
         :show-cancel="false"
         @confirm="emit('close')"
       />

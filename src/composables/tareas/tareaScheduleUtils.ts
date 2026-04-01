@@ -172,19 +172,6 @@ export interface HorarioLike {
   bolActivo?: boolean
 }
 
-const horarioTypeById: Record<number, string> = {
-  1: 'Carga',
-  2: 'Validación',
-  3: 'Envío'
-}
-
-export const getHorarioTypeName = (horario?: HorarioLike): string => {
-  const explicit = String(horario?.tipoHorario?.nombre ?? '').trim()
-  if (explicit) return explicit
-  const typeId = Number(horario?.tipoHorario?.id ?? 0)
-  return horarioTypeById[typeId] ?? 'Horario'
-}
-
 export const getHorarioDayName = (horario?: HorarioLike): WeekdayValue => {
   const dayName = normalizeWeekdayInputValue(horario?.dia?.nombre)
   if (dayName) return dayName
@@ -217,9 +204,6 @@ export const formatHorarioLabel = (horario?: HorarioLike): string => {
   if (!day && !hour) return '-'
   return [day, hour].filter(Boolean).join(' · ')
 }
-
-export const isScheduleComplete = (ejecucion: string, dia: string, hora: string) =>
-  Boolean(ejecucion && dia && hora)
 
 export const compareWeekdayTime = (
   fromDay: WeekdayValue,

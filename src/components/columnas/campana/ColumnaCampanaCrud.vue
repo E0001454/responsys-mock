@@ -27,7 +27,7 @@ const emit = defineEmits<{
 
 interface Option {
 	label: string
-	value: number
+	value: string | number
 	isRequired?: boolean
 }
 
@@ -39,8 +39,8 @@ const { items, loading, fetchAll, toggle } = useColumnasCampana()
 
 const openFilter = ref<string | null>(null)
 const selectedFilters = reactive({
-	mapeos: [] as number[],
-	columnas: [] as number[],
+	mapeos: [] as (string | number)[],
+	columnas: [] as (string | number)[],
 	status: [] as boolean[]
 })
 
@@ -68,10 +68,10 @@ function newestFirstCompare(
 const filtered = computed(() =>
 	items.value.filter(item => {
 		const matchMapeo = selectedFilters.mapeos.length
-			? selectedFilters.mapeos.includes(item.mapeoId)
+			? selectedFilters.mapeos.includes(String(item.mapeoId))
 			: true
 		const matchColumna = selectedFilters.columnas.length
-			? selectedFilters.columnas.includes(item.columnaId)
+			? selectedFilters.columnas.includes(String(item.columnaId))
 			: true
 		const matchStatus = selectedFilters.status.length
 			? selectedFilters.status.includes(item.bolActivo)
@@ -81,9 +81,9 @@ const filtered = computed(() =>
 	}).sort(newestFirstCompare)
 )
 
-const currentMapeoIdForRequired = computed<number | null>(() => {
-	if (props.mapeoId !== undefined && props.mapeoId !== null) return Number(props.mapeoId)
-	if (selectedFilters.mapeos.length === 1) return Number(selectedFilters.mapeos[0])
+const currentMapeoIdForRequired = computed<string | number | null>(() => {
+	if (props.mapeoId !== undefined && props.mapeoId !== null) return String(props.mapeoId)
+	if (selectedFilters.mapeos.length === 1) return selectedFilters.mapeos[0] ?? null
 	return null
 })
 
@@ -94,11 +94,11 @@ const missingRequiredColumnas = computed<Option[]>(() => {
 	const targetMapeoId = currentMapeoIdForRequired.value
 	const configuredIds = new Set(
 		items.value
-			.filter(item => targetMapeoId === null || Number(item.mapeoId ?? 0) === targetMapeoId)
-			.map(item => Number(item.columnaId ?? 0))
+			.filter(item => targetMapeoId === null || String(item.mapeoId ?? '') === String(targetMapeoId))
+			.map(item => String(item.columnaId ?? ''))
 	)
 
-	return requiredOptions.filter(option => !configuredIds.has(Number(option.value)))
+	return requiredOptions.filter(option => !configuredIds.has(String(option.value)))
 })
 
 const totalPages = computed(() =>
@@ -141,9 +141,10 @@ async function fetchCatalogos() {
 		.filter(c => c.bolActivo)
 		.map(c => ({
 			label: c.nombre,
-			value: c.id,
+			value: String(c.id),
 			isRequired: Boolean(c.esRequerido ?? c.obligatorio ?? false)
 		}))
+		.sort((a, b) => Number(b.isRequired) - Number(a.isRequired))
 
 	const lineasList: CatalogoItem[] = catalogos.find(group => group.codigo === 'LNN')?.registros ?? []
   lineasCatalogo.value = lineasList.filter(c => c.bolActivo).map(c => ({ label: c.nombre, value: c.id }))
@@ -202,7 +203,7 @@ async function confirmStatusToggle() {
 
 onMounted(() => {
 	if (props.mapeoId !== undefined && props.mapeoId !== null) {
-		selectedFilters.mapeos = [Number(props.mapeoId)]
+		selectedFilters.mapeos = [String(props.mapeoId)]
 	}
 	fetchAll(props.mapeoId)
 	fetchCatalogos()
@@ -232,7 +233,7 @@ watch(
 )
 
 watch(() => props.mapeoId, (v) => {
-    selectedFilters.mapeos = v !== undefined && v !== null ? [Number(v)] : []
+    selectedFilters.mapeos = v !== undefined && v !== null ? [String(v)] : []
     fetchAll(v)
 })
 

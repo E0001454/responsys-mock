@@ -134,14 +134,7 @@ function getBrowserInfo() {
 }
 
 async function getClientIp(): Promise<string> {
-  // try {
-  //   const res = await fetch('https://api.ipify.org?format=json')
-  //   if (!res.ok) return '0.0.0.0'
-  //   const data = await res.json()
-  //   return String(data?.ip ?? '0.0.0.0')
-  // } catch {
     return '0.0.0.0'
-  // }
 }
 
 async function getClientMac(): Promise<string> {
@@ -276,10 +269,8 @@ export const http = {
 }
 
 export const api = {
-  // Catálogos
   getCatalogos: () => http.get('/catalogos'),
 
-  // Mapeo línea
   getAllMapeos: () => http.get('/lineas/mapeos'),
   getMapeosByLinea: (lineaId: string | number) =>
     http.get(`/lineas/${lineaId}/mapeos`),
@@ -293,7 +284,6 @@ export const api = {
   patchDesactivarMapeoLinea: (payload: any) =>
     http.patch('/lineas/mapeos/desactivar', payload),
 
-  // Mapeo campaña
   getMapeosCampana: () => http.get('/lineas/campanas/mapeos'),
   createMapeoCampana: (
     lineaId: string | number,
@@ -313,7 +303,6 @@ export const api = {
   patchDesactivarMapeoCampana: (payload: any) =>
     http.patch('/lineas/campanas/mapeos/desactivar', payload),
 
-  // Actividades linea
   getTareasLinea: () => http.get('/lineas/actividades'),
   getTareasLineaByLinea: (lineaId: string | number) =>
     http.get(`/lineas/${lineaId}/actividades`),
@@ -363,7 +352,6 @@ export const api = {
       body: JSON.stringify(payload)
     }),
 
-  // Actividades campana
   getTareasCampana: () => http.get('/lineas/campanas/actividades'),
   getTareasCampanaByLineaCampana: (lineaId: string | number, campanaId: string | number) =>
     http.get(`/lineas/${lineaId}/campanas/${campanaId}/actividades`),
@@ -413,7 +401,6 @@ export const api = {
       body: JSON.stringify(payload)
     }),
 
-  // Monitor de actividades (solo lectura)
   getTareasMonitorLinea: () => http.get('/lineas/tareas'),
   getTareasMonitorCampana: () => http.get('/lineas/campanas/tareas'),
   patchActivarTareaMonitorLinea: (payload: any) =>
@@ -425,7 +412,6 @@ export const api = {
   patchDesactivarTareaMonitorCampana: (payload: any) =>
     http.patch('/lineas/campanas/tareas/desactivar', payload),
 
-  // Columna mapeo (línea)
   getColumnasLinea: () => http.get('/lineas/mapeos/0/columnas'),
   getColumnasByMapeo: (mapeoId: string | number) =>
     http.get(`/lineas/mapeos/${mapeoId}/columnas`),
@@ -442,7 +428,6 @@ export const api = {
   patchDesactivarColumnaLinea: (mapeoId: string | number, payload: PatchColumnaLineaPayload) =>
     http.patch(`/lineas/mapeos/${mapeoId}/columnas/desactivar`, payload),
 
-  // Columna mapeo (campaña)
   getColumnasCampana: () => http.get('/campanas/mapeos/0/columnas'),
   getColumnasCampanaByMapeo: (mapeoId: string | number) =>
     http.get(`/campanas/mapeos/${mapeoId}/columnas`),
@@ -461,7 +446,6 @@ export const api = {
     http.patch(`/campanas/mapeos/${mapeoId}/columnas/desactivar`, payload)
 
   ,
-  // Bitácoras de usuarios
   postBitacoraUsuario: (payload: BitacoraPayload) => http.post('/bitacoras/eventos', payload),
   postBitacoraByContext: async (
     method: 'POST' | 'PUT' | 'PATCH' | string,

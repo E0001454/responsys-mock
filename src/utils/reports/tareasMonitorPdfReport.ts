@@ -94,7 +94,7 @@ export async function downloadTareasMonitorPdfReport(params: DownloadTareasMonit
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
     doc.setTextColor(...grayText)
-    doc.text(`${params.activeTab === 'linea' ? 'Lineas de Negocio' : 'Campanas'}`.normalize('NFC'), 16, 20.2)
+    doc.text(`${params.activeTab === 'linea' ? 'Líneas de Negocio' : 'Campañas'}`.normalize('NFC'), 16, 20.2)
     doc.text(`Generado: ${generatedAt}`.normalize('NFC'), 16, 24.5)
   }
 
@@ -108,7 +108,7 @@ export async function downloadTareasMonitorPdfReport(params: DownloadTareasMonit
   doc.text(`Total tareas: ${summaryTotals.tareas}`, 14, 37)
   doc.text(`Total registros: ${summaryTotals.totalRegistros}`, 67, 37)
   doc.text(`Procesados: ${summaryTotals.totalProcesados}`, 127, 37)
-  doc.text(`En ejecucion: ${summaryTotals.enEjecucion}`, 179, 37)
+  doc.text(`En ejecución: ${summaryTotals.enEjecucion}`, 179, 37)
 
   if (!summaryRows.length) {
     doc.setTextColor(...grayText)
@@ -123,13 +123,13 @@ export async function downloadTareasMonitorPdfReport(params: DownloadTareasMonit
   let sectionY = 50
   if (!params.includeDetails) {
     const summaryHead = [[
-      'Linea',
-      ...(params.activeTab === 'campana' ? ['Campana'] : []),
+      'Línea',
+      ...(params.activeTab === 'campana' ? ['Campaña'] : []),
       'Nombre de ingesta',
       'Actividad',
       'Estatus',
       'Fecha',
-      'Num registros'
+      'Núm. registros'
     ]]
 
     const summaryBody = summaryRows.map(row => ([
@@ -194,20 +194,20 @@ export async function downloadTareasMonitorPdfReport(params: DownloadTareasMonit
     doc.text(''.normalize('NFC'), 10, sectionY)
 
     const detailsHead = [[
-      'Linea',
-      ...(params.activeTab === 'campana' ? ['Campana'] : []),
+      'Línea',
+      ...(params.activeTab === 'campana' ? ['Campaña'] : []),
       'Ingesta',
       'Actividad',
       'Inicio',
       'Fin',
-      'Planificacion',
+      'Planificación',
       'Horario',
-      'Aprobacion',
-      'Ejecucion',
-      'Dictaminacion',
-      'F. Dictaminacion',
+      'Aprobación',
+      'Ejecución',
+      'Dictaminación',
+      'F. Dictaminación',
       'F. Completada',
-      'Num registros'
+      'Núm. registros'
     ]]
 
     const detailsBody = detailSourceRows.map(stage => ([

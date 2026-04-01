@@ -9,8 +9,8 @@ const authStore = useAuthStore()
 
 onMounted(async () => {
   try {
-    if (typeof oktaAuth.handleRedirectPromise === 'function') {
-      await oktaAuth.handleRedirectPromise()
+    if (typeof (oktaAuth as any).handleRedirectPromise === 'function') {
+      await (oktaAuth as any).handleRedirectPromise()
     } else if (typeof oktaAuth.handleLoginRedirect === 'function') {
       await oktaAuth.handleLoginRedirect()
     }

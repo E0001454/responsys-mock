@@ -97,13 +97,13 @@ export interface TareaLineaData {
 
 export interface CreateTareaLineaPayload {
   tarea?: {
-    mapeo?: { id: number; nombre?: string }
+    mapeo?: { id: number }
     tipo: { id: number }
     ejecucion: { id: number }
     bolActivo?: boolean
   }
   actividad?: {
-    mapeo?: { id: number; nombre?: string }
+    mapeo?: { id: number }
     tipo: { id: number }
     ejecucion: { id: number }
     bolActivo?: boolean
@@ -128,7 +128,7 @@ export interface TareaLineaHorariosPostPayload {
 export interface UpdateTareaLineaPayload {
   tarea?: {
     id: number
-    mapeo?: { id: number; nombre?: string }
+    mapeo?: { id: number }
     linea?: { id: number }
     tipo: { id: number }
     ejecucion: { id: number }
@@ -136,7 +136,7 @@ export interface UpdateTareaLineaPayload {
   }
   actividad?: {
     id: number
-    mapeo?: { id: number; nombre?: string }
+    mapeo?: { id: number }
     linea?: { id: number }
     tipo: { id: number }
     ejecucion: { id: number }

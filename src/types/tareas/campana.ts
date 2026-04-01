@@ -103,13 +103,13 @@ export interface TareaCampanaData {
 
 export interface CreateTareaCampanaPayload {
   tarea?: {
-    mapeo?: { id: number; nombre?: string }
+    mapeo?: { id: number }
     tipo: { id: number }
     ejecucion: { id: number }
     bolActivo?: boolean
   }
   actividad?: {
-    mapeo?: { id: number; nombre?: string }
+    mapeo?: { id: number }
     tipo: { id: number }
     ejecucion: { id: number }
     bolActivo?: boolean
@@ -134,7 +134,7 @@ export interface TareaCampanaHorariosPostPayload {
 export interface UpdateTareaCampanaPayload {
   tarea?: {
     id: number
-    mapeo?: { id: number; nombre?: string }
+    mapeo?: { id: number }
     linea?: {
       id: number
       catCampana?: {
@@ -150,7 +150,7 @@ export interface UpdateTareaCampanaPayload {
   }
   actividad?: {
     id: number
-    mapeo?: { id: number; nombre?: string }
+    mapeo?: { id: number }
     linea?: {
       id: number
       catCampana?: {

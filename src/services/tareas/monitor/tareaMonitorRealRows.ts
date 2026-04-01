@@ -277,7 +277,7 @@ export function normalizeRealRows(scope: MonitorScope, raw: unknown): TareaMonit
         ...(String(estatusMeta.codigo).toUpperCase() === 'ERR' && latestStatusEvent?.detalle
           ? {
               error: {
-                nombre: 'Error de ejecucion',
+                nombre: 'Error de ejecución',
                 codigo: `ERR-${String(mapeoId || 0).padStart(3, '0')}`,
                 detalle: String(latestStatusEvent.detalle)
               }

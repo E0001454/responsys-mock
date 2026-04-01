@@ -2,7 +2,7 @@ import { computed, ref, watch } from 'vue'
 
 interface Option {
   label: string
-  value: number
+  value: string | number
 }
 
 export interface MapeoLineaFormData {

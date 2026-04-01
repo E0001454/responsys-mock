@@ -40,21 +40,19 @@ const confirmItem = ref<TareaMonitorData | null>(null)
 const showConfirm = computed(() => confirmAction.value !== null)
 
 const confirmTitle = computed(() => {
-  if (confirmAction.value === 'approve') return 'Confirmar aprobacion'
-  if (confirmAction.value === 'dictaminar') return 'Confirmar dictaminacion'
+  if (confirmAction.value === 'approve') return 'Confirmar aprobación'
+  if (confirmAction.value === 'dictaminar') return 'Confirmar dictaminación'
   return ''
 })
 
 const confirmMessage = computed(() => {
-  if (confirmAction.value === 'approve') return 'Deseas aprobar esta ejecucion?'
-  if (confirmAction.value === 'dictaminar') return 'Deseas dictaminar este registro?'
+  if (confirmAction.value === 'approve') return '¿Deseas aprobar esta ejecución?'
+  if (confirmAction.value === 'dictaminar') return '¿Deseas dictaminar este registro?'
   return ''
 })
 
 const confirmText = computed(() => {
-  if (confirmAction.value === 'approve') return 'Aprobar'
-  if (confirmAction.value === 'dictaminar') return 'Dictaminar'
-  return 'Confirmar'
+  return 'Aceptar'
 })
 
 function requestApprove() {
@@ -175,17 +173,17 @@ function formatExecutionMode(mode?: string) {
   >
     <template #body>
       <div v-if="!item" class="text-sm text-slate-500">
-        Sin informacion para mostrar.
+        Sin información para mostrar.
       </div>
 
       <div v-else class="space-y-5 text-sm">
         <div v-if="item.scope === 'campana'" class="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 flex flex-col md:col-span-1">
-            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Linea de negocio</span>
+            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Línea de negocio</span>
             <p class="mt-1 font-semibold text-slate-700">{{ getLineaLabel(item) }}</p>
           </div>
           <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 flex flex-col md:col-span-1">
-            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Campana</span>
+            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Campaña</span>
             <p class="mt-1 font-semibold text-slate-700">{{ getCampanaLabel(item) }}</p>
           </div>
           <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 flex flex-col md:col-span-2">
@@ -196,7 +194,7 @@ function formatExecutionMode(mode?: string) {
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 flex flex-col">
-            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Linea de negocio</span>
+            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Línea de negocio</span>
             <p class="mt-1 font-semibold text-slate-700">{{ getLineaLabel(item) }}</p>
           </div>
           <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 flex flex-col">
@@ -230,13 +228,13 @@ function formatExecutionMode(mode?: string) {
                     <th class="px-2.5 py-2 text-left">Horario</th>
                     <th class="px-2.5 py-2 text-left">Fecha inicio</th>
                     <th class="px-2.5 py-2 text-left">Fecha fin</th>
-                    <th class="px-2.5 py-2 text-left">Fecha planificacion</th>
+                    <th class="px-2.5 py-2 text-left">Fecha planificación</th>
                     <th class="px-2.5 py-2 text-center"></th>
-                    <th class="px-2.5 py-2 text-left">Fecha ejecucion</th>
+                    <th class="px-2.5 py-2 text-left">Fecha ejecución</th>
                     <th class="px-2.5 py-2 text-center"></th>
-                    <th class="px-2.5 py-2 text-left">Fecha dictaminacion</th>
+                    <th class="px-2.5 py-2 text-left">Fecha dictaminación</th>
                     <th class="px-2.5 py-2 text-left">Fecha completada</th>
-                    <th class="px-2.5 py-2 text-right">Num registros</th>
+                    <th class="px-2.5 py-2 text-right">Núm. registros</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -264,7 +262,7 @@ function formatExecutionMode(mode?: string) {
                             :disabled="loading || !props.canApproveFor(stage)"
                             @click="openApproveConfirm(stage)"
                           >
-                            Aprobar
+                            Aceptar
                           </button>
                         </template>
                       </td>
@@ -281,7 +279,7 @@ function formatExecutionMode(mode?: string) {
                             :disabled="loading || !props.canDictaminarFor(stage)"
                             @click="openDictaminarConfirm(stage)"
                           >
-                            Dictaminar
+                            Aceptar
                           </button>
                           <span v-else class="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             Dictaminado
@@ -326,7 +324,7 @@ function formatExecutionMode(mode?: string) {
 
     <template #footer>
       <BaseModalActions
-        confirm-text="Cerrar"
+        confirm-text="Aceptar"
         :show-cancel="false"
         @confirm="emit('close')"
       />

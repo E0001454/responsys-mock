@@ -71,7 +71,7 @@ const parsedErrorDetails = computed(() => {
 
     <template #footer>
       <BaseModalActions
-        confirm-text="Cerrar"
+        confirm-text="Aceptar"
         :show-cancel="false"
         @confirm="emit('close')"
       />

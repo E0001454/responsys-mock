@@ -2,10 +2,20 @@ import type { CatalogoGrupo } from '@/types/catalogos/catalogos'
 
 export function mapCatalogIdToLabel(catalogos: CatalogoGrupo[], code: string) {
   const registros = catalogos.find(group => String(group.codigo).toUpperCase() === code)?.registros ?? []
-  return new Map(registros.map(item => [Number(item.id), item.nombre]))
+  return new Map(registros.map(item => [String(item.codigo).toUpperCase(), item.nombre]))
 }
 
 export function mapCatalogIdToCode(catalogos: CatalogoGrupo[], code: string) {
+  const registros = catalogos.find(group => String(group.codigo).toUpperCase() === code)?.registros ?? []
+  return new Map(registros.map(item => [String(item.codigo).toUpperCase(), String(item.codigo).toUpperCase()]))
+}
+
+export function mapCatalogByNumericId(catalogos: CatalogoGrupo[], code: string) {
+  const registros = catalogos.find(group => String(group.codigo).toUpperCase() === code)?.registros ?? []
+  return new Map(registros.map(item => [Number(item.id), item.nombre]))
+}
+
+export function mapCatalogNumericIdToCodigo(catalogos: CatalogoGrupo[], code: string) {
   const registros = catalogos.find(group => String(group.codigo).toUpperCase() === code)?.registros ?? []
   return new Map(registros.map(item => [Number(item.id), String(item.codigo).toUpperCase()]))
 }
@@ -22,7 +32,7 @@ export function mapMapeoNameById(mapeos: any[]) {
   )
 }
 
-export function mapIdLabelOptions(mapById: Map<number, string>) {
+export function mapIdLabelOptions(mapById: Map<string, string>) {
   return Array.from(mapById.entries())
     .map(([value, label]) => ({ value, label }))
     .sort((a, b) => a.label.localeCompare(b.label))

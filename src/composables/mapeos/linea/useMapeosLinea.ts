@@ -4,7 +4,7 @@ import type { MapeoLineaData } from '@/types/mapeos/linea'
 
 interface Option {
   label: string
-  value: number
+  value: string
 }
 
 export function useMapeosLinea() {
@@ -23,7 +23,7 @@ export function useMapeosLinea() {
         .filter(m => m.bolActivo)
         .map(m => ({
           label: m.nombre || m.descripcion || `Mapeo ${m.idABCConfigMapeoLinea}`,
-          value: m.idABCConfigMapeoLinea
+          value: String(m.idABCConfigMapeoLinea)
         }))
     } catch (e: any) {
       error.value = e.message

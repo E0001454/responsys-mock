@@ -5,9 +5,9 @@ import FilterDropdown from '@/components/FilterDropdown.vue'
 import TableSearch from '@/components/TableSearch.vue'
 import type { TareaMonitorData } from '@/types/tareas/monitor'
 
-type NumericOption = {
+type FilterOption = {
   label: string
-  value: number
+  value: string
 }
 
 const props = defineProps<{
@@ -15,14 +15,14 @@ const props = defineProps<{
   isLoading: boolean
   error: string | null
   openFilter: string | null
-  lineasOptions: NumericOption[]
-  campanasOptions: NumericOption[]
-  actividadOptions: NumericOption[]
-  estatusOptions: NumericOption[]
-  selectedLineas: number[]
-  selectedCampanas: number[]
-  selectedActividades: number[]
-  selectedEstatus: number[]
+  lineasOptions: FilterOption[]
+  campanasOptions: FilterOption[]
+  actividadOptions: FilterOption[]
+  estatusOptions: FilterOption[]
+  selectedLineas: string[]
+  selectedCampanas: string[]
+  selectedActividades: string[]
+  selectedEstatus: string[]
   selectedFecha: string
   maxFechaHoy: string
   paginatedRows: TareaMonitorData[]
@@ -44,10 +44,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'toggle-filter', value: string): void
-  (e: 'update:selectedLineas', value: number[]): void
-  (e: 'update:selectedCampanas', value: number[]): void
-  (e: 'update:selectedActividades', value: number[]): void
-  (e: 'update:selectedEstatus', value: number[]): void
+  (e: 'update:selectedLineas', value: string[]): void
+  (e: 'update:selectedCampanas', value: string[]): void
+  (e: 'update:selectedActividades', value: string[]): void
+  (e: 'update:selectedEstatus', value: string[]): void
   (e: 'update:selectedFecha', value: string): void
   (e: 'search', value: string): void
   (e: 'prev-page'): void
@@ -57,22 +57,22 @@ const emit = defineEmits<{
 
 const modelLineas = computed({
   get: () => props.selectedLineas,
-  set: (value: number[]) => emit('update:selectedLineas', value)
+  set: (value: string[]) => emit('update:selectedLineas', value)
 })
 
 const modelCampanas = computed({
   get: () => props.selectedCampanas,
-  set: (value: number[]) => emit('update:selectedCampanas', value)
+  set: (value: string[]) => emit('update:selectedCampanas', value)
 })
 
 const modelActividades = computed({
   get: () => props.selectedActividades,
-  set: (value: number[]) => emit('update:selectedActividades', value)
+  set: (value: string[]) => emit('update:selectedActividades', value)
 })
 
 const modelEstatus = computed({
   get: () => props.selectedEstatus,
-  set: (value: number[]) => emit('update:selectedEstatus', value)
+  set: (value: string[]) => emit('update:selectedEstatus', value)
 })
 
 const modelFecha = computed({
@@ -133,27 +133,27 @@ function getProcessedTextClass(row: TareaMonitorData) {
             <tr class="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 font-semibold tracking-wider">
               <th class="px-4 py-3 relative">
                 <FilterDropdown
-                  label="Linea"
-                  header-label="Filtrar por linea"
+                  label="Línea"
+                  header-label="Filtrar por línea"
                   :options="lineasOptions"
                   v-model="modelLineas"
                   :open="openFilter === 'linea'"
                   :is-filtered="selectedLineas.length < lineasOptions.length"
                   @toggle="emit('toggle-filter', 'linea')"
-                  @select-all="emit('update:selectedLineas', lineasOptions.map(o => Number(o.value)))"
+                  @select-all="emit('update:selectedLineas', lineasOptions.map(o => o.value))"
                 />
               </th>
 
               <th v-if="activeTab === 'campana'" class="px-4 py-3 relative">
                 <FilterDropdown
-                  label="Campana"
-                  header-label="Filtrar por campana"
+                  label="Campaña"
+                  header-label="Filtrar por campaña"
                   :options="campanasOptions"
                   v-model="modelCampanas"
                   :open="openFilter === 'campana'"
                   :is-filtered="selectedCampanas.length < campanasOptions.length"
                   @toggle="emit('toggle-filter', 'campana')"
-                  @select-all="emit('update:selectedCampanas', campanasOptions.map(o => Number(o.value)))"
+                  @select-all="emit('update:selectedCampanas', campanasOptions.map(o => o.value))"
                 />
               </th>
 
@@ -188,7 +188,7 @@ function getProcessedTextClass(row: TareaMonitorData) {
                   :open="openFilter === 'actividad'"
                   :is-filtered="selectedActividades.length < actividadOptions.length"
                   @toggle="emit('toggle-filter', 'actividad')"
-                  @select-all="emit('update:selectedActividades', actividadOptions.map(o => Number(o.value)))"
+                  @select-all="emit('update:selectedActividades', actividadOptions.map(o => o.value))"
                 />
               </th>
 
@@ -201,7 +201,7 @@ function getProcessedTextClass(row: TareaMonitorData) {
                   :open="openFilter === 'estatus'"
                   :is-filtered="selectedEstatus.length < estatusOptions.length"
                   @toggle="emit('toggle-filter', 'estatus')"
-                  @select-all="emit('update:selectedEstatus', estatusOptions.map(o => Number(o.value)))"
+                  @select-all="emit('update:selectedEstatus', estatusOptions.map(o => o.value))"
                 />
               </th>
 
@@ -218,7 +218,7 @@ function getProcessedTextClass(row: TareaMonitorData) {
                   />
                 </div>
               </th>
-              <th class="px-4 py-3 text-right">Num registros</th>
+              <th class="px-4 py-3 text-right">Núm. registros</th>
               <th class="px-4 py-3 text-center">Detalles</th>
             </tr>
           </thead>

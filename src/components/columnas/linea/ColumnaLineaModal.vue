@@ -11,7 +11,7 @@ import type { ColumnaLineaModel } from '@/models/columnas/linea/columnaLinea.mod
 
 interface Option {
 	label: string
-	value: number
+	value: string | number
 	isRequired?: boolean
 }
 
@@ -81,10 +81,10 @@ async function fetchTipoOptions() {
 		const fch = catalogos.find(group => group.codigo === 'FCH')?.registros ?? []
 		const val = catalogos.find(group => group.codigo === 'VAL')?.registros ?? []
 		valItems.value = val || []
-		valOptions.value = (valItems.value || []).map(i => ({ label: i.nombre, value: i.id }))
-		cdnOptions.value = (cdn || []).map(i => ({ label: i.nombre, value: i.id }))
-		nmrOptions.value = (nmr || []).map(i => ({ label: i.nombre, value: i.id }))
-		fchOptions.value = (fch || []).map(i => ({ label: i.nombre, value: i.id }))
+		valOptions.value = (valItems.value || []).map(i => ({ label: i.nombre, value: String(i.id) }))
+		cdnOptions.value = (cdn || []).map(i => ({ label: i.nombre, value: String(i.id) }))
+		nmrOptions.value = (nmr || []).map(i => ({ label: i.nombre, value: String(i.id) }))
+		fchOptions.value = (fch || []).map(i => ({ label: i.nombre, value: String(i.id) }))
 	} catch (e) {
 		valOptions.value = []
 		cdnOptions.value = []
@@ -251,7 +251,7 @@ const mapeoOptions = computed<Option[]>(() => {
 	return [
 		{
 			label: props.selectedMapeoNombre ?? base.find(m => m.value == selectedId)?.label ?? `Mapeo ${selectedId}`,
-			value: Number(selectedId)
+			value: String(selectedId)
 		},
 		...base
 	]
@@ -263,13 +263,13 @@ const availableColumnas = computed(() => {
 
 	const taken = new Set(
 		props.existingItems
-			.filter(item => item.mapeoId === selectedMapeo)
-			.map(item => item.columnaId)
+			.filter(item => String(item.mapeoId ?? '') === String(selectedMapeo))
+			.map(item => String(item.columnaId ?? ''))
 	)
 
 	return props.columnas.filter(option => {
-		if (isEditing.value && option.value === form.value.idABCCatColumna) return true
-		return !taken.has(option.value)
+		if (isEditing.value && option.value === String(form.value.idABCCatColumna)) return true
+		return !taken.has(String(option.value))
 	})
 })
 
@@ -278,7 +278,7 @@ const selectedColumnaOption = computed<Option | undefined>(() =>
 )
 
 const missingRequiredOptions = computed<Option[]>(() => {
-	const selectedMapeo = Number(form.value.idABCConfigMapeoLinea ?? 0)
+	const selectedMapeo = String(form.value.idABCConfigMapeoLinea ?? '')
 	if (!selectedMapeo) return []
 
 	const requiredOptions = (props.columnas as Option[]).filter(option => Boolean(option.isRequired))
@@ -286,11 +286,11 @@ const missingRequiredOptions = computed<Option[]>(() => {
 
 	const configuredIds = new Set(
 		props.existingItems
-			.filter(item => Number(item.mapeoId ?? 0) === selectedMapeo)
-			.map(item => Number(item.columnaId ?? 0))
+			.filter(item => String(item.mapeoId ?? '') === selectedMapeo)
+			.map(item => String(item.columnaId ?? ''))
 	)
 
-	return requiredOptions.filter(option => !configuredIds.has(Number(option.value)))
+	return requiredOptions.filter(option => !configuredIds.has(String(option.value)))
 })
 function resetForm() {
 	attemptedSave.value = false

@@ -68,11 +68,11 @@ function getDictaminarVisual(configured: boolean) {
     configured,
     label: configured ? '' : '',
     containerClass: configured
-      ? 'bg-emerald-50 border-emerald-200 text-[#00357F]'
-      : 'bg-rose-50 border-rose-200 text-rose-700',
+      ? 'bg-emerald-50/80 border-emerald-200 text-emerald-700'
+      : 'bg-rose-50/70 border-rose-200 text-rose-700',
     iconWrapClass: configured
-      ? 'bg-emerald-100 text-[#00357F]'
-      : 'bg-rose-100 text-amber-700'
+      ? 'bg-emerald-100 text-emerald-700'
+      : 'bg-rose-100 text-rose-700'
   }
 }
 </script>
@@ -89,12 +89,12 @@ function getDictaminarVisual(configured: boolean) {
   >
     <template #body>
       <div v-if="!item" class="text-sm text-slate-500">
-        Sin informacion para mostrar.
+        Sin información para mostrar.
       </div>
 
       <div v-else class="space-y-4 text-sm">
           <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
-            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Linea</span>
+            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Línea</span>
             <p class="mt-1 font-semibold text-slate-700">{{ getLineaLabel(item.linea?.id) }}</p>
           </div>
           <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
@@ -107,15 +107,29 @@ function getDictaminarVisual(configured: boolean) {
           </div>
 
           <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Descripcion</span>
+            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Descripción</span>
             <p class="mt-1 text-slate-600 whitespace-pre-wrap">{{ item.descripcion }}</p>
           </div>
           <div class="grid grid-cols-3 gap-2 sm:gap-3">
-            <div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+            <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Estatus</span>
-              <p class="mt-1 font-semibold" :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'">
-                {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
-              </p>
+              <span
+                class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200"
+                :class="item.bolActivo
+                  ? 'bg-blue-50 border-blue-200'
+                  : 'bg-slate-50 border-slate-200'"
+              >
+                <span
+                  class="h-2 w-2 rounded-full"
+                  :class="item.bolActivo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
+                ></span>
+                <span
+                  class="text-xs font-semibold"
+                  :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'"
+                >
+                  {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </span>
             </div>
            
             <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 flex flex-col items-start">
@@ -199,7 +213,7 @@ function getDictaminarVisual(configured: boolean) {
     </template>
     <template #footer>
       <BaseModalActions
-        confirm-text="Cerrar"
+        confirm-text="Aceptar"
         :show-cancel="false"
         @confirm="emit('close')"
       />

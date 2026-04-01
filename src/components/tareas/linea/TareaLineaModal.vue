@@ -77,12 +77,12 @@ const {
           <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 relative">
             <div class="grid grid-cols-1">
               <SelectField
-                label="Linea de Negocio"
+                label="Línea de Negocio"
                 v-model="formData.idABCCatLineaNegocio"
                 :options="lineasDisponibles"
                 required
                 :disabled="isHeaderLocked"
-                placeholder="Seleccione linea..."
+                placeholder="Seleccione línea..."
                 class="mb-3"
               />
 

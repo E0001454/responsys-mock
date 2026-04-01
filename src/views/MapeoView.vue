@@ -31,7 +31,7 @@ const activeTab = ref<TabKey>('campana')
 
 interface Option {
   label: string
-  value: number
+  value: string | number
 }
 
 const lineasDisponibles = ref<Option[]>([])
@@ -394,7 +394,7 @@ function handleTabChange(tab: TabKey) {
   }
 }
 
-function mapCatalogosToOptions(items: { id: number; nombre: string; bolActivo: boolean }[]) {
+function mapCatalogosToOptions(items: { id: number; codigo: string; nombre: string; bolActivo: boolean }[]) {
   return items
     .filter(item => item.bolActivo !== false)
     .map(item => ({ label: item.nombre, value: item.id }))
@@ -561,7 +561,7 @@ function handleSearchCampana(query: string) {
           @view-details="openDetails"
           @toggle-status="requestStatusToggle"
           @edit="openEditModal"
-          @select-all-lineas="selectedFiltersLinea.lineas = lineasDisponibles.map(x => x.value)"
+          @select-all-lineas="selectedFiltersLinea.lineas = lineasDisponibles.map(x => Number(x.value))"
           @prev-page="prevPageLinea"
           @next-page="nextPageLinea"
           @view-columnas="openColumnasModal"
@@ -588,8 +588,8 @@ function handleSearchCampana(query: string) {
           @view-details="openDetails"
           @toggle-status="requestStatusToggle"
           @edit="openEditModal"
-          @select-all-lineas="selectedFiltersCampana.lineas = lineasDisponibles.map(x => x.value)"
-          @select-all-campanas="selectedFiltersCampana.campanas = campanasDisponibles.map(x => x.value)"
+          @select-all-lineas="selectedFiltersCampana.lineas = lineasDisponibles.map(x => Number(x.value))"
+          @select-all-campanas="selectedFiltersCampana.campanas = campanasDisponibles.map(x => Number(x.value))"
           @prev-page="prevPageCampana"
           @next-page="nextPageCampana"
           @view-columnas="openColumnasModal"
