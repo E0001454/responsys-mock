@@ -26,10 +26,10 @@ function resolveIcon(tab: 'linea' | 'campana') {
     <div class="pl-12 lg:pl-0 min-h-10 flex flex-col justify-center">
       <h1 class="text-xl sm:text-2xl font-bold text-[#00357F] tracking-tight flex items-center gap-2">
         <ClipboardCheck class="w-6 h-6" />
-        Gestión de Tareas
+        Gestión de Actividades
       </h1>
       <p class="text-sm text-slate-500 mt-1">
-        Administra la configuración de tareas para líneas y campañas.
+        Administra la configuración de actividades para líneas y campañas.
       </p>
     </div>
 
