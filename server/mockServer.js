@@ -29,7 +29,9 @@ const store = {
   monitorTareasLinea: [],
   monitorTareasCampana: [],
   horariosTareaLinea: [],
-  horariosTareaCampana: []
+  horariosTareaCampana: [],
+  clRegistros: [],
+  petRegistros: []
 }
 
 const CATALOGOS_META = {
@@ -328,6 +330,22 @@ async function loadData() {
     bitacoraEventosRaw = []
   }
 
+  let clRegistrosRaw = []
+  let petRegistrosRaw = []
+  let clEnvioRaw = []
+  let petEnvioRaw = []
+  try {
+    clRegistrosRaw = await readJson('api/reportes/cl-registros.json')
+    petRegistrosRaw = await readJson('api/reportes/pet-registros.json')
+    clEnvioRaw = await readJson('api/reportes/cl-envio.json')
+    petEnvioRaw = await readJson('api/reportes/pet-envio.json')
+  } catch {
+    clRegistrosRaw = []
+    petRegistrosRaw = []
+    clEnvioRaw = []
+    petEnvioRaw = []
+  }
+
   await loadCatalogos()
 
   store.bitacoraEventos = (Array.isArray(bitacoraEventosRaw) ? bitacoraEventosRaw : []).map((item, index) => {
@@ -440,6 +458,11 @@ async function loadData() {
     )
   })
 
+  store.clRegistros = Array.isArray(clRegistrosRaw) ? clRegistrosRaw : []
+  store.petRegistros = Array.isArray(petRegistrosRaw) ? petRegistrosRaw : []
+  store.clEnvio = Array.isArray(clEnvioRaw) ? clEnvioRaw : []
+  store.petEnvio = Array.isArray(petEnvioRaw) ? petEnvioRaw : []
+
   console.log('[mock-server] data loaded', {
     bitacoraEventos: store.bitacoraEventos.length,
     mapeosLinea: store.mapeosLinea.length,
@@ -451,7 +474,11 @@ async function loadData() {
     monitorTareasLinea: store.monitorTareasLinea.length,
     monitorTareasCampana: store.monitorTareasCampana.length,
     horariosTareaLinea: store.horariosTareaLinea.length,
-    horariosTareaCampana: store.horariosTareaCampana.length
+    horariosTareaCampana: store.horariosTareaCampana.length,
+    clRegistros: store.clRegistros.length,
+    petRegistros: store.petRegistros.length,
+    clEnvio: store.clEnvio.length,
+    petEnvio: store.petEnvio.length
   })
 }
 
@@ -1107,6 +1134,34 @@ const server = http.createServer(async (req, res) => {
 
       if (pathOnly === '/monitor/tareas/campana') {
         return send(res, 200, store.monitorTareasCampana)
+      }
+
+      // CL individual (carga / validacion)
+      if (pathOnly === '/cl/individual/carga' || pathOnly === '/cl/individual/validacion') {
+        const isValidacion = pathOnly.endsWith('/validacion')
+        const list = store.clRegistros.map(r => isValidacion
+          ? { ...r, estatus: 'Aceptado', detalle: '' }
+          : r)
+        return send(res, 200, [{ registros: list }])
+      }
+
+      // PET individual (carga / validacion)
+      if (pathOnly === '/pet/individual/carga' || pathOnly === '/pet/individual/validacion') {
+        const isValidacion = pathOnly.endsWith('/validacion')
+        const list = store.petRegistros.map(r => isValidacion
+          ? { ...r, estatus: 'Aceptado', detalle: '' }
+          : r)
+        return send(res, 200, [{ registros: list }])
+      }
+
+      // CL individual envio
+      if (pathOnly === '/cl/individual/envio') {
+        return send(res, 200, [{ registros: store.clEnvio }])
+      }
+
+      // PET individual envio
+      if (pathOnly === '/pet/individual/envio') {
+        return send(res, 200, [{ registros: store.petEnvio }])
       }
 
       const lineasMapeoParams = matchPath(pathOnly, '/lineas/:lineaId/mapeos')

@@ -1,0 +1,18 @@
+{
+  "kpis": {
+    "totalEjecuciones": 32,
+    "totalRegistros": 274000,
+    "totalProcesados": 258500,
+    "totalErrores": 15500,
+    "porcentajeExitoGlobal": 94.34,
+    "promedioRegistrosPorEjecucion": 8562
+  },
+  "series": [
+    { "fecha": "2025-01-10", "exitosos": 28000, "errores": 900, "total": 28900 },
+    { "fecha": "2025-01-11", "exitosos": 35000, "errores": 2100, "total": 37100 },
+    { "fecha": "2025-01-12", "exitosos": 42500, "errores": 3200, "total": 45700 },
+    { "fecha": "2025-01-13", "exitosos": 57200, "errores": 1800, "total": 59000 },
+    { "fecha": "2025-01-14", "exitosos": 26500, "errores": 13500, "total": 40000 },
+    { "fecha": "2025-01-15", "exitosos": 68800, "errores": 1200, "total": 70000 }
+  ]
+}

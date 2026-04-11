@@ -22,6 +22,12 @@ type ApiService =
   | 'horarios_campana'
   | 'monitor_linea'
   | 'monitor_campana'
+  | 'reportes_linea'
+  | 'reportes_campana'
+  | 'reportes_abc_linea'
+  | 'reportes_abc_campana'
+  | 'reportes_responsys_linea'
+  | 'reportes_responsys_campana'
   | 'default'
 
 const GLOBAL_USE_MOCK = String(import.meta.env.VITE_USE_MOCK ?? 'false').toLowerCase() === 'true'
@@ -50,6 +56,16 @@ function getEndpointService(endpoint: string): ApiService {
 
   if (path.includes('/bitacoras')) return 'bitacora'
   if (path.includes('/catalogos')) return 'catalogos'
+
+  // Reportes — envío
+  if (path.includes('/pet/individual/envio')) return 'reportes_responsys_campana'
+  if (path.includes('/cl/individual/envio')) return 'reportes_responsys_linea'
+  // Reportes — validación
+  if (path.includes('/pet/individual/validacion')) return 'reportes_abc_campana'
+  if (path.includes('/cl/individual/validacion')) return 'reportes_abc_linea'
+  // Reportes — carga (default reportes)
+  if (path.includes('/pet/individual')) return 'reportes_campana'
+  if (path.includes('/cl/individual')) return 'reportes_linea'
 
   if (path.includes('/lineas/campanas/tareas')) return 'monitor_campana'
   if (path.includes('/lineas/tareas')) return 'monitor_linea'
@@ -82,6 +98,12 @@ const SERVICE_SUFFIX: Record<ApiService, string> = {
   horarios_campana: 'HORARIOS_CAMPANA',
   monitor_linea: 'MONITOR_LINEA',
   monitor_campana: 'MONITOR_CAMPANA',
+  reportes_linea: 'REPORTES_LINEA',
+  reportes_campana: 'REPORTES_CAMPANA',
+  reportes_abc_linea: 'REPORTES_ABC_LINEA',
+  reportes_abc_campana: 'REPORTES_ABC_CAMPANA',
+  reportes_responsys_linea: 'REPORTES_RESPONSYS_LINEA',
+  reportes_responsys_campana: 'REPORTES_RESPONSYS_CAMPANA',
   default: 'DEFAULT'
 }
 
@@ -443,7 +465,32 @@ export const api = {
   patchActivarColumnaCampana: (mapeoId: string | number, payload: PatchColumnaCampanaPayload) =>
     http.patch(`/campanas/mapeos/${mapeoId}/columnas/activar`, payload),
   patchDesactivarColumnaCampana: (mapeoId: string | number, payload: PatchColumnaCampanaPayload) =>
-    http.patch(`/campanas/mapeos/${mapeoId}/columnas/desactivar`, payload)
+    http.patch(`/campanas/mapeos/${mapeoId}/columnas/desactivar`, payload),
+
+  getReporteCLCarga: (filtros: Record<string, string>) => {
+    const p = new URLSearchParams(filtros)
+    return http.get(`/cl/individual/carga?${p}`)
+  },
+  getReporteCLValidacion: (filtros: Record<string, string>) => {
+    const p = new URLSearchParams(filtros)
+    return http.get(`/cl/individual/validacion?${p}`)
+  },
+  getReportePETCarga: (filtros: Record<string, string>) => {
+    const p = new URLSearchParams(filtros)
+    return http.get(`/pet/individual/carga?${p}`)
+  },
+  getReportePETValidacion: (filtros: Record<string, string>) => {
+    const p = new URLSearchParams(filtros)
+    return http.get(`/pet/individual/validacion?${p}`)
+  },
+  getReporteCLEnvio: (filtros: Record<string, string>) => {
+    const p = new URLSearchParams(filtros)
+    return http.get(`/cl/individual/envio?${p}`)
+  },
+  getReportePETEnvio: (filtros: Record<string, string>) => {
+    const p = new URLSearchParams(filtros)
+    return http.get(`/pet/individual/envio?${p}`)
+  }
 
   ,
   postBitacoraUsuario: (payload: BitacoraPayload) => http.post('/bitacoras/eventos', payload),

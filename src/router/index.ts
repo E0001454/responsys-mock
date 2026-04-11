@@ -8,6 +8,9 @@ import MapeoView from '../views/MapeoView.vue'
 import ColumnasView from '../views/ColumnasView.vue'
 import TareasView from '../views/TareasView.vue'
 import TareasMonitorView from '../views/TareasMonitorView.vue'
+import ReportesBIView from '../views/ReportesBIView.vue'
+import ReportesABCView from '../views/ReportesABCView.vue'
+import ReportesResponsysView from '../views/ReportesResponsysView.vue'
 import LoginView from '../components/auth/login.vue'
 
 const routes: Array<RouteRecordRaw> = [
@@ -48,6 +51,24 @@ const routes: Array<RouteRecordRaw> = [
     path: '/tareas-monitor',
     name: 'tareas-monitor',
     component: TareasMonitorView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/reportes-bi',
+    name: 'reportes-bi',
+    component: ReportesBIView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/reportes-abc',
+    name: 'reportes-abc',
+    component: ReportesABCView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/reportes-responsys',
+    name: 'reportes-responsys',
+    component: ReportesResponsysView,
     meta: { requiresAuth: true }
   },
   {

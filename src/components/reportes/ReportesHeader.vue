@@ -1,0 +1,52 @@
+<script setup lang="ts">
+import { BarChart3, Layers, Megaphone } from 'lucide-vue-next'
+
+interface TabItem {
+  key: 'linea' | 'campana'
+  label: string
+}
+
+defineProps<{
+  tabs: readonly TabItem[]
+  activeTab: 'linea' | 'campana'
+  title?: string
+  subtitle?: string
+}>()
+
+const emit = defineEmits<{
+  (e: 'tab-change', value: 'linea' | 'campana'): void
+}>()
+
+function resolveIcon(key: TabItem['key']) {
+  return key === 'linea' ? Layers : Megaphone
+}
+</script>
+
+<template>
+  <div class="flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
+    <div class="pl-12 lg:pl-0 min-h-10 flex flex-col justify-center">
+      <h1 class="text-2xl font-bold text-[#00357F] tracking-tight flex items-center gap-2">
+        <BarChart3 class="w-6 h-6" />
+        {{ title ?? 'Reportes BI / ABC' }}
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        {{ subtitle ?? 'Consulta y exportación de reportes.' }}
+      </p>
+    </div>
+
+    <div class="bg-white p-1 rounded-lg border border-slate-200 flex w-full md:w-auto">
+      <button
+        v-for="t in tabs"
+        :key="t.key"
+        @click="emit('tab-change', t.key)"
+        class="flex-1 md:flex-none md:min-w-[140px] flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200"
+        :class="activeTab === t.key
+          ? 'bg-[#00357F] text-white cursor-pointer'
+          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer'"
+      >
+        <component :is="resolveIcon(t.key)" class="w-4 h-4" />
+        {{ t.label }}
+      </button>
+    </div>
+  </div>
+</template>
