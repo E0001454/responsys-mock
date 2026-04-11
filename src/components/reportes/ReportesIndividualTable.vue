@@ -55,7 +55,6 @@ function openDetalle(text: string | undefined) {
 
     <template v-else>
       <div class="overflow-x-auto">
-        <!-- CL table (scope = linea) -->
         <table v-if="scope === 'linea'" class="w-full text-sm text-left">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200">
@@ -129,7 +128,6 @@ function openDetalle(text: string | undefined) {
           </tbody>
         </table>
 
-        <!-- PET table (scope = campana) -->
         <table v-else class="w-full text-sm text-left">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200">
@@ -313,7 +311,6 @@ function openDetalle(text: string | undefined) {
     </template>
   </div>
 
-  <!-- Detalle Modal -->
   <Teleport to="body">
     <Transition name="fade">
       <div v-if="detalleModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">

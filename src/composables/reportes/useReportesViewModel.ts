@@ -81,7 +81,6 @@ export function useReportesViewModel(tipo: ReporteTipo) {
         .filter((c: CatalogoItem) => c.bolActivo)
         .map((c: CatalogoItem) => ({ label: c.nombre, value: c.id }))
     } catch {
-      // catalogos already show toast in api.ts
     }
   }
 

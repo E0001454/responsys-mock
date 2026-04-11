@@ -1,7 +1,6 @@
 export type ReporteTipo = 'carga' | 'validacion' | 'envio'
 export type ReporteScope = 'linea' | 'campana'
 
-// ── CL (Línea) filter body ──────────────────────────────────
 export interface FiltroIndividualCL {
   riid?: string
   nombre?: string
@@ -17,7 +16,6 @@ export interface FiltroIndividualCL {
   fechaFin?: string
 }
 
-// ── PET (Campaña) filter body ───────────────────────────────
 export interface FiltroIndividualPET {
   noLote?: string
   idCliente?: string
@@ -36,7 +34,6 @@ export interface FiltroIndividualPET {
   fechaFinal?: string
 }
 
-// ── CL response record ─────────────────────────────────────
 export interface RegistroCL {
   lineaNegocio: string
   riid: string
@@ -65,7 +62,6 @@ export interface RegistroCL {
   detalle?: string
 }
 
-// ── PET response record ─────────────────────────────────────
 export interface RegistroPET {
   lineaNegocio: string
   campana: string
@@ -136,7 +132,6 @@ export interface RegistroPET {
   detalle?: string
 }
 
-// ── API response wrapper: [{ registros: [...] }] ───────────
 export interface ReporteApiResponseItem<T> {
   registros: T[]
 }

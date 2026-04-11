@@ -1136,7 +1136,6 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, store.monitorTareasCampana)
       }
 
-      // CL individual (carga / validacion)
       if (pathOnly === '/cl/individual/carga' || pathOnly === '/cl/individual/validacion') {
         const isValidacion = pathOnly.endsWith('/validacion')
         const list = store.clRegistros.map(r => isValidacion
@@ -1145,7 +1144,6 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, [{ registros: list }])
       }
 
-      // PET individual (carga / validacion)
       if (pathOnly === '/pet/individual/carga' || pathOnly === '/pet/individual/validacion') {
         const isValidacion = pathOnly.endsWith('/validacion')
         const list = store.petRegistros.map(r => isValidacion
@@ -1154,12 +1152,10 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, [{ registros: list }])
       }
 
-      // CL individual envio
       if (pathOnly === '/cl/individual/envio') {
         return send(res, 200, [{ registros: store.clEnvio }])
       }
 
-      // PET individual envio
       if (pathOnly === '/pet/individual/envio') {
         return send(res, 200, [{ registros: store.petEnvio }])
       }

@@ -57,13 +57,10 @@ function getEndpointService(endpoint: string): ApiService {
   if (path.includes('/bitacoras')) return 'bitacora'
   if (path.includes('/catalogos')) return 'catalogos'
 
-  // Reportes — envío
   if (path.includes('/pet/individual/envio')) return 'reportes_responsys_campana'
   if (path.includes('/cl/individual/envio')) return 'reportes_responsys_linea'
-  // Reportes — validación
   if (path.includes('/pet/individual/validacion')) return 'reportes_abc_campana'
   if (path.includes('/cl/individual/validacion')) return 'reportes_abc_linea'
-  // Reportes — carga (default reportes)
   if (path.includes('/pet/individual')) return 'reportes_campana'
   if (path.includes('/cl/individual')) return 'reportes_linea'
 

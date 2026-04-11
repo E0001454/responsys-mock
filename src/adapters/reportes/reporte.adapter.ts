@@ -11,9 +11,7 @@ function safeString(value: unknown): string {
 export function unwrapRegistros<T>(data: unknown): T[] {
   if (!data) return []
 
-  // Real API returns a single object or a flat array of objects
   if (Array.isArray(data)) {
-    // Could be [{ registros: [...] }] (mock) or [{...}, {...}] (real)
     if (data.length > 0 && Array.isArray((data[0] as ReporteApiResponseItem<T>)?.registros)) {
       const items: T[] = []
       for (const wrapper of data) {
@@ -23,11 +21,9 @@ export function unwrapRegistros<T>(data: unknown): T[] {
       }
       return items
     }
-    // Flat array of objects
     return data as T[]
   }
 
-  // Single object — wrap in array
   if (typeof data === 'object') {
     return [data as T]
   }

@@ -43,7 +43,6 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
 <template>
   <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-4">
 
-    <!-- Línea / Campaña selects -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       <div>
         <label class="block text-xs font-semibold text-slate-600 mb-1">Línea de contacto</label>
@@ -63,7 +62,6 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
       </div>
     </div>
 
-    <!-- CL filters (scope = linea) -->
     <template v-if="scope === 'linea'">
       <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Filtros CL</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -130,7 +128,6 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
       </div>
     </template>
 
-    <!-- PET filters (scope = campana) -->
     <template v-else>
       <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Filtros PET</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
