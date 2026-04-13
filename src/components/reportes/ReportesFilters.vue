@@ -54,7 +54,7 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">Línea de contacto</label>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Línea de negocio</label>
         <select :value="idLinea" @change="onSelectChange($event, v => emit('update:idLinea', v))" :class="inputClass">
           <option value="">Selecciona una línea</option>
           <option v-for="opt in lineasCatalogo" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
@@ -62,7 +62,7 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
         <p v-if="formErrors.idLinea" class="text-xs text-red-500 mt-1">{{ formErrors.idLinea }}</p>
       </div>
       <div v-if="scope === 'campana'">
-        <label class="block text-xs font-semibold text-slate-600 mb-1">Extensión de perfil <span class="text-red-500">**</span></label>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Campaña <span class="text-red-500">**</span></label>
         <select :value="idCampana" @change="onSelectChange($event, v => emit('update:idCampana', v))" :class="inputClass">
           <option value="">Selecciona una extensión</option>
           <option v-for="opt in campanasCatalogo" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
