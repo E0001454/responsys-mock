@@ -42,14 +42,14 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/tareas',
-    name: 'tareas',
+    path: '/actividades',
+    name: 'actividades',
     component: TareasView,
     meta: { requiresAuth: true }
   },
   {
-    path: '/tareas-monitor',
-    name: 'tareas-monitor',
+    path: '/tareas',
+    name: 'tareas',
     component: TareasMonitorView,
     meta: { requiresAuth: true }
   },

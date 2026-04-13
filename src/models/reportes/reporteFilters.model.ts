@@ -8,7 +8,16 @@ export interface ReporteFilterFormModel {
   pet: FiltroIndividualPET
 }
 
+function todayISO(): string {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${dd}`
+}
+
 export function createEmptyReporteFilterForm(): ReporteFilterFormModel {
+  const hoy = todayISO()
   return {
     scope: 'linea',
     idLinea: '',
@@ -16,13 +25,13 @@ export function createEmptyReporteFilterForm(): ReporteFilterFormModel {
     cl: {
       riid: '', nombre: '', apellidoPaterno: '', correo: '', telefono: '',
       noCuenta: '', nss: '', curp: '', rfc: '', poliza: '',
-      fechaInicio: '', fechaFin: ''
+      fechaInicio: hoy, fechaFin: hoy
     },
     pet: {
       noLote: '', idCliente: '', idAfore: '', idClienteAhorrador: '',
       idPrestamoPensionado: '', idSusceptiblePrestamo: '', idBajaCambio: '',
       idComunicacion: '', idPersona: '', nombre: '', apellido: '',
-      correo: '', telefono: '', fechaInicial: '', fechaFinal: ''
+      correo: '', telefono: '', fechaInicial: hoy, fechaFinal: hoy
     }
   }
 }
@@ -34,37 +43,45 @@ export interface ReporteFilterValidation {
 
 export function validateReporteFilterForm(form: ReporteFilterFormModel): ReporteFilterValidation {
   const errors: Record<string, string> = {}
+  const hoy = todayISO()
 
   if (form.scope === 'linea') {
     const cl = form.cl
-    if (!cl.riid) errors.riid = 'El RIID es requerido'
-    if (!cl.nombre) errors.clNombre = 'El nombre es requerido'
-    if (!cl.apellidoPaterno) errors.apellidoPaterno = 'El apellido paterno es requerido'
-    if (!cl.correo) errors.clCorreo = 'El correo es requerido'
-    if (!cl.telefono) errors.clTelefono = 'El teléfono es requerido'
-    if (!cl.noCuenta) errors.noCuenta = 'El No. Cuenta es requerido'
-    if (!cl.nss) errors.nss = 'El NSS es requerido'
-    if (!cl.curp) errors.curp = 'El CURP es requerido'
-    if (!cl.rfc) errors.rfc = 'El RFC es requerido'
-    if (!cl.poliza) errors.poliza = 'La póliza es requerida'
+
+    const hasAtLeastOne = [
+      cl.riid, cl.correo, cl.telefono, cl.noCuenta,
+      cl.nss, cl.curp, cl.rfc, cl.poliza
+    ].some(v => !!v)
+    if (!hasAtLeastOne) {
+      errors.clAtLeastOne = 'Ingresa al menos uno de los campos marcados con *'
+    }
+
+    if (!cl.fechaInicio) errors.fechaInicio = 'La fecha de inicio es requerida'
+    if (!cl.fechaFin) errors.fechaFin = 'La fecha de fin es requerida'
+    if (cl.fechaInicio && cl.fechaInicio > hoy) errors.fechaInicio = 'La fecha de inicio no puede ser mayor a hoy'
+    if (cl.fechaFin && cl.fechaFin > hoy) errors.fechaFin = 'La fecha de fin no puede ser mayor a hoy'
     if (cl.fechaInicio && cl.fechaFin && cl.fechaInicio > cl.fechaFin) {
       errors.fechaFin = 'La fecha de fin debe ser posterior a la fecha de inicio'
     }
   } else {
     const pet = form.pet
-    if (!pet.noLote) errors.noLote = 'El No. Lote es requerido'
-    if (!pet.idCliente) errors.idCliente = 'El ID Cliente es requerido'
-    if (!pet.idAfore) errors.idAfore = 'El ID Afore es requerido'
-    if (!pet.idClienteAhorrador) errors.idClienteAhorrador = 'El ID Cli. Ahorrador es requerido'
-    if (!pet.idPrestamoPensionado) errors.idPrestamoPensionado = 'El ID Prést. Pens. es requerido'
-    if (!pet.idSusceptiblePrestamo) errors.idSusceptiblePrestamo = 'El ID Susc. Prést. es requerido'
-    if (!pet.idBajaCambio) errors.idBajaCambio = 'El ID Baja/Cambio es requerido'
-    if (!pet.idComunicacion) errors.idComunicacion = 'El ID Comunicación es requerido'
-    if (!pet.idPersona) errors.idPersona = 'El ID Persona es requerido'
-    if (!pet.nombre) errors.petNombre = 'El nombre es requerido'
-    if (!pet.apellido) errors.apellido = 'El apellido es requerido'
-    if (!pet.correo) errors.petCorreo = 'El correo es requerido'
-    if (!pet.telefono) errors.petTelefono = 'El teléfono es requerido'
+
+    if (!form.idCampana) errors.idCampana = 'La campaña es requerida'
+
+    const hasAtLeastOne = [
+      pet.idCliente, pet.idAfore, pet.idClienteAhorrador,
+      pet.idPrestamoPensionado, pet.idSusceptiblePrestamo,
+      pet.idBajaCambio, pet.idComunicacion, pet.idPersona,
+      pet.correo, pet.telefono
+    ].some(v => !!v)
+    if (!hasAtLeastOne) {
+      errors.petAtLeastOne = 'Ingresa al menos uno de los campos marcados con *'
+    }
+
+    if (!pet.fechaInicial) errors.fechaInicial = 'La fecha inicial es requerida'
+    if (!pet.fechaFinal) errors.fechaFinal = 'La fecha final es requerida'
+    if (pet.fechaInicial && pet.fechaInicial > hoy) errors.fechaInicial = 'La fecha inicial no puede ser mayor a hoy'
+    if (pet.fechaFinal && pet.fechaFinal > hoy) errors.fechaFinal = 'La fecha final no puede ser mayor a hoy'
     if (pet.fechaInicial && pet.fechaFinal && pet.fechaInicial > pet.fechaFinal) {
       errors.fechaFinal = 'La fecha final debe ser posterior a la fecha inicial'
     }
