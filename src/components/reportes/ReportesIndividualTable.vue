@@ -28,6 +28,23 @@ const hasRows = computed(() => props.scope === 'linea' ? props.registrosCL.lengt
 const detalleModalOpen = ref(false)
 const detalleModalText = ref('')
 
+interface DetalleError {
+  columna?: string
+  atributo?: string
+  error?: string
+  [key: string]: unknown
+}
+
+const parsedDetalle = computed<DetalleError[] | null>(() => {
+  try {
+    const parsed = JSON.parse(detalleModalText.value)
+    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') return parsed as DetalleError[]
+    return null
+  } catch {
+    return null
+  }
+})
+
 function openDetalle(text: string | undefined) {
   detalleModalText.value = text ?? 'Sin detalle'
   detalleModalOpen.value = true
@@ -323,7 +340,37 @@ function openDetalle(text: string | undefined) {
             </button>
           </div>
           <div class="px-5 py-4 overflow-y-auto">
-            <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{{ detalleModalText }}</p>
+            <template v-if="parsedDetalle">
+              <div class="space-y-3">
+                <div v-for="(item, idx) in parsedDetalle" :key="idx" class="border border-red-200 bg-red-50/60 rounded-lg p-3">
+                  <div class="flex items-start gap-3">
+                    <span class="flex-shrink-0 mt-0.5 h-6 w-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">{{ idx + 1 }}</span>
+                    <div class="space-y-1.5 min-w-0">
+                      <div v-if="item.columna" class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Columna</span>
+                        <span class="text-sm font-semibold text-slate-800 font-mono">{{ item.columna }}</span>
+                      </div>
+                      <div v-if="item.atributo" class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Atributo</span>
+                        <span class="text-sm text-slate-700 font-mono">{{ item.atributo }}</span>
+                      </div>
+                      <div v-if="item.error" class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Error</span>
+                        <span class="text-sm font-medium text-red-600">{{ item.error }}</span>
+                      </div>
+                      <template v-for="(val, key) in item" :key="key">
+                        <div v-if="!['columna','atributo','error'].includes(String(key))" class="flex items-center gap-2">
+                          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">{{ key }}</span>
+                          <span class="text-sm text-slate-700">{{ val }}</span>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-3 text-right">{{ parsedDetalle.length }} error{{ parsedDetalle.length !== 1 ? 'es' : '' }}</p>
+            </template>
+            <p v-else class="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{{ detalleModalText }}</p>
           </div>
           <div class="flex justify-end px-5 py-3 border-t border-slate-200 bg-slate-50">
             <button @click="detalleModalOpen = false" class="px-4 py-1.5 text-sm font-semibold text-white bg-[#00357F] rounded-lg hover:bg-[#002a66] transition-colors cursor-pointer">

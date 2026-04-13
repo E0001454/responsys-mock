@@ -204,6 +204,11 @@ export function useTareasMonitorViewModel() {
         const pb = statusOrder[String(b.estatus.codigo).toUpperCase()] ?? 5
         if (pa !== pb) return pa - pb
 
+        const actOrder: Record<string, number> = { CARGA: 1, VALIDACION: 2, ENVIO: 3 }
+        const aa = actOrder[String(a.actividad.codigo).toUpperCase()] ?? 9
+        const ab = actOrder[String(b.actividad.codigo).toUpperCase()] ?? 9
+        if (aa !== ab) return aa - ab
+
         const dateA = a.horarioProgramado ? Date.parse(a.horarioProgramado) : 0
         const dateB = b.horarioProgramado ? Date.parse(b.horarioProgramado) : 0
         return dateB - dateA
