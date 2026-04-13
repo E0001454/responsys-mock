@@ -44,6 +44,12 @@ function parseEnvBoolean(value: unknown): boolean | undefined {
   return undefined
 }
 
+function buildQuery(params: Record<string, string>): string {
+  return Object.entries(params)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v).replace(/%2F/gi, '/')}`)
+    .join('&')
+}
+
 function getEndpointService(endpoint: string): ApiService {
   const path = String(endpoint || '').toLowerCase()
 
@@ -465,28 +471,28 @@ export const api = {
     http.patch(`/campanas/mapeos/${mapeoId}/columnas/desactivar`, payload),
 
   getReporteCLCarga: (filtros: Record<string, string>) => {
-    const p = new URLSearchParams(filtros)
-    return http.get(`/cl/individual/carga?${p}`)
+    const q = buildQuery(filtros)
+    return http.get(`/cl/individual/carga?${q}`)
   },
   getReporteCLValidacion: (filtros: Record<string, string>) => {
-    const p = new URLSearchParams(filtros)
-    return http.get(`/cl/individual/validacion?${p}`)
+    const q = buildQuery(filtros)
+    return http.get(`/cl/individual/validacion?${q}`)
   },
   getReportePETCarga: (filtros: Record<string, string>) => {
-    const p = new URLSearchParams(filtros)
-    return http.get(`/pet/individual/carga?${p}`)
+    const q = buildQuery(filtros)
+    return http.get(`/pet/individual/carga?${q}`)
   },
   getReportePETValidacion: (filtros: Record<string, string>) => {
-    const p = new URLSearchParams(filtros)
-    return http.get(`/pet/individual/validacion?${p}`)
+    const q = buildQuery(filtros)
+    return http.get(`/pet/individual/validacion?${q}`)
   },
   getReporteCLEnvio: (filtros: Record<string, string>) => {
-    const p = new URLSearchParams(filtros)
-    return http.get(`/cl/individual/envio?${p}`)
+    const q = buildQuery(filtros)
+    return http.get(`/cl/individual/envio?${q}`)
   },
   getReportePETEnvio: (filtros: Record<string, string>) => {
-    const p = new URLSearchParams(filtros)
-    return http.get(`/pet/individual/envio?${p}`)
+    const q = buildQuery(filtros)
+    return http.get(`/pet/individual/envio?${q}`)
   }
 
   ,

@@ -63,20 +63,20 @@ export interface RegistroCL {
 }
 
 export interface RegistroPET {
-  lineaNegocio: string
-  campana: string
-  noLote: string
-  idCliente: string
+  lineaDeNegocio: string
+  idCampana: string
+  numLote: string
+  customerId: string
   idAfore: string
-  afore: string
+  descripcionDeAfore: string
   idClienteAhorrador: string
   idPrestamoPensionado: string
   idSusceptiblePrestamo: string
   idBajaCambio: string
   idComunicacion: string
   idPersona: string
-  nombre: string
-  apellido: string
+  firstName: string
+  lastName: string
   correo: string
   telefono: string
   siefore: string
@@ -85,7 +85,7 @@ export interface RegistroPET {
   tipoPension: string
   grupoPago: string
   fechaBajaCambio: string
-  regimenIMSS: string
+  regimenImss: string
   segmentoAfo: string
   edad: string
   genero: string

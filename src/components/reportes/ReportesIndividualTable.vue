@@ -136,7 +136,7 @@ function openDetalle(text: string | undefined) {
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Lote</th>
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">ID Cliente</th>
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">ID Afore</th>
-              <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Afore</th>
+              <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Desc. Afore</th>
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">ID Cli. Ahorrador</th>
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">ID Prést. Pens.</th>
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">ID Susc. Prést.</th>
@@ -202,20 +202,20 @@ function openDetalle(text: string | undefined) {
           </thead>
           <tbody>
             <tr v-for="(row, i) in registrosPET" :key="i" class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.lineaNegocio }}</td>
-              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.campana }}</td>
-              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.noLote }}</td>
-              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.idCliente }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.lineaDeNegocio }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.idCampana }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.numLote }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.customerId }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.idAfore }}</td>
-              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.afore }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.descripcionDeAfore }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.idClienteAhorrador }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.idPrestamoPensionado }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.idSusceptiblePrestamo }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.idBajaCambio }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.idComunicacion }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.idPersona }}</td>
-              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.nombre }}</td>
-              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.apellido }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.firstName }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.lastName }}</td>
               <td class="px-4 py-3 text-slate-700 max-w-[220px] truncate" :title="row.correo">{{ row.correo }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.telefono }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.siefore }}</td>
@@ -224,7 +224,7 @@ function openDetalle(text: string | undefined) {
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.tipoPension }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.grupoPago }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-500 text-xs">{{ row.fechaBajaCambio }}</td>
-              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.regimenIMSS }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.regimenImss }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.segmentoAfo }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.edad }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.genero }}</td>

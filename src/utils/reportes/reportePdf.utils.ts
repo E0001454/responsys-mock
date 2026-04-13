@@ -35,7 +35,7 @@ function buildHeadAndBody(params: DownloadReportePdfParams): { head: string[][];
     return { head, body }
   }
 
-  const head = [['Linea', 'Campana', 'Lote', 'ID Cli', 'ID Afore', 'Afore',
+  const head = [['Linea', 'Campana', 'Lote', 'ID Cli', 'ID Afore', 'Desc. Afore',
     'ID Cli Ahor', 'ID Prest Pens', 'ID Susc Prest', 'ID Baja', 'ID Com', 'ID Persona',
     'Nombre', 'Apellido', 'Correo', 'Telefono',
     'Siefore', 'Segmento', 'Regimen', 'Tipo Pens.', 'Grupo Pago',
@@ -50,12 +50,12 @@ function buildHeadAndBody(params: DownloadReportePdfParams): { head: string[][];
     ...(showStatus ? ['Estatus', 'Detalle'] : [])
   ]]
   const body = params.registrosPET.map(r => ([
-    r.lineaNegocio, r.campana, r.noLote, r.idCliente, r.idAfore, r.afore,
+    r.lineaDeNegocio, r.idCampana, r.numLote, r.customerId, r.idAfore, r.descripcionDeAfore,
     r.idClienteAhorrador, r.idPrestamoPensionado, r.idSusceptiblePrestamo,
     r.idBajaCambio, r.idComunicacion, r.idPersona,
-    r.nombre, r.apellido, r.correo, r.telefono,
+    r.firstName, r.lastName, r.correo, r.telefono,
     r.siefore, r.segmento, r.regimen, r.tipoPension, r.grupoPago,
-    r.fechaBajaCambio, r.regimenIMSS, r.segmentoAfo, r.edad, r.genero,
+    r.fechaBajaCambio, r.regimenImss, r.segmentoAfo, r.edad, r.genero,
     r.ligaRsaldos, r.segmentoPre, r.domicilioPreferente, r.empresa, r.segmentoProy,
     r.paterno, r.ligaTitular, r.instituto, r.trabajador, r.entidad,
     r.mediosDigitales, r.apertura, r.numeroHijos, r.masy65, r.menores,
