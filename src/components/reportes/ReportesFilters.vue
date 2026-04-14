@@ -62,7 +62,7 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
         <p v-if="formErrors.idLinea" class="text-xs text-red-500 mt-1">{{ formErrors.idLinea }}</p>
       </div>
       <div v-if="scope === 'campana'">
-        <label class="block text-xs font-semibold text-slate-600 mb-1">Campaña <span class="text-red-500">**</span></label>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Campaña <span class="text-red-500">*</span></label>
         <select :value="idCampana" @change="onSelectChange($event, v => emit('update:idCampana', v))" :class="inputClass">
           <option value="">Selecciona una extensión</option>
           <option v-for="opt in campanasCatalogo" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
@@ -116,17 +116,17 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
           <input :value="cl.poliza" @input="emit('update-cl', 'poliza', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Póliza" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha inicio <span class="text-red-500">**</span></label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha inicio <span class="text-red-500">*</span></label>
           <input type="date" :value="cl.fechaInicio" :max="todayISO" @input="emit('update-cl', 'fechaInicio', ($event.target as HTMLInputElement).value)" :class="inputClass" />
           <p v-if="formErrors.fechaInicio" class="text-xs text-red-500 mt-1">{{ formErrors.fechaInicio }}</p>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha fin <span class="text-red-500">**</span></label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha fin <span class="text-red-500">*</span></label>
           <input type="date" :value="cl.fechaFin" :max="todayISO" @input="emit('update-cl', 'fechaFin', ($event.target as HTMLInputElement).value)" :class="inputClass" />
           <p v-if="formErrors.fechaFin" class="text-xs text-red-500 mt-1">{{ formErrors.fechaFin }}</p>
         </div>
       </div>
-      <p class="text-[11px] text-slate-400"><span class="text-blue-600">*</span> Llenar al menos uno &nbsp; <span class="text-red-500">**</span> Obligatorio</p>
+      <p class="text-[11px] text-slate-400"><span class="text-blue-600">*</span> Llenar al menos uno &nbsp; <span class="text-red-500">*</span> Obligatorio</p>
     </template>
 
     <template v-else>
@@ -186,17 +186,17 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
           <input :value="pet.telefono" @input="emit('update-pet', 'telefono', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Teléfono" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha inicial <span class="text-red-500">**</span></label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha inicial <span class="text-red-500">*</span></label>
           <input type="date" :value="pet.fechaInicial" :max="todayISO" @input="emit('update-pet', 'fechaInicial', ($event.target as HTMLInputElement).value)" :class="inputClass" />
           <p v-if="formErrors.fechaInicial" class="text-xs text-red-500 mt-1">{{ formErrors.fechaInicial }}</p>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha final <span class="text-red-500">**</span></label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha final <span class="text-red-500">*</span></label>
           <input type="date" :value="pet.fechaFinal" :max="todayISO" @input="emit('update-pet', 'fechaFinal', ($event.target as HTMLInputElement).value)" :class="inputClass" />
           <p v-if="formErrors.fechaFinal" class="text-xs text-red-500 mt-1">{{ formErrors.fechaFinal }}</p>
         </div>
       </div>
-      <p class="text-[11px] text-slate-400"><span class="text-blue-600">*</span> Llenar al menos uno &nbsp; <span class="text-red-500">**</span> Obligatorio</p>
+      <p class="text-[11px] text-slate-400"><span class="text-blue-600">*</span> Llenar al menos uno &nbsp; <span class="text-red-500">*</span> Obligatorio</p>
     </template>
 
     <div class="flex flex-wrap items-center gap-2 pt-1">
