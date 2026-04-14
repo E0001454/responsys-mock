@@ -8,6 +8,12 @@ function safeString(value: unknown): string {
   return value != null ? String(value) : ''
 }
 
+function safeDetalle(value: unknown): string | undefined {
+  if (value == null) return undefined
+  if (typeof value === 'string') return value
+  return JSON.stringify(value)
+}
+
 export function unwrapRegistros<T>(data: unknown): T[] {
   if (!data) return []
 
@@ -57,7 +63,7 @@ export function normalizeRegistroCL(raw: any): RegistroCL {
     suspension: safeString(raw?.suspension),
     fecha: safeString(raw?.fecha),
     estatus: raw?.estatus != null ? safeString(raw.estatus) : undefined,
-    detalle: raw?.detalle != null ? safeString(raw.detalle) : undefined
+    detalle: safeDetalle(raw?.detalle)
   }
 }
 
@@ -129,6 +135,6 @@ export function normalizeRegistroPET(raw: any): RegistroPET {
     domSucursal: safeString(raw?.domSucursal),
     fecha: safeString(raw?.fecha),
     estatus: raw?.estatus != null ? safeString(raw.estatus) : undefined,
-    detalle: raw?.detalle != null ? safeString(raw.detalle) : undefined
+    detalle: safeDetalle(raw?.detalle)
   }
 }

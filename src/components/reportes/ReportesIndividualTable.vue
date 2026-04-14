@@ -39,6 +39,7 @@ const parsedDetalle = computed<DetalleError[] | null>(() => {
   try {
     const parsed = JSON.parse(detalleModalText.value)
     if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') return parsed as DetalleError[]
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return [parsed] as DetalleError[]
     return null
   } catch {
     return null
