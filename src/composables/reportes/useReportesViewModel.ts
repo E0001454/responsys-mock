@@ -250,7 +250,7 @@ export function useReportesViewModel(tipo: ReporteTipo) {
 
     const lineaSlices: SummarySlice[] = Object.entries(byLinea)
       .sort((a, b) => b[1] - a[1])
-      .map(([label, count], i) => ({ label, count, color: PIE_COLORS[i % PIE_COLORS.length] }))
+      .map(([label, count], i) => ({ label, count, color: PIE_COLORS[i % PIE_COLORS.length]! }))
 
     let aprobados = 0
     let rechazados = 0
