@@ -52,7 +52,7 @@ function updatePET(field: string, value: string) {
 
       <ReportesFilters
         :scope="form.scope"
-        :id-linea="form.idLinea"
+        :id-linea-negocio="form.idLineaNegocio"
         :id-campana="form.idCampana"
         :cl="form.cl"
         :pet="form.pet"
@@ -62,7 +62,7 @@ function updatePET(field: string, value: string) {
         :export-loading="exportLoading"
         :has-results="resultCount > 0"
         :form-errors="formErrors"
-        @update:id-linea="form.idLinea = $event"
+        @update:id-linea-negocio="form.idLineaNegocio = $event"
         @update:id-campana="form.idCampana = $event"
         @update-cl="updateCL"
         @update-pet="updatePET"

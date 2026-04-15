@@ -10,7 +10,7 @@ interface Option {
 
 const props = defineProps<{
   scope: string
-  idLinea: number | ''
+  idLineaNegocio: number | ''
   idCampana: number | ''
   cl: FiltroIndividualCL
   pet: FiltroIndividualPET
@@ -23,7 +23,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:idLinea', value: number | ''): void
+  (e: 'update:idLineaNegocio', value: number | ''): void
   (e: 'update:idCampana', value: number | ''): void
   (e: 'update-cl', field: keyof FiltroIndividualCL, value: string): void
   (e: 'update-pet', field: keyof FiltroIndividualPET, value: string): void
@@ -55,16 +55,16 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       <div>
         <label class="block text-xs font-semibold text-slate-600 mb-1">Línea de negocio</label>
-        <select :value="idLinea" @change="onSelectChange($event, v => emit('update:idLinea', v))" :class="inputClass">
+        <select :value="idLineaNegocio" @change="onSelectChange($event, v => emit('update:idLineaNegocio', v))" :class="inputClass">
           <option value="">Selecciona una línea</option>
           <option v-for="opt in lineasCatalogo" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
-        <p v-if="formErrors.idLinea" class="text-xs text-red-500 mt-1">{{ formErrors.idLinea }}</p>
+        <p v-if="formErrors.idLineaNegocio" class="text-xs text-red-500 mt-1">{{ formErrors.idLineaNegocio }}</p>
       </div>
       <div v-if="scope === 'campana'">
         <label class="block text-xs font-semibold text-slate-600 mb-1">Campaña <span class="text-red-500">*</span></label>
         <select :value="idCampana" @change="onSelectChange($event, v => emit('update:idCampana', v))" :class="inputClass">
-          <option value="">Selecciona una extensión</option>
+          <option value="">Selecciona una campaña</option>
           <option v-for="opt in campanasCatalogo" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
         <p v-if="formErrors.idCampana" class="text-xs text-red-500 mt-1">{{ formErrors.idCampana }}</p>

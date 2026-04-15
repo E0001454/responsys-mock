@@ -69,6 +69,10 @@ function getEndpointService(endpoint: string): ApiService {
   if (path.includes('/cl/individual/validacion')) return 'reportes_abc_linea'
   if (path.includes('/pet/individual')) return 'reportes_campana'
   if (path.includes('/cl/individual')) return 'reportes_linea'
+  if (path.includes('/pet/general/validacion')) return 'reportes_abc_campana'
+  if (path.includes('/cl/general/validacion')) return 'reportes_abc_linea'
+  if (path.includes('/pet/general')) return 'reportes_campana'
+  if (path.includes('/cl/general')) return 'reportes_linea'
 
   if (path.includes('/lineas/campanas/tareas')) return 'monitor_campana'
   if (path.includes('/lineas/tareas')) return 'monitor_linea'
@@ -493,6 +497,23 @@ export const api = {
   getReportePETEnvio: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
     return http.get(`/pet/individual/envio?${q}`)
+  },
+
+  getReporteGeneralCLCarga: (filtros: Record<string, string>) => {
+    const q = buildQuery(filtros)
+    return http.get(`/cl/general/carga?${q}`)
+  },
+  getReporteGeneralCLValidacion: (filtros: Record<string, string>) => {
+    const q = buildQuery(filtros)
+    return http.get(`/cl/general/validacion?${q}`)
+  },
+  getReporteGeneralPETCarga: (filtros: Record<string, string>) => {
+    const q = buildQuery(filtros)
+    return http.get(`/pet/general/carga?${q}`)
+  },
+  getReporteGeneralPETValidacion: (filtros: Record<string, string>) => {
+    const q = buildQuery(filtros)
+    return http.get(`/pet/general/validacion?${q}`)
   }
 
   ,

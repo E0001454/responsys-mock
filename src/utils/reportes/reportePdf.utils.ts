@@ -11,18 +11,18 @@ export interface DownloadReportePdfParams {
 
 const TIPO_LABELS: Record<ReporteTipo, string> = {
   carga: 'Carga',
-  validacion: 'Validacion',
-  envio: 'Envio'
+  validacion: 'Validación',
+  envio: 'Envío'
 }
 
 function buildHeadAndBody(params: DownloadReportePdfParams): { head: string[][]; body: string[][] } {
   const showStatus = params.tipo !== 'carga'
 
   if (params.scope === 'linea') {
-    const head = [['Linea', 'RIID', 'Nombre', 'Ap. Paterno', 'Ap. Materno', 'Correo',
-      'Tel 1', 'Tel 2', 'No. Cuenta', 'NSS', 'CURP', 'RFC', 'Poliza',
+    const head = [['Línea', 'RIID', 'Nombre', 'Ap. Paterno', 'Ap. Materno', 'Correo',
+      'Tel 1', 'Tel 2', 'No. Cuenta', 'NSS', 'CURP', 'RFC', 'Póliza',
       'Fec. Nac.', 'CP', 'Calle 1', 'Calle 2', 'Ciudad', 'Estado',
-      'Genero', 'Prueba', 'Suspension', 'Fecha',
+      'Género', 'Prueba', 'Suspensión', 'Fecha',
       ...(showStatus ? ['Estatus', 'Detalle'] : [])
     ]]
     const body = params.registrosCL.map(r => ([
@@ -35,11 +35,11 @@ function buildHeadAndBody(params: DownloadReportePdfParams): { head: string[][];
     return { head, body }
   }
 
-  const head = [['Linea', 'Campana', 'Lote', 'ID Cli', 'ID Afore', 'Desc. Afore',
-    'ID Cli Ahor', 'ID Prest Pens', 'ID Susc Prest', 'ID Baja', 'ID Com', 'ID Persona',
-    'Nombre', 'Apellido', 'Correo', 'Telefono',
-    'Siefore', 'Segmento', 'Regimen', 'Tipo Pens.', 'Grupo Pago',
-    'Fec. Baja', 'Reg. IMSS', 'Seg. Afo', 'Edad', 'Genero',
+  const head = [['Línea', 'Campaña', 'Lote', 'ID Cli', 'ID Afore', 'Desc. Afore',
+    'ID Cli Ahor', 'ID Prést. Pens.', 'ID Susc. Prést.', 'ID Baja', 'ID Com', 'ID Persona',
+    'Nombre', 'Apellido', 'Correo', 'Teléfono',
+    'Siefore', 'Segmento', 'Régimen', 'Tipo Pens.', 'Grupo Pago',
+    'Fec. Baja', 'Rég. IMSS', 'Seg. Afo', 'Edad', 'Género',
     'Liga Rsaldos', 'Seg. Pre', 'Dom. Pref.', 'Empresa', 'Seg. Proy',
     'Paterno', 'Liga Titular', 'Instituto', 'Trabajador', 'Entidad',
     'Medios Dig.', 'Apertura', 'No. Hijos', '+65', 'Menores',
@@ -94,8 +94,8 @@ export async function downloadReportePdfReport(params: DownloadReportePdfParams)
 
   const tipoLabel = TIPO_LABELS[params.tipo]
   const scopeLabel = params.scope === 'linea'
-    ? 'Lineas de contacto (CL)'
-    : 'Extension de perfil (PET)'
+    ? 'Líneas de contacto (CL)'
+    : 'Extensión de perfil (PET)'
   const totalRows = params.scope === 'linea' ? params.registrosCL.length : params.registrosPET.length
 
   const drawWatermark = () => {
@@ -162,19 +162,21 @@ export async function downloadReportePdfReport(params: DownloadReportePdfParams)
 
   const { head, body } = buildHeadAndBody(params)
 
-  const bodyFontSize = isPET ? 5.5 : 8
-  const cellPad = isPET ? 1 : 1.8
+  const bodyFontSize = isPET ? 4 : 8
+  const headFontSize = isPET ? 4 : 8
+  const cellPad = isPET ? 0.5 : 1.8
 
   autoTable(doc, {
     startY: 47,
     head,
     body,
+    tableWidth: 'wrap',
     margin: { top: 30, left: 10, right: 10, bottom: 14 },
     headStyles: {
       fillColor: brandBlue,
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: bodyFontSize,
+      fontSize: headFontSize,
       halign: 'left',
       valign: 'middle'
     },
@@ -190,7 +192,7 @@ export async function downloadReportePdfReport(params: DownloadReportePdfParams)
       lineColor: [226, 232, 240],
       lineWidth: 0.15,
       cellPadding: cellPad,
-      overflow: 'linebreak'
+      overflow: isPET ? 'ellipsize' : 'linebreak'
     },
     ...(isPET ? {
       horizontalPageBreak: true,
@@ -203,7 +205,7 @@ export async function downloadReportePdfReport(params: DownloadReportePdfParams)
       doc.setFontSize(8)
       const current = doc.getCurrentPageInfo().pageNumber
       const total = doc.getNumberOfPages()
-      doc.text(`Pagina ${current} de ${total}`, pageW - 38, pageH - 6)
+      doc.text(`Página ${current} de ${total}`, pageW - 38, pageH - 6)
     }
   })
 

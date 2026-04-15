@@ -6,14 +6,20 @@ import type {
   RegistroCL,
   RegistroPET,
   ReporteTipo,
-  ReporteScope
+  ReporteScope,
+  ReporteGeneralTipo
 } from '@/types/reportes/reporte'
 import {
   createEmptyReporteFilterForm,
   validateReporteFilterForm,
   buildCLBody,
   buildPETBody,
-  type ReporteFilterFormModel
+  createEmptyGeneralFilterForm,
+  validateGeneralFilterForm,
+  buildGeneralCLBody,
+  buildGeneralPETBody,
+  type ReporteFilterFormModel,
+  type ReporteGeneralFilterFormModel
 } from '@/models/reportes/reporteFilters.model'
 import { addToast } from '@/stores/toastStore'
 import { convertRowsToCSV, downloadCsvFile } from '@/utils/reports/csvExport'
@@ -30,7 +36,15 @@ export const scopeTabs = [
   { key: 'campana' as const, label: 'Extensión de perfil (PET)' }
 ]
 
+export type ConsultaMode = 'individual' | 'general'
+
+export const consultaModeTabs = [
+  { key: 'individual' as const, label: 'Consulta individual' },
+  { key: 'general' as const, label: 'Consulta general' }
+]
+
 export function useReportesViewModel(tipo: ReporteTipo) {
+  const consultaMode = ref<ConsultaMode>('individual')
   const form = reactive<ReporteFilterFormModel>(createEmptyReporteFilterForm())
   const formErrors = ref<Record<string, string>>({})
 
@@ -88,6 +102,9 @@ export function useReportesViewModel(tipo: ReporteTipo) {
     form.scope = scope
     form.idCampana = ''
     resetResults()
+    generalForm.scope = scope
+    generalForm.idCampana = ''
+    resetGeneralResults()
   }
 
   function resetResults() {
@@ -180,6 +197,123 @@ export function useReportesViewModel(tipo: ReporteTipo) {
     if (canNextPage.value) currentPage.value++
   }
 
+  const supportsGeneral = computed(() => tipo === 'carga' || tipo === 'validacion')
+  const generalTipo = tipo as ReporteGeneralTipo
+
+  const generalForm = reactive<ReporteGeneralFilterFormModel>(createEmptyGeneralFilterForm())
+  const generalFormErrors = ref<Record<string, string>>({})
+  const generalIsLoading = ref(false)
+  const generalError = ref<string | null>(null)
+  const generalHasQueried = ref(false)
+
+  const generalRowsCL = ref<RegistroCL[]>([])
+  const generalRowsPET = ref<RegistroPET[]>([])
+
+  const generalPageSize = ref(10)
+  const generalCurrentPage = ref(1)
+
+  const generalResultCount = computed(() =>
+    generalForm.scope === 'linea' ? generalRowsCL.value.length : generalRowsPET.value.length
+  )
+  const generalTotalPages = computed(() => Math.max(1, Math.ceil(generalResultCount.value / generalPageSize.value)))
+  const generalCanPrevPage = computed(() => generalCurrentPage.value > 1)
+  const generalCanNextPage = computed(() => generalCurrentPage.value < generalTotalPages.value)
+
+  const paginatedGeneralCL = computed(() => {
+    const start = (generalCurrentPage.value - 1) * generalPageSize.value
+    return generalRowsCL.value.slice(start, start + generalPageSize.value)
+  })
+  const paginatedGeneralPET = computed(() => {
+    const start = (generalCurrentPage.value - 1) * generalPageSize.value
+    return generalRowsPET.value.slice(start, start + generalPageSize.value)
+  })
+
+  interface SummarySlice { label: string; count: number; color: string }
+
+  const PIE_COLORS = ['#00357F', '#0EA5E9', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6366F1']
+
+  const generalSummary = computed(() => {
+    const rows = generalForm.scope === 'linea' ? generalRowsCL.value : generalRowsPET.value
+    const total = rows.length
+    if (!total) return null
+
+    const dates = rows.map(r => r.fecha).filter(Boolean)
+    const fechaMin = dates.length ? dates.reduce((a, b) => a < b ? a : b) : ''
+    const fechaMax = dates.length ? dates.reduce((a, b) => a > b ? a : b) : ''
+
+    const lineaKey = generalForm.scope === 'linea' ? 'lineaNegocio' : 'lineaDeNegocio'
+    const byLinea: Record<string, number> = {}
+    for (const r of rows) {
+      const ln = (r as any)[lineaKey] || 'Sin línea'
+      byLinea[ln] = (byLinea[ln] || 0) + 1
+    }
+
+    const lineaSlices: SummarySlice[] = Object.entries(byLinea)
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, count], i) => ({ label, count, color: PIE_COLORS[i % PIE_COLORS.length] }))
+
+    let aprobados = 0
+    let rechazados = 0
+    if (tipo === 'validacion') {
+      for (const r of rows) {
+        const e = String(r.estatus ?? '').toUpperCase()
+        if (e === 'ACEPTADO' || e === 'EXITOSO' || e === 'OK') aprobados++
+        else if (e === 'RECHAZADO' || e === 'ERROR') rechazados++
+      }
+    }
+
+    return { total, fechaMin, fechaMax, lineaSlices, aprobados, rechazados }
+  })
+
+  function resetGeneralResults() {
+    generalHasQueried.value = false
+    generalRowsCL.value = []
+    generalRowsPET.value = []
+    generalError.value = null
+    generalCurrentPage.value = 1
+    generalFormErrors.value = {}
+  }
+
+  function handleGeneralClear() {
+    Object.assign(generalForm, createEmptyGeneralFilterForm())
+    generalForm.scope = form.scope
+    resetGeneralResults()
+  }
+
+  async function handleGeneralConsultar() {
+    const validation = validateGeneralFilterForm(generalForm)
+    generalFormErrors.value = validation.errors
+    if (!validation.valid) return
+
+    generalIsLoading.value = true
+    generalError.value = null
+    generalHasQueried.value = true
+    generalCurrentPage.value = 1
+
+    try {
+      if (generalForm.scope === 'linea') {
+        const filtros = buildGeneralCLBody(generalForm)
+        generalRowsCL.value = await reporteService.getGeneralCL(generalTipo, filtros)
+        generalRowsPET.value = []
+      } else {
+        const filtros = buildGeneralPETBody(generalForm)
+        generalRowsPET.value = await reporteService.getGeneralPET(generalTipo, filtros)
+        generalRowsCL.value = []
+      }
+    } catch (e: any) {
+      generalError.value = e.message ?? 'Error al consultar el reporte general'
+    } finally {
+      generalIsLoading.value = false
+    }
+  }
+
+  function generalPrevPage() {
+    if (generalCanPrevPage.value) generalCurrentPage.value--
+  }
+  function generalNextPage() {
+    if (generalCanNextPage.value) generalCurrentPage.value++
+  }
+
   onMounted(loadCatalogos)
 
   return {
@@ -205,6 +339,8 @@ export function useReportesViewModel(tipo: ReporteTipo) {
     canNextPage,
 
     scopeTabs,
+    consultaMode,
+    consultaModeTabs,
 
     handleScopeChange,
     handleConsultar,
@@ -212,6 +348,26 @@ export function useReportesViewModel(tipo: ReporteTipo) {
     handleExportCsv,
     handleExportPdf,
     prevPage,
-    nextPage
+    nextPage,
+
+    supportsGeneral,
+    generalTipo,
+    generalForm,
+    generalFormErrors,
+    generalIsLoading,
+    generalError,
+    generalHasQueried,
+    generalResultCount,
+    generalCurrentPage,
+    generalTotalPages,
+    generalCanPrevPage,
+    generalCanNextPage,
+    paginatedGeneralCL,
+    paginatedGeneralPET,
+    generalSummary,
+    handleGeneralConsultar,
+    handleGeneralClear,
+    generalPrevPage,
+    generalNextPage
   }
 }

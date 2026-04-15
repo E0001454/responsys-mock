@@ -1,8 +1,8 @@
-import type { ReporteScope, FiltroIndividualCL, FiltroIndividualPET } from '@/types/reportes/reporte'
+import type { ReporteScope, FiltroIndividualCL, FiltroIndividualPET, FiltroGeneralCL, FiltroGeneralPET } from '@/types/reportes/reporte'
 
 export interface ReporteFilterFormModel {
   scope: ReporteScope
-  idLinea: number | ''
+  idLineaNegocio: number | ''
   idCampana: number | ''
   cl: FiltroIndividualCL
   pet: FiltroIndividualPET
@@ -20,7 +20,7 @@ export function createEmptyReporteFilterForm(): ReporteFilterFormModel {
   const hoy = todayISO()
   return {
     scope: 'linea',
-    idLinea: '',
+    idLineaNegocio: '',
     idCampana: '',
     cl: {
       riid: '', nombre: '', apellidoPaterno: '', correo: '', telefono: '',
@@ -111,7 +111,7 @@ function compactObj(obj: Record<string, string | undefined>): Record<string, str
 export function buildCLBody(form: ReporteFilterFormModel): Record<string, string> {
   const cl = form.cl
   return compactObj({
-    ...(form.idLinea ? { idLinea: String(form.idLinea) } : {}),
+    ...(form.idLineaNegocio ? { idLineaNegocio: String(form.idLineaNegocio) } : {}),
     riid: cl.riid, nombre: cl.nombre, apellidoPaterno: cl.apellidoPaterno,
     correo: cl.correo, telefono: cl.telefono, noCuenta: cl.noCuenta,
     nss: cl.nss, curp: cl.curp, rfc: cl.rfc, poliza: cl.poliza,
@@ -123,7 +123,7 @@ export function buildCLBody(form: ReporteFilterFormModel): Record<string, string
 export function buildPETBody(form: ReporteFilterFormModel): Record<string, string> {
   const pet = form.pet
   return compactObj({
-    ...(form.idLinea ? { idLinea: String(form.idLinea) } : {}),
+    ...(form.idLineaNegocio ? { idLineaNegocio: String(form.idLineaNegocio) } : {}),
     ...(form.idCampana ? { idCampana: String(form.idCampana) } : {}),
     noLote: pet.noLote, idCliente: pet.idCliente, idAfore: pet.idAfore,
     idClienteAhorrador: pet.idClienteAhorrador, idPrestamoPensionado: pet.idPrestamoPensionado,
@@ -132,5 +132,68 @@ export function buildPETBody(form: ReporteFilterFormModel): Record<string, strin
     nombre: pet.nombre, apellido: pet.apellido, correo: pet.correo, telefono: pet.telefono,
     fechaInicial: isoToApiDate(pet.fechaInicial ?? ''),
     fechaFinal: isoToApiDate(pet.fechaFinal ?? '')
+  })
+}
+
+export interface ReporteGeneralFilterFormModel {
+  scope: ReporteScope
+  idLineaNegocio: number | ''
+  idCampana: number | ''
+  cl: FiltroGeneralCL
+  pet: FiltroGeneralPET
+}
+
+export function createEmptyGeneralFilterForm(): ReporteGeneralFilterFormModel {
+  const hoy = todayISO()
+  return {
+    scope: 'linea',
+    idLineaNegocio: '',
+    idCampana: '',
+    cl: { fechaInicio: hoy, fechaFin: hoy },
+    pet: { fechaInicial: hoy, fechaFinal: hoy }
+  }
+}
+
+export function validateGeneralFilterForm(form: ReporteGeneralFilterFormModel): ReporteFilterValidation {
+  const errors: Record<string, string> = {}
+  const hoy = todayISO()
+
+  if (form.scope === 'linea') {
+    const cl = form.cl
+    if (!cl.fechaInicio) errors.gFechaInicio = 'La fecha de inicio es requerida'
+    if (!cl.fechaFin) errors.gFechaFin = 'La fecha de fin es requerida'
+    if (cl.fechaInicio && cl.fechaInicio > hoy) errors.gFechaInicio = 'La fecha de inicio no puede ser mayor a hoy'
+    if (cl.fechaFin && cl.fechaFin > hoy) errors.gFechaFin = 'La fecha de fin no puede ser mayor a hoy'
+    if (cl.fechaInicio && cl.fechaFin && cl.fechaInicio > cl.fechaFin) {
+      errors.gFechaFin = 'La fecha de fin debe ser posterior a la fecha de inicio'
+    }
+  } else {
+    const pet = form.pet
+    if (!pet.fechaInicial) errors.gFechaInicial = 'La fecha inicial es requerida'
+    if (!pet.fechaFinal) errors.gFechaFinal = 'La fecha final es requerida'
+    if (pet.fechaInicial && pet.fechaInicial > hoy) errors.gFechaInicial = 'La fecha inicial no puede ser mayor a hoy'
+    if (pet.fechaFinal && pet.fechaFinal > hoy) errors.gFechaFinal = 'La fecha final no puede ser mayor a hoy'
+    if (pet.fechaInicial && pet.fechaFinal && pet.fechaInicial > pet.fechaFinal) {
+      errors.gFechaFinal = 'La fecha final debe ser posterior a la fecha inicial'
+    }
+  }
+
+  return { valid: Object.keys(errors).length === 0, errors }
+}
+
+export function buildGeneralCLBody(form: ReporteGeneralFilterFormModel): Record<string, string> {
+  return compactObj({
+    ...(form.idLineaNegocio ? { idLineaNegocio: String(form.idLineaNegocio) } : {}),
+    fechaInicio: isoToApiDate(form.cl.fechaInicio),
+    fechaFin: isoToApiDate(form.cl.fechaFin)
+  })
+}
+
+export function buildGeneralPETBody(form: ReporteGeneralFilterFormModel): Record<string, string> {
+  return compactObj({
+    ...(form.idLineaNegocio ? { idLineaNegocio: String(form.idLineaNegocio) } : {}),
+    ...(form.idCampana ? { idCampana: String(form.idCampana) } : {}),
+    fechaInicial: isoToApiDate(form.pet.fechaInicial),
+    fechaFinal: isoToApiDate(form.pet.fechaFinal)
   })
 }

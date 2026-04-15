@@ -135,3 +135,15 @@ export interface RegistroPET {
 export interface ReporteApiResponseItem<T> {
   registros: T[]
 }
+
+export type ReporteGeneralTipo = 'carga' | 'validacion'
+
+export interface FiltroGeneralCL {
+  fechaInicio: string
+  fechaFin: string
+}
+
+export interface FiltroGeneralPET {
+  fechaInicial: string
+  fechaFinal: string
+}
