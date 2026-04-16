@@ -423,6 +423,12 @@ export function useTareaScheduleConfigurator(
 
     duplicateScheduleError.value = ''
 
+    for (const existing of currentSlots) {
+      if (isSlotActive(existing)) {
+        existing.activo = false
+      }
+    }
+
     if (kind === 'carga') {
       localData.value.cargaSlots = appendScheduleSlot(localData.value.cargaSlots, slot)
       localData.value.diaIngesta = ''
@@ -460,14 +466,30 @@ export function useTareaScheduleConfigurator(
     const slot = currentList[index]
     if (!slot) return
 
-    const currentActiveCount = activeSlotsCountByKind(kind)
-    if (mustKeepAtLeastOneActive(kind) && isSlotActive(slot) && currentActiveCount <= 1) {
-      const etapa = kind === 'carga' ? 'Carga' : 'Validación'
-      addToast(`Debe permanecer al menos un horario activo en ${etapa}.`, 'warning', 3000)
-      return
+    const nextActive = !isSlotActive(slot)
+
+    if (nextActive) {
+      for (let i = 0; i < currentList.length; i++) {
+        const slotItem = currentList[i]
+        if (i !== index && slotItem && isSlotActive(slotItem)) {
+          slotItem.activo = false
+          emit.toggleSlot({
+            kind,
+            index: i,
+            slot: { ...slotItem },
+            nextActive: false
+          })
+        }
+      }
+    } else {
+      const currentActiveCount = activeSlotsCountByKind(kind)
+      if (mustKeepAtLeastOneActive(kind) && currentActiveCount <= 1) {
+        const etapa = kind === 'carga' ? 'Carga' : kind === 'validacion' ? 'Validación' : 'Envío'
+        addToast(`Debe permanecer al menos un horario activo en ${etapa}.`, 'warning', 3000)
+        return
+      }
     }
 
-    const nextActive = !isSlotActive(slot)
     slot.activo = nextActive
 
     emit.toggleSlot({

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { BarChart3, Calendar, CheckCircle2, XCircle, Users } from 'lucide-vue-next'
+import { BarChart3, Calendar, CheckCircle2, XCircle, Users, Upload } from 'lucide-vue-next'
 
 interface SummarySlice {
   label: string
@@ -10,6 +10,7 @@ interface SummarySlice {
 
 interface SummaryData {
   total: number
+  cargas: number
   fechaMin: string
   fechaMax: string
   lineaSlices: SummarySlice[]
@@ -19,8 +20,15 @@ interface SummaryData {
 
 const props = defineProps<{
   summary: SummaryData | null
-  tipo: 'carga' | 'validacion'
+  tipo: 'carga' | 'validacion' | 'envio'
 }>()
+
+const cargaLabel = computed(() => {
+  if (!props.summary) return 'Cargas'
+  if (props.tipo === 'validacion') return 'Validaciones'
+  if (props.tipo === 'envio') return 'Envíos'
+  return 'Cargas'
+})
 
 const pieGradient = computed(() => {
   if (!props.summary) return ''
@@ -82,6 +90,16 @@ const legendItems = computed(() => {
           <div>
             <p class="text-[11px] text-slate-500 font-medium uppercase tracking-wide">Líneas</p>
             <p class="text-lg font-bold text-slate-800 tabular-nums">{{ summary.lineaSlices.length }}</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-lg p-3 flex items-center gap-3">
+          <div class="flex-shrink-0 h-9 w-9 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center">
+            <Upload class="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <p class="text-[11px] text-slate-500 font-medium uppercase tracking-wide">{{ cargaLabel }}</p>
+            <p class="text-lg font-bold text-slate-800 tabular-nums">{{ summary.cargas.toLocaleString() }}</p>
           </div>
         </div>
 

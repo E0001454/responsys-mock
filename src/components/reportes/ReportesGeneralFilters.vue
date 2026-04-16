@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Search, RotateCcw } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { Search, RotateCcw, FileText, File } from 'lucide-vue-next'
 import type { FiltroGeneralCL, FiltroGeneralPET } from '@/types/reportes/reporte'
 
 interface Option {
@@ -17,6 +17,8 @@ const props = defineProps<{
   lineasCatalogo: Option[]
   campanasCatalogo: Option[]
   isLoading: boolean
+  exportLoading: boolean
+  hasResults: boolean
   formErrors: Record<string, string>
 }>()
 
@@ -27,6 +29,8 @@ const emit = defineEmits<{
   (e: 'update-pet', field: keyof FiltroGeneralPET, value: string): void
   (e: 'consultar'): void
   (e: 'clear'): void
+  (e: 'export-csv'): void
+  (e: 'export-pdf', options: { includeChart: boolean }): void
 }>()
 
 function onSelectChange(e: Event, emitFn: (v: number | '') => void) {
@@ -43,6 +47,8 @@ const todayISO = computed(() => {
 })
 
 const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-[#00357F] focus:border-[#00357F]'
+
+const includeChart = ref(true)
 </script>
 
 <template>
@@ -116,6 +122,29 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
         <RotateCcw class="w-4 h-4" />
         Limpiar
       </button>
+
+      <div v-if="hasResults" class="flex items-center gap-2 ml-auto">
+        <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer select-none">
+          <input type="checkbox" v-model="includeChart" class="accent-[#00357F] w-3.5 h-3.5" />
+          Incluir gráfica en PDF
+        </label>
+        <button
+          @click="emit('export-csv')"
+          :disabled="exportLoading"
+          class="flex items-center gap-2 px-3 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+        >
+          <FileText class="w-4 h-4" />
+          Excel
+        </button>
+        <button
+          @click="emit('export-pdf', { includeChart: includeChart })"
+          :disabled="exportLoading"
+          class="flex items-center gap-2 px-3 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+        >
+          <File class="w-4 h-4" />
+          PDF
+        </button>
+      </div>
     </div>
   </div>
 </template>

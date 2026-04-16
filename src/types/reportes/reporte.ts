@@ -136,7 +136,17 @@ export interface ReporteApiResponseItem<T> {
   registros: T[]
 }
 
-export type ReporteGeneralTipo = 'carga' | 'validacion'
+export type ReporteGeneralTipo = 'carga' | 'validacion' | 'envio'
+
+export interface RegistroGeneral {
+  lineaNegocio: string
+  campana?: string
+  mapeo: string
+  fecha: string
+  registros: number
+  aprobados?: number
+  rechazados?: number
+}
 
 export interface FiltroGeneralCL {
   fechaInicio: string

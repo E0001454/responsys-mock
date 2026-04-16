@@ -3,12 +3,14 @@ import type {
   ReporteTipo,
   ReporteGeneralTipo,
   RegistroCL,
-  RegistroPET
+  RegistroPET,
+  RegistroGeneral
 } from '@/types/reportes/reporte'
 import {
   unwrapRegistros,
   normalizeRegistroCL,
-  normalizeRegistroPET
+  normalizeRegistroPET,
+  normalizeRegistroGeneral
 } from '@/adapters/reportes/reporte.adapter'
 
 export const reporteService = {
@@ -37,22 +39,26 @@ export const reporteService = {
   async getGeneralCL(
     tipo: ReporteGeneralTipo,
     filtros: Record<string, string>
-  ): Promise<RegistroCL[]> {
+  ): Promise<RegistroGeneral[]> {
     const response =
       tipo === 'carga'
         ? await api.getReporteGeneralCLCarga(filtros)
-        : await api.getReporteGeneralCLValidacion(filtros)
-    return unwrapRegistros<RegistroCL>(response).map(normalizeRegistroCL)
+        : tipo === 'envio'
+          ? await api.getReporteGeneralCLEnvio(filtros)
+          : await api.getReporteGeneralCLValidacion(filtros)
+    return unwrapRegistros<RegistroGeneral>(response).map(normalizeRegistroGeneral)
   },
 
   async getGeneralPET(
     tipo: ReporteGeneralTipo,
     filtros: Record<string, string>
-  ): Promise<RegistroPET[]> {
+  ): Promise<RegistroGeneral[]> {
     const response =
       tipo === 'carga'
         ? await api.getReporteGeneralPETCarga(filtros)
-        : await api.getReporteGeneralPETValidacion(filtros)
-    return unwrapRegistros<RegistroPET>(response).map(normalizeRegistroPET)
+        : tipo === 'envio'
+          ? await api.getReporteGeneralPETEnvio(filtros)
+          : await api.getReporteGeneralPETValidacion(filtros)
+    return unwrapRegistros<RegistroGeneral>(response).map(normalizeRegistroGeneral)
   }
 }

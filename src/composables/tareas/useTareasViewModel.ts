@@ -16,7 +16,6 @@ import {
 import {
   enrichTareaWithMapeoName,
   mapCatalogosToOptions,
-  resolveTareaMapeoId,
   stageKeys,
   stageTypeByKey
 } from '@/composables/tareas/tareasViewUtils'
@@ -142,38 +141,17 @@ export function useTareasViewModel() {
   const showStatusConfirmModal = ref(false)
   const pendingStatusItem = ref<TareaLineaRow | TareaCampanaRow | null>(null)
 
-  const selectedEditMapeoId = computed(() => {
-    if (modalMode.value !== 'edit' || !selectedItem.value) return 0
-    return resolveTareaMapeoId(selectedItem.value)
-  })
-
   const mapeosLineaForModal = computed(() => {
-    const usedIds = new Set(
-      allTareasLinea.value
-        .map(item => resolveTareaMapeoId(item))
-        .filter(id => id > 0)
-    )
-
     return allMapeosLinea.value.filter(mapeo => {
       const mapeoId = Number(mapeo.idABCConfigMapeoLinea ?? 0)
-      if (mapeoId <= 0) return false
-      if (modalMode.value === 'edit' && mapeoId === selectedEditMapeoId.value) return true
-      return !usedIds.has(mapeoId)
+      return mapeoId > 0
     })
   })
 
   const mapeosCampanaForModal = computed(() => {
-    const usedIds = new Set(
-      allTareasCampana.value
-        .map(item => resolveTareaMapeoId(item))
-        .filter(id => id > 0)
-    )
-
     return allMapeosCampana.value.filter(mapeo => {
       const mapeoId = Number(mapeo.idABCConfigMapeoLinea ?? 0)
-      if (mapeoId <= 0) return false
-      if (modalMode.value === 'edit' && mapeoId === selectedEditMapeoId.value) return true
-      return !usedIds.has(mapeoId)
+      return mapeoId > 0
     })
   })
 

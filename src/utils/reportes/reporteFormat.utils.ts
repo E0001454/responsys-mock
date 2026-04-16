@@ -1,5 +1,32 @@
 import type { RegistroCL, RegistroPET, ReporteTipo } from '@/types/reportes/reporte'
 
+interface DetalleError { columna?: string; atributo?: string; error?: string; err?: string }
+
+function parseDetalleMap(text: string | undefined): Map<string, string> {
+  if (!text) return new Map()
+  try {
+    const parsed = JSON.parse(text)
+    const arr: DetalleError[] = Array.isArray(parsed) ? parsed
+      : (parsed && typeof parsed === 'object') ? [parsed] : []
+    const map = new Map<string, string>()
+    for (const d of arr) {
+      const key = (d.atributo ?? d.columna ?? '').toLowerCase()
+      const msg = d.error || d.err || ''
+      if (key && msg) map.set(key, msg)
+    }
+    return map
+  } catch {
+    return new Map()
+  }
+}
+
+function appendDetalle(val: unknown, key: string, errorMap: Map<string, string>): unknown {
+  const errMsg = errorMap.get(key.toLowerCase())
+  if (!errMsg) return val
+  const s = String(val ?? '')
+  return s ? `${s} [${errMsg}]` : `[${errMsg}]`
+}
+
 export function getEstatusClass(estatus?: string): string {
   const c = String(estatus ?? '').toUpperCase()
   if (c === 'ACEPTADO' || c === 'EXITOSO' || c === 'OK') return 'bg-emerald-100 text-emerald-700'
@@ -12,35 +39,37 @@ export function buildCLCsvRows(
   rows: RegistroCL[],
   tipo: ReporteTipo
 ): Array<Record<string, unknown>> {
+  const showDetalle = tipo !== 'carga'
   return rows.map(row => {
+    const errMap = showDetalle ? parseDetalleMap(row.detalle) : new Map<string, string>()
+    const v = (val: unknown, key: string) => showDetalle && errMap.size ? appendDetalle(val, key, errMap) : val
     const base: Record<string, unknown> = {
-      'Línea de negocio': row.lineaNegocio,
-      'RIID': row.riid,
-      'Nombre': row.nombre,
-      'Apellido Paterno': row.apellidoPaterno,
-      'Apellido Materno': row.apellidoMaterno,
-      'Correo': row.correo,
-      'Teléfono 1': row.telefono1,
-      'Teléfono 2': row.telefono2,
-      'No. Cuenta': row.noCuenta,
-      'NSS': row.nss,
-      'CURP': row.curp,
-      'RFC': row.rfc,
-      'Póliza': row.poliza,
-      'Fecha Nacimiento': row.fechaNacimiento,
-      'CP': row.cp,
-      'Calle 1': row.calle1,
-      'Calle 2': row.calle2,
-      'Ciudad': row.ciudad,
-      'Estado': row.estado,
-      'Género': row.genero,
-      'Prueba': row.prueba,
-      'Suspensión': row.suspension,
-      'Fecha': row.fecha
+      'Línea de Negocio': v(row.lineaNegocio, 'lineaNegocio'),
+      'RIID': v(row.riid, 'riid'),
+      'Nombre': v(row.nombre, 'nombre'),
+      'Apellido Paterno': v(row.apellidoPaterno, 'apellidoPaterno'),
+      'Apellido Materno': v(row.apellidoMaterno, 'apellidoMaterno'),
+      'Correo': v(row.correo, 'correo'),
+      'Teléfono 1': v(row.telefono1, 'telefono1'),
+      'Teléfono 2': v(row.telefono2, 'telefono2'),
+      'Número de Cuenta': v(row.noCuenta, 'noCuenta'),
+      'NSS': v(row.nss, 'nss'),
+      'CURP': v(row.curp, 'curp'),
+      'RFC': v(row.rfc, 'rfc'),
+      'Póliza': v(row.poliza, 'poliza'),
+      'Fecha de Nacimiento': v(row.fechaNacimiento, 'fechaNacimiento'),
+      'Código Postal': v(row.cp, 'cp'),
+      'Calle 1': v(row.calle1, 'calle1'),
+      'Calle 2': v(row.calle2, 'calle2'),
+      'Ciudad': v(row.ciudad, 'ciudad'),
+      'Estado': v(row.estado, 'estado'),
+      'Género': v(row.genero, 'genero'),
+      'Prueba': v(row.prueba, 'prueba'),
+      'Suspensión': v(row.suspension, 'suspension'),
+      'Fecha': v(row.fecha, 'fecha')
     }
     if (tipo !== 'carga') {
       base['Estatus'] = row.estatus ?? ''
-      base['Detalle'] = row.detalle ?? ''
     }
     return base
   })
@@ -50,77 +79,79 @@ export function buildPETCsvRows(
   rows: RegistroPET[],
   tipo: ReporteTipo
 ): Array<Record<string, unknown>> {
+  const showDetalle = tipo !== 'carga'
   return rows.map(row => {
+    const errMap = showDetalle ? parseDetalleMap(row.detalle) : new Map<string, string>()
+    const v = (val: unknown, key: string) => showDetalle && errMap.size ? appendDetalle(val, key, errMap) : val
     const base: Record<string, unknown> = {
-      'Línea de negocio': row.lineaDeNegocio,
-      'Campaña': row.idCampana,
-      'No. Lote': row.numLote,
-      'ID Cliente': row.customerId,
-      'ID Afore': row.idAfore,
-      'Desc. Afore': row.descripcionDeAfore,
-      'ID Cliente Ahorrador': row.idClienteAhorrador,
-      'ID Préstamo Pensionado': row.idPrestamoPensionado,
-      'ID Susceptible Préstamo': row.idSusceptiblePrestamo,
-      'ID Baja/Cambio': row.idBajaCambio,
-      'ID Comunicación': row.idComunicacion,
-      'ID Persona': row.idPersona,
-      'Nombre': row.firstName,
-      'Apellido': row.lastName,
-      'Correo': row.correo,
-      'Teléfono': row.telefono,
-      'Siefore': row.siefore,
-      'Segmento': row.segmento,
-      'Régimen': row.regimen,
-      'Tipo Pensión': row.tipoPension,
-      'Grupo Pago': row.grupoPago,
-      'Fecha Baja/Cambio': row.fechaBajaCambio,
-      'Régimen IMSS': row.regimenImss,
-      'Segmento Afo': row.segmentoAfo,
-      'Edad': row.edad,
-      'Género': row.genero,
-      'Liga Rsaldos': row.ligaRsaldos,
-      'Segmento Pre': row.segmentoPre,
-      'Domicilio Preferente': row.domicilioPreferente,
-      'Empresa': row.empresa,
-      'Segmento Proy': row.segmentoProy,
-      'Paterno': row.paterno,
-      'Liga Titular': row.ligaTitular,
-      'Instituto': row.instituto,
-      'Trabajador': row.trabajador,
-      'Entidad': row.entidad,
-      'Medios Digitales': row.mediosDigitales,
-      'Apertura': row.apertura,
-      'No. Hijos': row.numeroHijos,
-      '+65': row.masy65,
-      'Menores': row.menores,
-      'Cuenta Menor 1': row.cuentaMenor1,
-      'Nombre Hijo 1': row.nombreHijo1,
-      'Liga Hijo 1': row.ligaHijo1,
-      'Cuenta Menor 2': row.cuentaMenor2,
-      'Nombre Hijo 2': row.nombreHijo2,
-      'Liga Hijo 2': row.ligaHijo2,
-      'Cuenta Menor 3': row.cuentaMenor3,
-      'Nombre Hijo 3': row.nombreHijo3,
-      'Liga Hijo 3': row.ligaHijo3,
-      'Cuenta Menor 4': row.cuentaMenor4,
-      'Nombre Hijo 4': row.nombreHijo4,
-      'Liga Hijo 4': row.ligaHijo4,
-      'Cuenta Menor 5': row.cuentaMenor5,
-      'Nombre Hijo 5': row.nombreHijo5,
-      'Liga Hijo 5': row.ligaHijo5,
-      'Cuenta Menor 6': row.cuentaMenor6,
-      'Nombre Hijo 6': row.nombreHijo6,
-      'Liga Hijo 6': row.ligaHijo6,
-      'Perfil': row.perfil,
-      'Hijos': row.hijos,
-      'Estatus Exp.': row.estatusExp,
-      'Sucursal': row.sucursal,
-      'Dom. Sucursal': row.domSucursal,
-      'Fecha': row.fecha
+      'Línea de Negocio': v(row.lineaDeNegocio, 'lineaDeNegocio'),
+      'Campaña': v(row.idCampana, 'idCampana'),
+      'Número de Lote': v(row.numLote, 'numLote'),
+      'ID Cliente': v(row.customerId, 'customerId'),
+      'ID Afore': v(row.idAfore, 'idAfore'),
+      'Descripción de Afore': v(row.descripcionDeAfore, 'descripcionDeAfore'),
+      'ID Cliente Ahorrador': v(row.idClienteAhorrador, 'idClienteAhorrador'),
+      'ID Préstamo Pensionado': v(row.idPrestamoPensionado, 'idPrestamoPensionado'),
+      'ID Susceptible Préstamo': v(row.idSusceptiblePrestamo, 'idSusceptiblePrestamo'),
+      'ID Baja/Cambio': v(row.idBajaCambio, 'idBajaCambio'),
+      'ID Comunicación': v(row.idComunicacion, 'idComunicacion'),
+      'ID Persona': v(row.idPersona, 'idPersona'),
+      'Nombre': v(row.firstName, 'firstName'),
+      'Apellido': v(row.lastName, 'lastName'),
+      'Correo': v(row.correo, 'correo'),
+      'Teléfono': v(row.telefono, 'telefono'),
+      'Siefore': v(row.siefore, 'siefore'),
+      'Segmento': v(row.segmento, 'segmento'),
+      'Régimen': v(row.regimen, 'regimen'),
+      'Tipo de Pensión': v(row.tipoPension, 'tipoPension'),
+      'Grupo de Pago': v(row.grupoPago, 'grupoPago'),
+      'Fecha de Baja/Cambio': v(row.fechaBajaCambio, 'fechaBajaCambio'),
+      'Régimen IMSS': v(row.regimenImss, 'regimenImss'),
+      'Segmento Afore': v(row.segmentoAfo, 'segmentoAfo'),
+      'Edad': v(row.edad, 'edad'),
+      'Género': v(row.genero, 'genero'),
+      'Liga Rsaldos': v(row.ligaRsaldos, 'ligaRsaldos'),
+      'Segmento Preferente': v(row.segmentoPre, 'segmentoPre'),
+      'Domicilio Preferente': v(row.domicilioPreferente, 'domicilioPreferente'),
+      'Empresa': v(row.empresa, 'empresa'),
+      'Segmento Proyección': v(row.segmentoProy, 'segmentoProy'),
+      'Paterno': v(row.paterno, 'paterno'),
+      'Liga Titular': v(row.ligaTitular, 'ligaTitular'),
+      'Instituto': v(row.instituto, 'instituto'),
+      'Trabajador': v(row.trabajador, 'trabajador'),
+      'Entidad': v(row.entidad, 'entidad'),
+      'Medios Digitales': v(row.mediosDigitales, 'mediosDigitales'),
+      'Apertura': v(row.apertura, 'apertura'),
+      'Número de Hijos': v(row.numeroHijos, 'numeroHijos'),
+      'Mayores de 65': v(row.masy65, 'masy65'),
+      'Menores': v(row.menores, 'menores'),
+      'Cuenta Menor 1': v(row.cuentaMenor1, 'cuentaMenor1'),
+      'Nombre Hijo 1': v(row.nombreHijo1, 'nombreHijo1'),
+      'Liga Hijo 1': v(row.ligaHijo1, 'ligaHijo1'),
+      'Cuenta Menor 2': v(row.cuentaMenor2, 'cuentaMenor2'),
+      'Nombre Hijo 2': v(row.nombreHijo2, 'nombreHijo2'),
+      'Liga Hijo 2': v(row.ligaHijo2, 'ligaHijo2'),
+      'Cuenta Menor 3': v(row.cuentaMenor3, 'cuentaMenor3'),
+      'Nombre Hijo 3': v(row.nombreHijo3, 'nombreHijo3'),
+      'Liga Hijo 3': v(row.ligaHijo3, 'ligaHijo3'),
+      'Cuenta Menor 4': v(row.cuentaMenor4, 'cuentaMenor4'),
+      'Nombre Hijo 4': v(row.nombreHijo4, 'nombreHijo4'),
+      'Liga Hijo 4': v(row.ligaHijo4, 'ligaHijo4'),
+      'Cuenta Menor 5': v(row.cuentaMenor5, 'cuentaMenor5'),
+      'Nombre Hijo 5': v(row.nombreHijo5, 'nombreHijo5'),
+      'Liga Hijo 5': v(row.ligaHijo5, 'ligaHijo5'),
+      'Cuenta Menor 6': v(row.cuentaMenor6, 'cuentaMenor6'),
+      'Nombre Hijo 6': v(row.nombreHijo6, 'nombreHijo6'),
+      'Liga Hijo 6': v(row.ligaHijo6, 'ligaHijo6'),
+      'Perfil': v(row.perfil, 'perfil'),
+      'Hijos': v(row.hijos, 'hijos'),
+      'Estatus Expediente': v(row.estatusExp, 'estatusExp'),
+      'Sucursal': v(row.sucursal, 'sucursal'),
+      'Domicilio Sucursal': v(row.domSucursal, 'domSucursal'),
+      'Fecha': v(row.fecha, 'fecha')
     }
     if (tipo !== 'carga') {
       base['Estatus'] = row.estatus ?? ''
-      base['Detalle'] = row.detalle ?? ''
     }
     return base
   })

@@ -73,7 +73,7 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
 
     <template v-if="scope === 'linea'">
       <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Filtros CL</p>
-      <p v-if="formErrors.clAtLeastOne" class="text-xs text-red-500">{{ formErrors.clAtLeastOne }}</p>
+      <p v-if="formErrors.clAtLeastOne" class="text-xs text-blue-500">{{ formErrors.clAtLeastOne }}</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">RIID <span class="text-blue-600">*</span></label>
@@ -96,8 +96,8 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
           <input :value="cl.telefono" @input="emit('update-cl', 'telefono', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Teléfono" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">No. Cuenta <span class="text-blue-600">*</span></label>
-          <input :value="cl.noCuenta" @input="emit('update-cl', 'noCuenta', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="No. Cuenta" />
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Número de Cuenta <span class="text-blue-600">*</span></label>
+          <input :value="cl.noCuenta" @input="emit('update-cl', 'noCuenta', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Número de Cuenta" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">NSS <span class="text-blue-600">*</span></label>
@@ -134,8 +134,8 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
       <p v-if="formErrors.petAtLeastOne" class="text-xs text-red-500">{{ formErrors.petAtLeastOne }}</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">No. Lote</label>
-          <input :value="pet.noLote" @input="emit('update-pet', 'noLote', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="No. Lote" />
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Número de Lote</label>
+          <input :value="pet.noLote" @input="emit('update-pet', 'noLote', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Número de Lote" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">ID Cliente <span class="text-blue-600">*</span></label>
@@ -146,16 +146,16 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
           <input :value="pet.idAfore" @input="emit('update-pet', 'idAfore', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="ID Afore" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">ID Cli. Ahorrador <span class="text-blue-600">*</span></label>
-          <input :value="pet.idClienteAhorrador" @input="emit('update-pet', 'idClienteAhorrador', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="ID Cli. Ahorrador" />
+          <label class="block text-xs font-semibold text-slate-600 mb-1">ID Cliente Ahorrador <span class="text-blue-600">*</span></label>
+          <input :value="pet.idClienteAhorrador" @input="emit('update-pet', 'idClienteAhorrador', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="ID Cliente Ahorrador" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">ID Prést. Pens. <span class="text-blue-600">*</span></label>
-          <input :value="pet.idPrestamoPensionado" @input="emit('update-pet', 'idPrestamoPensionado', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="ID Prést. Pens." />
+          <label class="block text-xs font-semibold text-slate-600 mb-1">ID Préstamo Pensionado <span class="text-blue-600">*</span></label>
+          <input :value="pet.idPrestamoPensionado" @input="emit('update-pet', 'idPrestamoPensionado', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="ID Préstamo Pensionado" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">ID Susc. Prést. <span class="text-blue-600">*</span></label>
-          <input :value="pet.idSusceptiblePrestamo" @input="emit('update-pet', 'idSusceptiblePrestamo', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="ID Susc. Prést." />
+          <label class="block text-xs font-semibold text-slate-600 mb-1">ID Susceptible Préstamo <span class="text-blue-600">*</span></label>
+          <input :value="pet.idSusceptiblePrestamo" @input="emit('update-pet', 'idSusceptiblePrestamo', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="ID Susceptible Préstamo" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">ID Baja/Cambio <span class="text-blue-600">*</span></label>

@@ -1138,17 +1138,33 @@ const server = http.createServer(async (req, res) => {
 
       if (pathOnly === '/cl/individual/carga' || pathOnly === '/cl/individual/validacion') {
         const isValidacion = pathOnly.endsWith('/validacion')
-        const list = store.clRegistros.map(r => isValidacion
-          ? { ...r, estatus: 'Aceptado', detalle: '' }
-          : r)
+        const list = store.clRegistros.map((r, idx) => {
+          if (!isValidacion) return r
+          const hasError = idx % 3 === 0
+          return {
+            ...r,
+            estatus: hasError ? 'Rechazado' : 'Aceptado',
+            detalle: hasError
+              ? JSON.stringify([{ columna: 'correo', atributo: 'correo', error: 'Formato de correo inválido' }, { columna: 'noCuenta', atributo: 'noCuenta', error: 'Número de cuenta no encontrado' }])
+              : ''
+          }
+        })
         return send(res, 200, [{ registros: list }])
       }
 
       if (pathOnly === '/pet/individual/carga' || pathOnly === '/pet/individual/validacion') {
         const isValidacion = pathOnly.endsWith('/validacion')
-        const list = store.petRegistros.map(r => isValidacion
-          ? { ...r, estatus: 'Aceptado', detalle: '' }
-          : r)
+        const list = store.petRegistros.map((r, idx) => {
+          if (!isValidacion) return r
+          const hasError = idx % 4 === 0
+          return {
+            ...r,
+            estatus: hasError ? 'Rechazado' : 'Aceptado',
+            detalle: hasError
+              ? JSON.stringify([{ columna: 'correo', atributo: 'correo', error: 'Correo no válido' }, { columna: 'telefono', atributo: 'telefono', error: 'Teléfono con formato incorrecto' }])
+              : ''
+          }
+        })
         return send(res, 200, [{ registros: list }])
       }
 
@@ -1158,6 +1174,62 @@ const server = http.createServer(async (req, res) => {
 
       if (pathOnly === '/pet/individual/envio') {
         return send(res, 200, [{ registros: store.petEnvio }])
+      }
+
+      if (pathOnly === '/cl/general/carga') {
+        return send(res, 200, [{ registros: [
+          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Individual', fecha: '14/04/2026', registros: '1520' },
+          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Grupo', fecha: '14/04/2026', registros: '830' },
+          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Ahorro Voluntario', fecha: '13/04/2026', registros: '2100' },
+          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Retiro', fecha: '13/04/2026', registros: '950' },
+          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Daños', fecha: '12/04/2026', registros: '670' }
+        ] }])
+      }
+
+      if (pathOnly === '/cl/general/validacion') {
+        return send(res, 200, [{ registros: [
+          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Individual', fecha: '14/04/2026', registros: '1520', aprobados: '1480', rechazados: '40' },
+          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Grupo', fecha: '14/04/2026', registros: '830', aprobados: '810', rechazados: '20' },
+          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Ahorro Voluntario', fecha: '13/04/2026', registros: '2100', aprobados: '2050', rechazados: '50' },
+          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Retiro', fecha: '13/04/2026', registros: '950', aprobados: '920', rechazados: '30' },
+          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Daños', fecha: '12/04/2026', registros: '670', aprobados: '650', rechazados: '20' }
+        ] }])
+      }
+
+      if (pathOnly === '/pet/general/carga') {
+        return send(res, 200, [{ registros: [
+          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Ahorro', fecha: '14/04/2026', registros: '3200' },
+          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Voluntario', fecha: '14/04/2026', registros: '1800' },
+          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Vida', fecha: '13/04/2026', registros: '2500' },
+          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Grupo', fecha: '13/04/2026', registros: '1100' }
+        ] }])
+      }
+
+      if (pathOnly === '/pet/general/validacion') {
+        return send(res, 200, [{ registros: [
+          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Ahorro', fecha: '14/04/2026', registros: '3200', aprobados: '3100', rechazados: '100' },
+          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Voluntario', fecha: '14/04/2026', registros: '1800', aprobados: '1750', rechazados: '50' },
+          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Vida', fecha: '13/04/2026', registros: '2500', aprobados: '2430', rechazados: '70' },
+          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Grupo', fecha: '13/04/2026', registros: '1100', aprobados: '1080', rechazados: '20' }
+        ] }])
+      }
+
+      if (pathOnly === '/cl/general/envio') {
+        return send(res, 200, [{ registros: [
+          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Individual', fecha: '15/04/2026', registros: '1400', aprobados: '1380', rechazados: '20' },
+          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Grupo', fecha: '15/04/2026', registros: '790', aprobados: '780', rechazados: '10' },
+          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Ahorro Voluntario', fecha: '14/04/2026', registros: '2000', aprobados: '1970', rechazados: '30' },
+          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Retiro', fecha: '14/04/2026', registros: '900', aprobados: '890', rechazados: '10' }
+        ] }])
+      }
+
+      if (pathOnly === '/pet/general/envio') {
+        return send(res, 200, [{ registros: [
+          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Ahorro', fecha: '15/04/2026', registros: '3000', aprobados: '2950', rechazados: '50' },
+          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Voluntario', fecha: '15/04/2026', registros: '1700', aprobados: '1680', rechazados: '20' },
+          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Vida', fecha: '14/04/2026', registros: '2400', aprobados: '2370', rechazados: '30' },
+          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Grupo', fecha: '14/04/2026', registros: '1050', aprobados: '1030', rechazados: '20' }
+        ] }])
       }
 
       const lineasMapeoParams = matchPath(pathOnly, '/lineas/:lineaId/mapeos')

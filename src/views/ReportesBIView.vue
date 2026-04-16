@@ -4,6 +4,7 @@ import ReportesFilters from '@/components/reportes/ReportesFilters.vue'
 import ReportesIndividualTable from '@/components/reportes/ReportesIndividualTable.vue'
 import ReportesGeneralFilters from '@/components/reportes/ReportesGeneralFilters.vue'
 import ReportesGeneralSummary from '@/components/reportes/ReportesGeneralSummary.vue'
+import ReportesGeneralTable from '@/components/reportes/ReportesGeneralTable.vue'
 import { useReportesViewModel } from '@/composables/reportes/useReportesViewModel'
 
 const {
@@ -45,11 +46,13 @@ const {
   generalTotalPages,
   generalCanPrevPage,
   generalCanNextPage,
-  paginatedGeneralCL,
-  paginatedGeneralPET,
+  paginatedGeneralRows,
   generalSummary,
   handleGeneralConsultar,
   handleGeneralClear,
+  handleGeneralExportCsv,
+  handleGeneralExportPdf,
+  generalExportLoading,
   generalPrevPage,
   generalNextPage
 } = useReportesViewModel('carga')
@@ -146,6 +149,8 @@ function updatePET(field: string, value: string) {
           :lineas-catalogo="lineasCatalogo"
           :campanas-catalogo="campanasCatalogo"
           :is-loading="generalIsLoading"
+          :export-loading="generalExportLoading"
+          :has-results="generalResultCount > 0"
           :form-errors="generalFormErrors"
           @update:id-linea-negocio="generalForm.idLineaNegocio = $event"
           @update:id-campana="generalForm.idCampana = $event"
@@ -153,6 +158,8 @@ function updatePET(field: string, value: string) {
           @update-pet="(f, v) => { (generalForm.pet as any)[f] = v }"
           @consultar="handleGeneralConsultar"
           @clear="handleGeneralClear"
+          @export-csv="handleGeneralExportCsv"
+          @export-pdf="(opts: any) => handleGeneralExportPdf(opts)"
         />
 
         <div v-if="generalError" class="bg-red-50 border border-red-200 rounded-xl p-4">
@@ -163,9 +170,8 @@ function updatePET(field: string, value: string) {
         <template v-if="generalHasQueried && !generalError">
           <ReportesGeneralSummary :summary="generalSummary" :tipo="generalTipo" />
 
-          <ReportesIndividualTable
-            :registros-c-l="paginatedGeneralCL"
-            :registros-p-e-t="paginatedGeneralPET"
+          <ReportesGeneralTable
+            :rows="paginatedGeneralRows"
             :total-rows="generalResultCount"
             :current-page="generalCurrentPage"
             :total-pages="generalTotalPages"

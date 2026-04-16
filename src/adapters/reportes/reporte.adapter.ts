@@ -1,6 +1,7 @@
 import type {
   RegistroCL,
   RegistroPET,
+  RegistroGeneral,
   ReporteApiResponseItem
 } from '@/types/reportes/reporte'
 
@@ -136,5 +137,27 @@ export function normalizeRegistroPET(raw: any): RegistroPET {
     fecha: safeString(raw?.fecha),
     estatus: raw?.estatus != null ? safeString(raw.estatus) : undefined,
     detalle: safeDetalle(raw?.detalle)
+  }
+}
+
+export function normalizeRegistroGeneral(raw: any): RegistroGeneral {
+  const rawFecha = raw?.fecha
+  let fecha = ''
+  if (rawFecha) {
+    const num = Number(rawFecha)
+    if (!isNaN(num) && num > 1e12) {
+      fecha = new Date(num).toLocaleDateString('es-MX')
+    } else {
+      fecha = safeString(rawFecha)
+    }
+  }
+  return {
+    lineaNegocio: safeString(raw?.lineaNegocio),
+    ...(raw?.campana != null ? { campana: safeString(raw.campana) } : {}),
+    mapeo: safeString(raw?.mapeo),
+    fecha,
+    registros: Number(raw?.registros) || 0,
+    ...(raw?.aprobados != null ? { aprobados: Number(raw.aprobados) || 0 } : {}),
+    ...(raw?.rechazados != null ? { rechazados: Number(raw.rechazados) || 0 } : {})
   }
 }

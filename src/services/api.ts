@@ -71,6 +71,8 @@ function getEndpointService(endpoint: string): ApiService {
   if (path.includes('/cl/individual')) return 'reportes_linea'
   if (path.includes('/pet/general/validacion')) return 'reportes_abc_campana'
   if (path.includes('/cl/general/validacion')) return 'reportes_abc_linea'
+  if (path.includes('/pet/general/envio')) return 'reportes_responsys_campana'
+  if (path.includes('/cl/general/envio')) return 'reportes_responsys_linea'
   if (path.includes('/pet/general')) return 'reportes_campana'
   if (path.includes('/cl/general')) return 'reportes_linea'
 
@@ -514,6 +516,14 @@ export const api = {
   getReporteGeneralPETValidacion: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
     return http.get(`/pet/general/validacion?${q}`)
+  },
+  getReporteGeneralCLEnvio: (filtros: Record<string, string>) => {
+    const q = buildQuery(filtros)
+    return http.get(`/cl/general/envio?${q}`)
+  },
+  getReporteGeneralPETEnvio: (filtros: Record<string, string>) => {
+    const q = buildQuery(filtros)
+    return http.get(`/pet/general/envio?${q}`)
   }
 
   ,

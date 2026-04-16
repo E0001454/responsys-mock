@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { Search } from 'lucide-vue-next'
-import type { ReporteGeneralTipo } from '@/types/reportes/reporte'
+import type { RegistroGeneral, ReporteGeneralTipo } from '@/types/reportes/reporte'
 
 const props = defineProps<{
-  rows: Record<string, string>[]
+  rows: RegistroGeneral[]
   totalRows: number
   currentPage: number
   totalPages: number
@@ -51,7 +51,7 @@ const isPET = computed(() => props.scope === 'campana')
         <table class="w-full text-sm text-left">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200">
-              <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Línea</th>
+              <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Línea de Negocio</th>
               <th v-if="isPET" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Campaña</th>
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Mapeo</th>
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Fecha</th>
@@ -66,12 +66,12 @@ const isPET = computed(() => props.scope === 'campana')
               <td v-if="isPET" class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.campana }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.mapeo }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-500 text-xs">{{ row.fecha }}</td>
-              <td class="px-4 py-3 whitespace-nowrap text-slate-700 text-right font-medium tabular-nums">{{ row.registros }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-slate-700 text-right font-medium tabular-nums">{{ row.registros.toLocaleString() }}</td>
               <td v-if="showAprobados" class="px-4 py-3 whitespace-nowrap text-right font-medium tabular-nums">
-                <span class="text-emerald-600">{{ row.aprobados }}</span>
+                <span class="text-emerald-600">{{ (row.aprobados ?? 0).toLocaleString() }}</span>
               </td>
               <td v-if="showAprobados" class="px-4 py-3 whitespace-nowrap text-right font-medium tabular-nums">
-                <span class="text-red-600">{{ row.rechazados }}</span>
+                <span class="text-red-600">{{ (row.rechazados ?? 0).toLocaleString() }}</span>
               </td>
             </tr>
           </tbody>
