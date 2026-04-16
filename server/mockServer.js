@@ -1138,6 +1138,12 @@ const server = http.createServer(async (req, res) => {
 
       if (pathOnly === '/cl/individual/carga' || pathOnly === '/cl/individual/validacion') {
         const isValidacion = pathOnly.endsWith('/validacion')
+        const clErrorPatterns = [
+          '{"columna":"EMAIL_ADDRESS_","atributo":"correo","error":"no es valido""longitud invalida"}',
+          '{"columna":"NOMBRE","atributo":"nombre","error":"vacío"}{"columna":"MOBILE_NUMBER_","atributo":"telefono1","error":"formato incorrecto"}',
+          '{"columna":"NUMERO_DE_CUENTA","atributo":"noCuenta","error":"vacío"}{"columna":"NSS","atributo":"nss","error":"longitud invalida"}{"columna":"CURP","atributo":"curp","error":"formato incorrecto"}',
+          '{"columna":"RFC","atributo":"rfc","error":"vacío""campo requerido"}'
+        ]
         const list = store.clRegistros.map((r, idx) => {
           if (!isValidacion) return r
           const hasError = idx % 3 === 0
@@ -1145,7 +1151,7 @@ const server = http.createServer(async (req, res) => {
             ...r,
             estatus: hasError ? 'Rechazado' : 'Aceptado',
             detalle: hasError
-              ? JSON.stringify([{ columna: 'correo', atributo: 'correo', error: 'Formato de correo inválido' }, { columna: 'noCuenta', atributo: 'noCuenta', error: 'Número de cuenta no encontrado' }])
+              ? clErrorPatterns[idx % clErrorPatterns.length]
               : ''
           }
         })
@@ -1154,6 +1160,12 @@ const server = http.createServer(async (req, res) => {
 
       if (pathOnly === '/pet/individual/carga' || pathOnly === '/pet/individual/validacion') {
         const isValidacion = pathOnly.endsWith('/validacion')
+        const petErrorPatterns = [
+          '{"columna":"EMAIL_ADDRESS_","atributo":"correo","error":"no es valido""longitud invalida"}{"columna":"MOBILE_NUMBER_","atributo":"telefono","error":"formato incorrecto"}',
+          '{"columna":"FIRST_NAME","atributo":"nombre","error":"vacío"}{"columna":"CUSTOMER_ID_","atributo":"idCliente","error":"no encontrado"}',
+          '{"columna":"REGIMEN_IMSS","atributo":"regimenIMSS","error":"código invalido""fuera de rango"}{"columna":"TIPO_PENSION","atributo":"tipoPension","error":"valor no reconocido"}{"columna":"ID_AFORE","atributo":"idAfore","error":"no encontrado en catálogo"}',
+          '{"columna":"LAST_NAME","atributo":"apellido","error":"vacío""campo requerido"}'
+        ]
         const list = store.petRegistros.map((r, idx) => {
           if (!isValidacion) return r
           const hasError = idx % 4 === 0
@@ -1161,7 +1173,7 @@ const server = http.createServer(async (req, res) => {
             ...r,
             estatus: hasError ? 'Rechazado' : 'Aceptado',
             detalle: hasError
-              ? JSON.stringify([{ columna: 'correo', atributo: 'correo', error: 'Correo no válido' }, { columna: 'telefono', atributo: 'telefono', error: 'Teléfono con formato incorrecto' }])
+              ? petErrorPatterns[idx % petErrorPatterns.length]
               : ''
           }
         })

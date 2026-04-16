@@ -126,12 +126,60 @@ const rows = computed(() =>
   props.scope === 'linea' ? props.registrosCL : props.registrosPET
 )
 
-interface DetalleError { columna?: string; atributo?: string; error?: string; err?: string }
+interface DetalleError { columna?: string; atributo?: string; error?: string | string[]; err?: string | string[] }
+
+function repairDetalleJson(text: string): string {
+  let t = text.trim()
+  t = t.replace(/([^":,{\[])"\s*"([^":,}\]])/g, '$1, $2')
+  t = t.replace(/\}\s*\{/g, '},{')
+  if (t.startsWith('{')) t = `[${t}]`
+  return t
+}
+
+const ATRIBUTO_TO_KEY: Record<string, string> = {
+  afore: 'descripciondeafore', idcliente: 'customerid', nolote: 'numlote',
+  campana: 'idcampana', nombre: 'firstname', apellido: 'lastname',
+  lineanegocio: 'lineadenegocio', regimenimss: 'regimenimss'
+}
+const COLUMNA_TO_KEY: Record<string, string> = {
+  email_address_: 'correo', mobile_number_: 'telefono', mobile_country_: 'telefono2',
+  riid_: 'riid', nombre: 'nombre', apellido_paterno: 'apellidopaterno',
+  apellido_materno: 'apellidomaterno', linea_de_negocio: 'lineanegocio',
+  numero_de_cuenta: 'nocuenta', date_of_birth: 'fechanacimiento',
+  postal_street_1_: 'calle1', postal_street_2_: 'calle2', city_: 'ciudad',
+  state_: 'estado', postal_code_: 'cp', suspension_logica: 'suspension',
+  'usuario prueba': 'prueba', id_afore: 'idafore', descripcion_de_afore: 'descripciondeafore',
+  id_cliente_ahorrador: 'idclienteahorrador', id_prestamo_pensionado: 'idprestamopensionado',
+  id_susceptible_prestamo: 'idsusceptibleprestamo', tipo_pension: 'tipopension',
+  grupo_pago: 'grupopago', customer_id_: 'customerid', num_lote: 'numlote',
+  nombre_campana: 'idcampana', id_campana: 'idcampana', id_baja_cambio: 'idbajacambio',
+  fecha_baja_cambio: 'fechabajacambio', regimen_imss: 'regimenimss',
+  segmento_afo: 'segmentoafo', liga_rsaldos: 'ligarsaldos', segmento_pre: 'segmentopre',
+  first_name: 'firstname', last_name: 'lastname', id_comunicacion: 'idcomunicacion',
+  domicilio_preferente: 'domiciliopreferente', segmento_proy: 'segmentoproy',
+  idpersona: 'idpersona', liga_titular: 'ligatitular', medios_digitales: 'mediosdigitales',
+  numero_hijos: 'numerohijos', cuenta_menor_1: 'cuentamenor1', nombre_hijo_1: 'nombrehijo1',
+  liga_hijo_1: 'ligahijo1', cuenta_menor_2: 'cuentamenor2', nombre_hijo_2: 'nombrehijo2',
+  liga_hijo_2: 'ligahijo2', cuenta_menor_3: 'cuentamenor3', nombre_hijo_3: 'nombrehijo3',
+  liga_hijo_3: 'ligahijo3', cuenta_menor_4: 'cuentamenor4', nombre_hijo_4: 'nombrehijo4',
+  liga_hijo_4: 'ligahijo4', cuenta_menor_5: 'cuentamenor5', nombre_hijo_5: 'nombrehijo5',
+  liga_hijo_5: 'ligahijo5', cuenta_menor_6: 'cuentamenor6', nombre_hijo_6: 'nombrehijo6',
+  liga_hijo_6: 'ligahijo6', estatus_exp: 'estatusexp', dom_sucursal: 'domsucursal'
+}
+
+function resolveColumnKeys(d: DetalleError): string[] {
+  const attr = (d.atributo ?? '').toLowerCase().trim()
+  const col = (d.columna ?? '').toLowerCase().trim()
+  const keys = new Set<string>()
+  if (attr) { keys.add(attr); if (ATRIBUTO_TO_KEY[attr]) keys.add(ATRIBUTO_TO_KEY[attr]) }
+  if (col) { keys.add(col); if (COLUMNA_TO_KEY[col]) keys.add(COLUMNA_TO_KEY[col]) }
+  return [...keys]
+}
 
 function parseDetalle(text: string | undefined): DetalleError[] | null {
   if (!text) return null
   try {
-    const parsed = JSON.parse(text)
+    const parsed = JSON.parse(repairDetalleJson(text))
     if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') return parsed
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return [parsed]
     return null
@@ -140,14 +188,25 @@ function parseDetalle(text: string | undefined): DetalleError[] | null {
   }
 }
 
+function cleanMsg(v: unknown): string {
+  if (Array.isArray(v)) return v.join(', ')
+  let s = String(v ?? '')
+  if (s.startsWith('[')) {
+    try { const arr = JSON.parse(s); if (Array.isArray(arr)) return arr.join(', ') } catch {}
+  }
+  return s.replace(/^\[|\]$/g, '').replace(/"/g, '').trim()
+}
+
 function buildErrorMap(row: Record<string, unknown>): Map<string, string> {
   const det = parseDetalle(row.detalle as string | undefined)
   if (!det) return new Map()
   const map = new Map<string, string>()
   for (const d of det) {
-    const key = (d.atributo ?? d.columna ?? '').toLowerCase()
-    const msg = d.error || d.err || ''
-    if (key && msg) map.set(key, msg)
+    const keys = resolveColumnKeys(d)
+    const msg = cleanMsg(d.error || d.err || '')
+    for (const key of keys) {
+      if (key) map.set(key, map.has(key) ? `${map.get(key)}, ${msg}` : msg)
+    }
   }
   return map
 }
@@ -182,7 +241,8 @@ function openCellDetalle(row: any, colKey: string, event: MouseEvent) {
   if (!msg) return
 
   const det = parseDetalle(row.detalle as string | undefined)
-  const cellErrors = (det ?? []).filter(d => (d.atributo ?? d.columna ?? '').toLowerCase() === colKey.toLowerCase())
+  const lowerKey = colKey.toLowerCase()
+  const cellErrors = (det ?? []).filter(d => resolveColumnKeys(d).includes(lowerKey))
   if (!cellErrors.length) return
 
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
@@ -284,24 +344,33 @@ onUnmounted(() => document.removeEventListener('click', closeDetalle))
     </template>
 
     <Teleport to="body">
-      <div
-        v-if="detallePopover"
-        class="fixed z-[9999] w-80 bg-white border border-red-200 rounded-xl shadow-2xl overflow-hidden"
-        :style="{ left: detallePopover.x + 'px', top: detallePopover.y + 'px' }"
-        @click.stop
-      >
-        <div class="bg-red-50 px-4 py-2 border-b border-red-200 flex items-center gap-2">
-          <AlertCircle class="w-4 h-4 text-red-500" />
-          <span class="text-sm font-semibold text-red-700">Detalle de errores</span>
-        </div>
-        <div class="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-          <div v-for="(err, idx) in detallePopover.errors" :key="idx" class="px-4 py-3 space-y-1 text-xs">
-            <p><span class="font-semibold text-slate-500">Columna:</span> <span class="text-slate-700">{{ err.columna }}</span></p>
-            <p><span class="font-semibold text-slate-500">Atributo:</span> <span class="text-slate-700">{{ err.atributo }}</span></p>
-            <p><span class="font-semibold text-red-600">Error:</span> <span class="text-red-700">{{ err.error || err.err }}</span></p>
+      <template v-if="detallePopover">
+        <div class="fixed inset-0 z-[9998]" @click="closeDetalle" />
+        <div
+          class="fixed z-[9999] w-80 bg-white border border-red-200 rounded-xl shadow-2xl overflow-hidden"
+          :style="{ left: detallePopover.x + 'px', top: detallePopover.y + 'px' }"
+          @click.stop
+        >
+          <div class="bg-red-50 px-3 py-2 border-b border-red-200 flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <AlertCircle class="w-4 h-4 text-red-500" />
+              <span class="text-sm font-semibold text-red-700">Detalle de errores</span>
+            </div>
+            <button @click="closeDetalle" class="p-0.5 rounded hover:bg-red-100 transition-colors text-red-400 hover:text-red-600">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="max-h-64 overflow-y-auto">
+            <div v-for="(err, idx) in detallePopover.errors" :key="idx" class="px-4 py-3 space-y-2" :class="{ 'border-t border-slate-100': idx > 0 }">
+              <div class="flex flex-wrap gap-1.5">
+                <span v-if="err.columna" class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-[10px] font-medium text-slate-500">{{ err.columna }}</span>
+                <span v-if="err.atributo" class="inline-flex items-center px-2 py-0.5 rounded-full bg-red-50 text-[10px] font-medium text-red-400">{{ err.atributo }}</span>
+              </div>
+              <p class="text-sm text-red-700 font-medium leading-snug">{{ cleanMsg(err.error || err.err || '') }}</p>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </Teleport>
   </div>
 </template>

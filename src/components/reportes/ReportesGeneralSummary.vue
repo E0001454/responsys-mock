@@ -109,8 +109,7 @@ const legendItems = computed(() => {
           </div>
           <div>
             <p class="text-[11px] text-slate-500 font-medium uppercase tracking-wide">Rango fechas</p>
-            <p class="text-xs font-semibold text-slate-700">{{ summary.fechaMin }}</p>
-            <p class="text-xs font-semibold text-slate-700">{{ summary.fechaMax }}</p>
+            <p class="text-xs font-semibold text-slate-700">{{ summary.fechaMin }} - {{ summary.fechaMax }}</p>
           </div>
         </div>
 
