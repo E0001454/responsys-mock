@@ -2,6 +2,7 @@ import http from 'http'
 import { readFile } from 'fs/promises'
 import { fileURLToPath } from 'url'
 import path from 'path'
+import { enrichCLRecord, enrichPETRecord, applyValidationErrors } from './lib/transformers.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -13,7 +14,11 @@ const now = () => new Date().toISOString()
 
 async function readJson(relPath) {
   const filePath = path.join(__dirname, relPath)
-  const raw = await readFile(filePath, 'utf-8')
+  let raw = await readFile(filePath, 'utf-8')
+  
+  if (raw.charCodeAt(0) === 0xFEFF) {
+    raw = raw.slice(1)
+  }
   return JSON.parse(raw)
 }
 
@@ -31,7 +36,13 @@ const store = {
   horariosTareaLinea: [],
   horariosTareaCampana: [],
   clRegistros: [],
-  petRegistros: []
+  petRegistros: [],
+  clGeneralCarga: [],
+  clGeneralValidacion: [],
+  clGeneralEnvio: [],
+  petGeneralCarga: [],
+  petGeneralValidacion: [],
+  petGeneralEnvio: []
 }
 
 const CATALOGOS_META = {
@@ -334,16 +345,35 @@ async function loadData() {
   let petRegistrosRaw = []
   let clEnvioRaw = []
   let petEnvioRaw = []
+  let clGeneralCargaRaw = []
+  let clGeneralValidacionRaw = []
+  let clGeneralEnvioRaw = []
+  let petGeneralCargaRaw = []
+  let petGeneralValidacionRaw = []
+  let petGeneralEnvioRaw = []
   try {
     clRegistrosRaw = await readJson('api/reportes/cl-registros.json')
     petRegistrosRaw = await readJson('api/reportes/pet-registros.json')
     clEnvioRaw = await readJson('api/reportes/cl-envio.json')
     petEnvioRaw = await readJson('api/reportes/pet-envio.json')
-  } catch {
+    clGeneralCargaRaw = await readJson('api/reportes/linea-general.json')
+    clGeneralValidacionRaw = await readJson('api/reportes/linea-general.json')
+    clGeneralEnvioRaw = await readJson('api/reportes/linea-general.json')
+    petGeneralCargaRaw = await readJson('api/reportes/campana-general.json')
+    petGeneralValidacionRaw = await readJson('api/reportes/campana-general.json')
+    petGeneralEnvioRaw = await readJson('api/reportes/campana-general.json')
+  } catch (e) {
+    console.error('[mock-server] error loading report files:', e.message)
     clRegistrosRaw = []
     petRegistrosRaw = []
     clEnvioRaw = []
     petEnvioRaw = []
+    clGeneralCargaRaw = []
+    clGeneralValidacionRaw = []
+    clGeneralEnvioRaw = []
+    petGeneralCargaRaw = []
+    petGeneralValidacionRaw = []
+    petGeneralEnvioRaw = []
   }
 
   await loadCatalogos()
@@ -462,6 +492,12 @@ async function loadData() {
   store.petRegistros = Array.isArray(petRegistrosRaw) ? petRegistrosRaw : []
   store.clEnvio = Array.isArray(clEnvioRaw) ? clEnvioRaw : []
   store.petEnvio = Array.isArray(petEnvioRaw) ? petEnvioRaw : []
+  store.clGeneralCarga = Array.isArray(clGeneralCargaRaw) ? clGeneralCargaRaw : []
+  store.clGeneralValidacion = Array.isArray(clGeneralValidacionRaw) ? clGeneralValidacionRaw : []
+  store.clGeneralEnvio = Array.isArray(clGeneralEnvioRaw) ? clGeneralEnvioRaw : []
+  store.petGeneralCarga = Array.isArray(petGeneralCargaRaw) ? petGeneralCargaRaw : []
+  store.petGeneralValidacion = Array.isArray(petGeneralValidacionRaw) ? petGeneralValidacionRaw : []
+  store.petGeneralEnvio = Array.isArray(petGeneralEnvioRaw) ? petGeneralEnvioRaw : []
 
   console.log('[mock-server] data loaded', {
     bitacoraEventos: store.bitacoraEventos.length,
@@ -478,7 +514,13 @@ async function loadData() {
     clRegistros: store.clRegistros.length,
     petRegistros: store.petRegistros.length,
     clEnvio: store.clEnvio.length,
-    petEnvio: store.petEnvio.length
+    petEnvio: store.petEnvio.length,
+    clGeneralCarga: store.clGeneralCarga.length,
+    clGeneralValidacion: store.clGeneralValidacion.length,
+    clGeneralEnvio: store.clGeneralEnvio.length,
+    petGeneralCarga: store.petGeneralCarga.length,
+    petGeneralValidacion: store.petGeneralValidacion.length,
+    petGeneralEnvio: store.petGeneralEnvio.length
   })
 }
 
@@ -1064,6 +1106,172 @@ function withColumnCounts(list, scope) {
   }))
 }
 
+function filterCLIndividualRecords(records, params) {
+  return records.filter(r => {
+    
+    if (params.riid && String(r.riid || '').toLowerCase() !== String(params.riid || '').toLowerCase()) {
+      return false
+    }
+    
+    if (params.nombre && !String(r.nombre || '').toLowerCase().includes(String(params.nombre || '').toLowerCase())) {
+      return false
+    }
+    
+    if (params.apellidoPaterno && !String(r.apellidoPaterno || '').toLowerCase().includes(String(params.apellidoPaterno || '').toLowerCase())) {
+      return false
+    }
+    
+    if (params.correo && !String(r.correo || '').toLowerCase().includes(String(params.correo || '').toLowerCase())) {
+      return false
+    }
+    
+    if (params.telefono && !String(r.telefono1 || '').includes(String(params.telefono || ''))) {
+      return false
+    }
+    
+    if (params.noCuenta && !String(r.noCuenta || '').includes(String(params.noCuenta || ''))) {
+      return false
+    }
+    
+    if (params.nss && !String(r.nss || '').includes(String(params.nss || ''))) {
+      return false
+    }
+    
+    if (params.curp && !String(r.curp || '').toLowerCase().includes(String(params.curp || '').toLowerCase())) {
+      return false
+    }
+    
+    if (params.rfc && !String(r.rfc || '').toLowerCase().includes(String(params.rfc || '').toLowerCase())) {
+      return false
+    }
+    
+    if (params.poliza && !String(r.poliza || '').includes(String(params.poliza || ''))) {
+      return false
+    }
+    
+    if (params.fechaInicio || params.fechaFin) {
+      const recordDate = r.fecha ? parseDate(r.fecha) : null
+      if (recordDate) {
+        if (params.fechaInicio) {
+          const startDate = parseDate(params.fechaInicio)
+          if (startDate && recordDate < startDate) return false
+        }
+        if (params.fechaFin) {
+          const endDate = parseDate(params.fechaFin)
+          if (endDate && recordDate > endDate) return false
+        }
+      }
+    }
+    return true
+  })
+}
+
+function filterPETIndividualRecords(records, params) {
+  return records.filter(r => {
+    
+    if (params.noLote && !String(r.numLote || '').includes(String(params.noLote || ''))) {
+      return false
+    }
+    
+    if (params.idCliente && String(r.customerId || '') !== String(params.idCliente || '')) {
+      return false
+    }
+    
+    if (params.idAfore && String(r.idAfore || '') !== String(params.idAfore || '')) {
+      return false
+    }
+    
+    if (params.idClienteAhorrador && String(r.idClienteAhorrador || '') !== String(params.idClienteAhorrador || '')) {
+      return false
+    }
+    
+    if (params.idPrestamoPensionado && String(r.idPrestamoPensionado || '') !== String(params.idPrestamoPensionado || '')) {
+      return false
+    }
+    
+    if (params.idSusceptiblePrestamo && String(r.idSusceptiblePrestamo || '') !== String(params.idSusceptiblePrestamo || '')) {
+      return false
+    }
+    
+    if (params.idBajaCambio && String(r.idBajaCambio || '') !== String(params.idBajaCambio || '')) {
+      return false
+    }
+    
+    if (params.idComunicacion && String(r.idComunicacion || '') !== String(params.idComunicacion || '')) {
+      return false
+    }
+    
+    if (params.idPersona && String(r.idPersona || '') !== String(params.idPersona || '')) {
+      return false
+    }
+    
+    if (params.nombre && !String(r.firstName || '').toLowerCase().includes(String(params.nombre || '').toLowerCase())) {
+      return false
+    }
+    
+    if (params.apellido && !String(r.lastName || '').toLowerCase().includes(String(params.apellido || '').toLowerCase())) {
+      return false
+    }
+    
+    if (params.correo && !String(r.correo || '').toLowerCase().includes(String(params.correo || '').toLowerCase())) {
+      return false
+    }
+    
+    if (params.telefono && !String(r.telefono || '').includes(String(params.telefono || ''))) {
+      return false
+    }
+    
+    if (params.fechaInicial || params.fechaFinal) {
+      const recordDate = r.fecha ? parseDate(r.fecha) : null
+      if (recordDate) {
+        if (params.fechaInicial) {
+          const startDate = parseDate(params.fechaInicial)
+          if (startDate && recordDate < startDate) return false
+        }
+        if (params.fechaFinal) {
+          const endDate = parseDate(params.fechaFinal)
+          if (endDate && recordDate > endDate) return false
+        }
+      }
+    }
+    return true
+  })
+}
+
+function parseDate(dateStr) {
+  
+  if (!dateStr) return null
+  const str = String(dateStr).trim()
+  if (str.includes('/')) {
+    const [day, month, year] = str.split('/')
+    return new Date(year, Number(month) - 1, day)
+  }
+  return new Date(str)
+}
+
+function filterGeneralRecords(records, params, scope) {
+  return records.filter(record => {
+    
+    if (params.fechaInicio || params.fechaFin || params.fechaInicial || params.fechaFinal) {
+      const recordDate = record.fecha ? parseDate(record.fecha) : null
+      if (recordDate) {
+        const startDate = params.fechaInicio || params.fechaInicial
+        const endDate = params.fechaFin || params.fechaFinal
+        
+        if (startDate) {
+          const startDateObj = parseDate(startDate)
+          if (startDateObj && recordDate < startDateObj) return false
+        }
+        if (endDate) {
+          const endDateObj = parseDate(endDate)
+          if (endDateObj && recordDate > endDateObj) return false
+        }
+      }
+    }
+    return true
+  })
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     if (req.method === 'OPTIONS') return send(res, 204)
@@ -1138,110 +1346,78 @@ const server = http.createServer(async (req, res) => {
 
       if (pathOnly === '/cl/individual/carga' || pathOnly === '/cl/individual/validacion') {
         const isValidacion = pathOnly.endsWith('/validacion')
-        const clErrorPatterns = [
-          '{"columna":"EMAIL_ADDRESS_","atributo":"correo","error":"no es valido""longitud invalida"}',
-          '{"columna":"NOMBRE","atributo":"nombre","error":"vacío"}{"columna":"MOBILE_NUMBER_","atributo":"telefono1","error":"formato incorrecto"}',
-          '{"columna":"NUMERO_DE_CUENTA","atributo":"noCuenta","error":"vacío"}{"columna":"NSS","atributo":"nss","error":"longitud invalida"}{"columna":"CURP","atributo":"curp","error":"formato incorrecto"}',
-          '{"columna":"RFC","atributo":"rfc","error":"vacío""campo requerido"}'
-        ]
-        const list = store.clRegistros.map((r, idx) => {
-          if (!isValidacion) return r
-          const hasError = idx % 3 === 0
-          return {
-            ...r,
-            estatus: hasError ? 'Rechazado' : 'Aceptado',
-            detalle: hasError
-              ? clErrorPatterns[idx % clErrorPatterns.length]
-              : ''
-          }
-        })
+        const params = Object.fromEntries(url.searchParams.entries())
+        let filteredRecords = filterCLIndividualRecords(store.clRegistros, params)
+        
+        if (isValidacion) {
+          filteredRecords = applyValidationErrors(filteredRecords, 'validacion', true)
+        }
+        
+        const list = filteredRecords.map(r => enrichCLRecord(r, isValidacion))
         return send(res, 200, [{ registros: list }])
       }
 
       if (pathOnly === '/pet/individual/carga' || pathOnly === '/pet/individual/validacion') {
         const isValidacion = pathOnly.endsWith('/validacion')
-        const petErrorPatterns = [
-          '{"columna":"EMAIL_ADDRESS_","atributo":"correo","error":"no es valido""longitud invalida"}{"columna":"MOBILE_NUMBER_","atributo":"telefono","error":"formato incorrecto"}',
-          '{"columna":"FIRST_NAME","atributo":"nombre","error":"vacío"}{"columna":"CUSTOMER_ID_","atributo":"idCliente","error":"no encontrado"}',
-          '{"columna":"REGIMEN_IMSS","atributo":"regimenIMSS","error":"código invalido""fuera de rango"}{"columna":"TIPO_PENSION","atributo":"tipoPension","error":"valor no reconocido"}{"columna":"ID_AFORE","atributo":"idAfore","error":"no encontrado en catálogo"}',
-          '{"columna":"LAST_NAME","atributo":"apellido","error":"vacío""campo requerido"}'
-        ]
-        const list = store.petRegistros.map((r, idx) => {
-          if (!isValidacion) return r
-          const hasError = idx % 4 === 0
-          return {
-            ...r,
-            estatus: hasError ? 'Rechazado' : 'Aceptado',
-            detalle: hasError
-              ? petErrorPatterns[idx % petErrorPatterns.length]
-              : ''
-          }
-        })
+        const params = Object.fromEntries(url.searchParams.entries())
+        let filteredRecords = filterPETIndividualRecords(store.petRegistros, params)
+        
+        if (isValidacion) {
+          filteredRecords = applyValidationErrors(filteredRecords, 'validacion', true)
+        }
+        
+        const list = filteredRecords.map(r => enrichPETRecord(r, isValidacion))
         return send(res, 200, [{ registros: list }])
       }
 
       if (pathOnly === '/cl/individual/envio') {
-        return send(res, 200, [{ registros: store.clEnvio }])
+        const params = Object.fromEntries(url.searchParams.entries())
+        let filteredRecords = filterCLIndividualRecords(store.clEnvio, params)
+        const list = filteredRecords.map(r => enrichCLRecord(r, false))
+        return send(res, 200, [{ registros: list }])
       }
 
       if (pathOnly === '/pet/individual/envio') {
-        return send(res, 200, [{ registros: store.petEnvio }])
+        const params = Object.fromEntries(url.searchParams.entries())
+        let filteredRecords = filterPETIndividualRecords(store.petEnvio, params)
+        const list = filteredRecords.map(r => enrichPETRecord(r, false))
+        return send(res, 200, [{ registros: list }])
       }
 
       if (pathOnly === '/cl/general/carga') {
-        return send(res, 200, [{ registros: [
-          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Individual', fecha: '14/04/2026', registros: '1520' },
-          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Grupo', fecha: '14/04/2026', registros: '830' },
-          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Ahorro Voluntario', fecha: '13/04/2026', registros: '2100' },
-          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Retiro', fecha: '13/04/2026', registros: '950' },
-          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Daños', fecha: '12/04/2026', registros: '670' }
-        ] }])
+        const params = Object.fromEntries(url.searchParams.entries())
+        const filteredRecords = filterGeneralRecords(store.clGeneralCarga, params, 'linea')
+        return send(res, 200, [{ registros: filteredRecords }])
       }
 
       if (pathOnly === '/cl/general/validacion') {
-        return send(res, 200, [{ registros: [
-          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Individual', fecha: '14/04/2026', registros: '1520', aprobados: '1480', rechazados: '40' },
-          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Grupo', fecha: '14/04/2026', registros: '830', aprobados: '810', rechazados: '20' },
-          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Ahorro Voluntario', fecha: '13/04/2026', registros: '2100', aprobados: '2050', rechazados: '50' },
-          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Retiro', fecha: '13/04/2026', registros: '950', aprobados: '920', rechazados: '30' },
-          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Daños', fecha: '12/04/2026', registros: '670', aprobados: '650', rechazados: '20' }
-        ] }])
-      }
-
-      if (pathOnly === '/pet/general/carga') {
-        return send(res, 200, [{ registros: [
-          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Ahorro', fecha: '14/04/2026', registros: '3200' },
-          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Voluntario', fecha: '14/04/2026', registros: '1800' },
-          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Vida', fecha: '13/04/2026', registros: '2500' },
-          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Grupo', fecha: '13/04/2026', registros: '1100' }
-        ] }])
-      }
-
-      if (pathOnly === '/pet/general/validacion') {
-        return send(res, 200, [{ registros: [
-          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Ahorro', fecha: '14/04/2026', registros: '3200', aprobados: '3100', rechazados: '100' },
-          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Voluntario', fecha: '14/04/2026', registros: '1800', aprobados: '1750', rechazados: '50' },
-          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Vida', fecha: '13/04/2026', registros: '2500', aprobados: '2430', rechazados: '70' },
-          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Grupo', fecha: '13/04/2026', registros: '1100', aprobados: '1080', rechazados: '20' }
-        ] }])
+        const params = Object.fromEntries(url.searchParams.entries())
+        const filteredRecords = filterGeneralRecords(store.clGeneralValidacion, params, 'linea')
+        return send(res, 200, [{ registros: filteredRecords }])
       }
 
       if (pathOnly === '/cl/general/envio') {
-        return send(res, 200, [{ registros: [
-          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Individual', fecha: '15/04/2026', registros: '1400', aprobados: '1380', rechazados: '20' },
-          { lineaNegocio: 'SEGUROS', mapeo: 'Mapeo Vida Grupo', fecha: '15/04/2026', registros: '790', aprobados: '780', rechazados: '10' },
-          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Ahorro Voluntario', fecha: '14/04/2026', registros: '2000', aprobados: '1970', rechazados: '30' },
-          { lineaNegocio: 'AFORE', mapeo: 'Mapeo Retiro', fecha: '14/04/2026', registros: '900', aprobados: '890', rechazados: '10' }
-        ] }])
+        const params = Object.fromEntries(url.searchParams.entries())
+        const filteredRecords = filterGeneralRecords(store.clGeneralEnvio, params, 'linea')
+        return send(res, 200, [{ registros: filteredRecords }])
+      }
+
+      if (pathOnly === '/pet/general/carga') {
+        const params = Object.fromEntries(url.searchParams.entries())
+        const filteredRecords = filterGeneralRecords(store.petGeneralCarga, params, 'campana')
+        return send(res, 200, [{ registros: filteredRecords }])
+      }
+
+      if (pathOnly === '/pet/general/validacion') {
+        const params = Object.fromEntries(url.searchParams.entries())
+        const filteredRecords = filterGeneralRecords(store.petGeneralValidacion, params, 'campana')
+        return send(res, 200, [{ registros: filteredRecords }])
       }
 
       if (pathOnly === '/pet/general/envio') {
-        return send(res, 200, [{ registros: [
-          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Ahorro', fecha: '15/04/2026', registros: '3000', aprobados: '2950', rechazados: '50' },
-          { lineaNegocio: 'AFORE', campana: 'Campaña Retiro 2026', mapeo: 'Mapeo Voluntario', fecha: '15/04/2026', registros: '1700', aprobados: '1680', rechazados: '20' },
-          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Vida', fecha: '14/04/2026', registros: '2400', aprobados: '2370', rechazados: '30' },
-          { lineaNegocio: 'SEGUROS', campana: 'Campaña Vida 2026', mapeo: 'Mapeo Grupo', fecha: '14/04/2026', registros: '1050', aprobados: '1030', rechazados: '20' }
-        ] }])
+        const params = Object.fromEntries(url.searchParams.entries())
+        const filteredRecords = filterGeneralRecords(store.petGeneralEnvio, params, 'campana')
+        return send(res, 200, [{ registros: filteredRecords }])
       }
 
       const lineasMapeoParams = matchPath(pathOnly, '/lineas/:lineaId/mapeos')
