@@ -2,7 +2,7 @@ const ENV_USE_MOCK = String(import.meta.env.VITE_USE_MOCK ?? 'true').toLowerCase
 const ENV_API_REAL = import.meta.env.VITE_API_URL_REAL || 'http://localhost:3000/api'
 const ENV_API_MOCK = import.meta.env.VITE_API_URL_MOCK || 'http://localhost:3100/api'
 
-const PER_ENDPOINT_OVERRIDE = {
+const PER_ENDPOINT_OVERRIDE: Record<string, boolean> = {
 }
 
 export function getApiConfig() {
@@ -14,18 +14,18 @@ export function getApiConfig() {
   }
 }
 
-export function shouldUseMock(endpoint) {
+export function shouldUseMock(endpoint: string) {
   const override = PER_ENDPOINT_OVERRIDE[endpoint]
   if (override !== undefined) return override
   return ENV_USE_MOCK
 }
 
-export function getApiUrl(endpoint) {
+export function getApiUrl(endpoint: string) {
   const useMock = shouldUseMock(endpoint)
   return useMock ? ENV_API_MOCK : ENV_API_REAL
 }
 
-export function setPerEndpointOverride(endpoint, useMock) {
+export function setPerEndpointOverride(endpoint: string, useMock: boolean) {
   PER_ENDPOINT_OVERRIDE[endpoint] = useMock
 }
 

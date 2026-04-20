@@ -25,6 +25,7 @@ import {
 import { addToast } from '@/stores/toastStore'
 import { downloadReporteExcel, downloadGeneralExcel } from '@/utils/reportes/reporteExcel.utils'
 import { downloadReportePdfReport, downloadReporteGeneralPdf } from '@/utils/reportes/reportePdf.utils'
+import { api } from '@/services/api'
 
 interface Option {
   label: string
@@ -162,6 +163,7 @@ export function useReportesViewModel(tipo: ReporteTipo) {
         registrosPET: registrosPET.value
       })
       addToast('Reporte Excel descargado correctamente', 'success')
+      api.postBitacoraByContext('DOWNLOAD', `/reportes/${form.scope}/${tipo}`, {}, `Descarga Excel reporte ${tipo} ${form.scope}`).catch(() => {})
     } catch {
       addToast('Error al generar el archivo Excel', 'error')
     } finally {
@@ -183,6 +185,7 @@ export function useReportesViewModel(tipo: ReporteTipo) {
         registrosPET: registrosPET.value
       })
       addToast('Reporte PDF descargado correctamente', 'success')
+      api.postBitacoraByContext('DOWNLOAD', `/reportes/${form.scope}/${tipo}`, {}, `Descarga PDF reporte ${tipo} ${form.scope}`).catch(() => {})
     } catch {
       addToast('Error al generar el archivo PDF', 'error')
     } finally {
@@ -318,6 +321,7 @@ export function useReportesViewModel(tipo: ReporteTipo) {
         rows: generalRows.value
       })
       addToast('Reporte Excel descargado correctamente', 'success')
+      api.postBitacoraByContext('DOWNLOAD', `/reportes/general/${generalForm.scope}/${generalTipo}`, {}, `Descarga Excel reporte general ${generalTipo} ${generalForm.scope}`).catch(() => {})
     } catch {
       addToast('Error al generar el archivo Excel', 'error')
     } finally {
@@ -340,6 +344,7 @@ export function useReportesViewModel(tipo: ReporteTipo) {
         summary: generalSummary.value
       })
       addToast('Reporte PDF descargado correctamente', 'success')
+      api.postBitacoraByContext('DOWNLOAD', `/reportes/general/${generalForm.scope}/${generalTipo}`, {}, `Descarga PDF reporte general ${generalTipo} ${generalForm.scope}`).catch(() => {})
     } catch {
       addToast('Error al generar el archivo PDF', 'error')
     } finally {

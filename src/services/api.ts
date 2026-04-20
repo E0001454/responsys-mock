@@ -545,7 +545,7 @@ export const api = {
 
     const evento = isColumnas
       ? 1
-      : (method === 'POST' ? 3 : method === 'PUT' || method === 'PATCH' ? 4 : 0)
+      : (method === 'POST' ? 3 : method === 'PUT' || method === 'PATCH' ? 4 : method === 'DOWNLOAD' ? 5 : 0)
 
     const objeto = isColumnas ? 1 : 2
 

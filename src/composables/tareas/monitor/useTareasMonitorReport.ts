@@ -9,6 +9,7 @@ import { formatTimeLabel } from '@/utils/tareas/monitor/tareasMonitorFormat.util
 import { canApproveStageByRules } from '@/utils/tareas/monitor/monitorStatusRules.utils'
 import { convertRowsToCSV, downloadCsvFile } from '@/utils/reports/csvExport'
 import { downloadTareasMonitorPdfReport } from '@/utils/reports/tareasMonitorPdfReport'
+import { api } from '@/services/api'
 
 export type MonitorTabKey = 'linea' | 'campana'
 
@@ -201,6 +202,9 @@ export function useTareasMonitorReport(deps: UseTareasMonitorReportDeps) {
           getDictamenExportState
         })
       }
+
+      const formatLabel = options.format === 'csv' ? 'CSV' : 'PDF'
+      api.postBitacoraByContext('DOWNLOAD', `/tareas/monitor/${deps.activeTab.value}`, {}, `Descarga ${formatLabel} monitoreo ${deps.activeTab.value}`).catch(() => {})
 
       deps.closeReportModal()
     } catch (error) {
