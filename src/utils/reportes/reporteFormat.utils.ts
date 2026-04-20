@@ -88,8 +88,8 @@ function appendDetalle(val: unknown, key: string, errorMap: Map<string, string>)
 
 export function getEstatusClass(estatus?: string): string {
   const c = String(estatus ?? '').toUpperCase()
-  if (c === 'ACEPTADO' || c === 'EXITOSO' || c === 'OK') return 'bg-emerald-100 text-emerald-700'
-  if (c === 'RECHAZADO' || c === 'ERROR') return 'bg-red-100 text-red-700'
+  if (c === 'APROBADO' || c === 'EXITOSO' || c === 'OK') return 'bg-emerald-500 text-emerald-800'
+  if (c === 'RECHAZADO' || c === 'ERROR') return 'bg-red-200 text-red-800'
   if (c === 'PENDIENTE' || c === 'EN_PROCESO') return 'bg-blue-100 text-blue-700'
   return 'bg-slate-100 text-slate-600'
 }

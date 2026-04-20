@@ -68,10 +68,10 @@ const isPET = computed(() => props.scope === 'campana')
               <td class="px-4 py-3 whitespace-nowrap text-slate-500 text-xs">{{ row.fecha }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700 text-right font-medium tabular-nums">{{ row.registros.toLocaleString() }}</td>
               <td v-if="showAprobados" class="px-4 py-3 whitespace-nowrap text-right font-medium tabular-nums">
-                <span class="text-emerald-600">{{ (row.aprobados ?? 0).toLocaleString() }}</span>
+                <span class="text-emerald-700 font-bold">{{ (row.aprobados ?? 0).toLocaleString() }}</span>
               </td>
               <td v-if="showAprobados" class="px-4 py-3 whitespace-nowrap text-right font-medium tabular-nums">
-                <span class="text-red-600">{{ (row.rechazados ?? 0).toLocaleString() }}</span>
+                <span class="text-red-700 font-bold">{{ (row.rechazados ?? 0).toLocaleString() }}</span>
               </td>
             </tr>
           </tbody>

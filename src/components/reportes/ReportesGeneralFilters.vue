@@ -93,13 +93,13 @@ const includeChart = ref(true)
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha inicial <span class="text-red-500">*</span></label>
-          <input type="date" :value="pet.fechaInicial" :max="todayISO" @input="emit('update-pet', 'fechaInicial', ($event.target as HTMLInputElement).value)" :class="inputClass" />
-          <p v-if="formErrors.gFechaInicial" class="text-xs text-red-500 mt-1">{{ formErrors.gFechaInicial }}</p>
+          <input type="date" :value="pet.fechaInicio" :max="todayISO" @input="emit('update-pet', 'fechaInicio', ($event.target as HTMLInputElement).value)" :class="inputClass" />
+          <p v-if="formErrors.gFechaInicio" class="text-xs text-red-500 mt-1">{{ formErrors.gFechaInicio }}</p>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha final <span class="text-red-500">*</span></label>
-          <input type="date" :value="pet.fechaFinal" :max="todayISO" @input="emit('update-pet', 'fechaFinal', ($event.target as HTMLInputElement).value)" :class="inputClass" />
-          <p v-if="formErrors.gFechaFinal" class="text-xs text-red-500 mt-1">{{ formErrors.gFechaFinal }}</p>
+          <input type="date" :value="pet.fechaFin" :max="todayISO" @input="emit('update-pet', 'fechaFin', ($event.target as HTMLInputElement).value)" :class="inputClass" />
+          <p v-if="formErrors.gFechaFin" class="text-xs text-red-500 mt-1">{{ formErrors.gFechaFin }}</p>
         </div>
       </div>
       <p class="text-[11px] text-slate-400"><span class="text-red-500">*</span> Obligatorio</p>

@@ -2,7 +2,7 @@ import http from 'http'
 import { readFile } from 'fs/promises'
 import { fileURLToPath } from 'url'
 import path from 'path'
-import { enrichCLRecord, enrichPETRecord, applyValidationErrors } from './lib/transformers.js'
+
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -35,8 +35,12 @@ const store = {
   monitorTareasCampana: [],
   horariosTareaLinea: [],
   horariosTareaCampana: [],
-  clRegistros: [],
-  petRegistros: [],
+  clCarga: [],
+  clValidacion: [],
+  clEnvio: [],
+  petCarga: [],
+  petValidacion: [],
+  petEnvio: [],
   clGeneralCarga: [],
   clGeneralValidacion: [],
   clGeneralEnvio: [],
@@ -341,40 +345,19 @@ async function loadData() {
     bitacoraEventosRaw = []
   }
 
-  let clRegistrosRaw = []
-  let petRegistrosRaw = []
-  let clEnvioRaw = []
-  let petEnvioRaw = []
-  let clGeneralCargaRaw = []
-  let clGeneralValidacionRaw = []
-  let clGeneralEnvioRaw = []
-  let petGeneralCargaRaw = []
-  let petGeneralValidacionRaw = []
-  let petGeneralEnvioRaw = []
-  try {
-    clRegistrosRaw = await readJson('api/reportes/cl-registros.json')
-    petRegistrosRaw = await readJson('api/reportes/pet-registros.json')
-    clEnvioRaw = await readJson('api/reportes/cl-envio.json')
-    petEnvioRaw = await readJson('api/reportes/pet-envio.json')
-    clGeneralCargaRaw = await readJson('api/reportes/linea-general.json')
-    clGeneralValidacionRaw = await readJson('api/reportes/linea-general.json')
-    clGeneralEnvioRaw = await readJson('api/reportes/linea-general.json')
-    petGeneralCargaRaw = await readJson('api/reportes/campana-general.json')
-    petGeneralValidacionRaw = await readJson('api/reportes/campana-general.json')
-    petGeneralEnvioRaw = await readJson('api/reportes/campana-general.json')
-  } catch (e) {
-    console.error('[mock-server] error loading report files:', e.message)
-    clRegistrosRaw = []
-    petRegistrosRaw = []
-    clEnvioRaw = []
-    petEnvioRaw = []
-    clGeneralCargaRaw = []
-    clGeneralValidacionRaw = []
-    clGeneralEnvioRaw = []
-    petGeneralCargaRaw = []
-    petGeneralValidacionRaw = []
-    petGeneralEnvioRaw = []
-  }
+  const loadReport = async (file) => { try { return await readJson(file) } catch { return [] } }
+  const clCargaRaw = await loadReport('api/reportes/cl-carga.json')
+  const clValidacionRaw = await loadReport('api/reportes/cl-validacion.json')
+  const clEnvioRaw = await loadReport('api/reportes/cl-envio.json')
+  const petCargaRaw = await loadReport('api/reportes/pet-carga.json')
+  const petValidacionRaw = await loadReport('api/reportes/pet-validacion.json')
+  const petEnvioRaw = await loadReport('api/reportes/pet-envio.json')
+  const clGeneralCargaRaw = await loadReport('api/reportes/linea-general-data.json')
+  const clGeneralValidacionRaw = await loadReport('api/reportes/linea-general-data.json')
+  const clGeneralEnvioRaw = await loadReport('api/reportes/linea-general-data.json')
+  const petGeneralCargaRaw = await loadReport('api/reportes/campana-general-data.json')
+  const petGeneralValidacionRaw = await loadReport('api/reportes/campana-general-data.json')
+  const petGeneralEnvioRaw = await loadReport('api/reportes/campana-general-data.json')
 
   await loadCatalogos()
 
@@ -488,9 +471,11 @@ async function loadData() {
     )
   })
 
-  store.clRegistros = Array.isArray(clRegistrosRaw) ? clRegistrosRaw : []
-  store.petRegistros = Array.isArray(petRegistrosRaw) ? petRegistrosRaw : []
+  store.clCarga = Array.isArray(clCargaRaw) ? clCargaRaw : []
+  store.clValidacion = Array.isArray(clValidacionRaw) ? clValidacionRaw : []
   store.clEnvio = Array.isArray(clEnvioRaw) ? clEnvioRaw : []
+  store.petCarga = Array.isArray(petCargaRaw) ? petCargaRaw : []
+  store.petValidacion = Array.isArray(petValidacionRaw) ? petValidacionRaw : []
   store.petEnvio = Array.isArray(petEnvioRaw) ? petEnvioRaw : []
   store.clGeneralCarga = Array.isArray(clGeneralCargaRaw) ? clGeneralCargaRaw : []
   store.clGeneralValidacion = Array.isArray(clGeneralValidacionRaw) ? clGeneralValidacionRaw : []
@@ -511,9 +496,11 @@ async function loadData() {
     monitorTareasCampana: store.monitorTareasCampana.length,
     horariosTareaLinea: store.horariosTareaLinea.length,
     horariosTareaCampana: store.horariosTareaCampana.length,
-    clRegistros: store.clRegistros.length,
-    petRegistros: store.petRegistros.length,
+    clCarga: store.clCarga.length,
+    clValidacion: store.clValidacion.length,
     clEnvio: store.clEnvio.length,
+    petCarga: store.petCarga.length,
+    petValidacion: store.petValidacion.length,
     petEnvio: store.petEnvio.length,
     clGeneralCarga: store.clGeneralCarga.length,
     clGeneralValidacion: store.clGeneralValidacion.length,
@@ -1221,15 +1208,15 @@ function filterPETIndividualRecords(records, params) {
       return false
     }
     
-    if (params.fechaInicial || params.fechaFinal) {
+    if (params.fechaInicio || params.fechaFin) {
       const recordDate = r.fecha ? parseDate(r.fecha) : null
       if (recordDate) {
-        if (params.fechaInicial) {
-          const startDate = parseDate(params.fechaInicial)
+        if (params.fechaInicio) {
+          const startDate = parseDate(params.fechaInicio)
           if (startDate && recordDate < startDate) return false
         }
-        if (params.fechaFinal) {
-          const endDate = parseDate(params.fechaFinal)
+        if (params.fechaFin) {
+          const endDate = parseDate(params.fechaFin)
           if (endDate && recordDate > endDate) return false
         }
       }
@@ -1252,18 +1239,15 @@ function parseDate(dateStr) {
 function filterGeneralRecords(records, params, scope) {
   return records.filter(record => {
     
-    if (params.fechaInicio || params.fechaFin || params.fechaInicial || params.fechaFinal) {
+    if (params.fechaInicio || params.fechaFin) {
       const recordDate = record.fecha ? parseDate(record.fecha) : null
       if (recordDate) {
-        const startDate = params.fechaInicio || params.fechaInicial
-        const endDate = params.fechaFin || params.fechaFinal
-        
-        if (startDate) {
-          const startDateObj = parseDate(startDate)
+        if (params.fechaInicio) {
+          const startDateObj = parseDate(params.fechaInicio)
           if (startDateObj && recordDate < startDateObj) return false
         }
-        if (endDate) {
-          const endDateObj = parseDate(endDate)
+        if (params.fechaFin) {
+          const endDateObj = parseDate(params.fechaFin)
           if (endDateObj && recordDate > endDateObj) return false
         }
       }
@@ -1344,43 +1328,39 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, store.monitorTareasCampana)
       }
 
-      if (pathOnly === '/cl/individual/carga' || pathOnly === '/cl/individual/validacion') {
-        const isValidacion = pathOnly.endsWith('/validacion')
+      if (pathOnly === '/cl/individual/carga') {
         const params = Object.fromEntries(url.searchParams.entries())
-        let filteredRecords = filterCLIndividualRecords(store.clRegistros, params)
-        
-        if (isValidacion) {
-          filteredRecords = applyValidationErrors(filteredRecords, 'validacion', true)
-        }
-        
-        const list = filteredRecords.map(r => enrichCLRecord(r, isValidacion))
+        const list = filterCLIndividualRecords(store.clCarga, params)
         return send(res, 200, [{ registros: list }])
       }
 
-      if (pathOnly === '/pet/individual/carga' || pathOnly === '/pet/individual/validacion') {
-        const isValidacion = pathOnly.endsWith('/validacion')
+      if (pathOnly === '/cl/individual/validacion') {
         const params = Object.fromEntries(url.searchParams.entries())
-        let filteredRecords = filterPETIndividualRecords(store.petRegistros, params)
-        
-        if (isValidacion) {
-          filteredRecords = applyValidationErrors(filteredRecords, 'validacion', true)
-        }
-        
-        const list = filteredRecords.map(r => enrichPETRecord(r, isValidacion))
+        const list = filterCLIndividualRecords(store.clValidacion, params)
+        return send(res, 200, [{ registros: list }])
+      }
+
+      if (pathOnly === '/pet/individual/carga') {
+        const params = Object.fromEntries(url.searchParams.entries())
+        const list = filterPETIndividualRecords(store.petCarga, params)
+        return send(res, 200, [{ registros: list }])
+      }
+
+      if (pathOnly === '/pet/individual/validacion') {
+        const params = Object.fromEntries(url.searchParams.entries())
+        const list = filterPETIndividualRecords(store.petValidacion, params)
         return send(res, 200, [{ registros: list }])
       }
 
       if (pathOnly === '/cl/individual/envio') {
         const params = Object.fromEntries(url.searchParams.entries())
-        let filteredRecords = filterCLIndividualRecords(store.clEnvio, params)
-        const list = filteredRecords.map(r => enrichCLRecord(r, false))
+        const list = filterCLIndividualRecords(store.clEnvio, params)
         return send(res, 200, [{ registros: list }])
       }
 
       if (pathOnly === '/pet/individual/envio') {
         const params = Object.fromEntries(url.searchParams.entries())
-        let filteredRecords = filterPETIndividualRecords(store.petEnvio, params)
-        const list = filteredRecords.map(r => enrichPETRecord(r, false))
+        const list = filterPETIndividualRecords(store.petEnvio, params)
         return send(res, 200, [{ registros: list }])
       }
 

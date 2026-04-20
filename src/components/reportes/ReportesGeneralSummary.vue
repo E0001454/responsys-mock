@@ -71,7 +71,6 @@ const legendItems = computed(() => {
 <template>
   <div v-if="summary" class="bg-white border border-slate-200 rounded-xl p-4 space-y-4">
     <div class="flex flex-col lg:flex-row gap-4">
-      <!-- Stat cards -->
       <div class="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div class="bg-slate-50 rounded-lg p-3 flex items-center gap-3">
           <div class="flex-shrink-0 h-9 w-9 rounded-full bg-blue-100 text-[#00357F] flex items-center justify-center">
@@ -136,7 +135,6 @@ const legendItems = computed(() => {
         </template>
       </div>
 
-      <!-- Pie chart -->
       <div class="flex-shrink-0 flex flex-col items-center gap-3 lg:w-56">
         <div
           class="w-36 h-36 rounded-full shadow-inner"

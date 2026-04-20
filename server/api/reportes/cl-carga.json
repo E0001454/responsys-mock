@@ -1,5 +1,5 @@
-﻿[
-   {
+[
+  {
     "lineaNegocio": "AFORE",
     "riid": "6",
     "nombre": null,
@@ -13,7 +13,7 @@
     "curp": "DIML930830MDFRRN06",
     "rfc": "DIML930830ABC",
     "poliza": "POL006",
-    "fechaNacimiento": "letras",
+    "fechaNacimiento": "1993-08-30",
     "cp": "76000",
     "calle1": "Calle Morelos 33",
     "calle2": "Int 1",
@@ -22,10 +22,10 @@
     "genero": "F",
     "prueba": "N",
     "suspension": "N",
-    "estatus": "Rechazado",
-    "detalle": "{\"columna\":\"APELLIDO_MATERNO\",\"atributo\":\"apellidoMaterno\",\"error\":\"[\\\"longitud invalida\\\"]\"}{\"columna\":\"NOMBRE\",\"atributo\":\"nombre\",\"error\":\"[\\\"dato vacio\\\"]\"}",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
-},
+  },
   {
     "lineaNegocio": "SEGUROS",
     "riid": "1001",
@@ -49,6 +49,8 @@
     "genero": "MASCULINO",
     "prueba": "NO",
     "suspension": "NO",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -74,6 +76,8 @@
     "genero": "FEMENINO",
     "prueba": "NO",
     "suspension": "NO",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -99,6 +103,8 @@
     "genero": "MASCULINO",
     "prueba": "NO",
     "suspension": "SI",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -124,6 +130,8 @@
     "genero": "FEMENINO",
     "prueba": "SI",
     "suspension": "NO",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -149,6 +157,8 @@
     "genero": "MASCULINO",
     "prueba": "NO",
     "suspension": "NO",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -174,6 +184,8 @@
     "genero": "FEMENINO",
     "prueba": "NO",
     "suspension": "NO",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -199,6 +211,8 @@
     "genero": "MASCULINO",
     "prueba": "NO",
     "suspension": "NO",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -224,6 +238,8 @@
     "genero": "FEMENINO",
     "prueba": "NO",
     "suspension": "SI",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -249,6 +265,8 @@
     "genero": "MASCULINO",
     "prueba": "NO",
     "suspension": "NO",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -274,6 +292,8 @@
     "genero": "FEMENINO",
     "prueba": "NO",
     "suspension": "NO",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   }
 ]

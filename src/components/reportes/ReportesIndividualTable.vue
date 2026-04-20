@@ -228,7 +228,7 @@ function hasRowErrors(row: any): boolean {
 function getRowTintClass(row: any): string {
   if (hasRowErrors(row)) return 'bg-red-50/60'
   const c = String((row as any).estatus ?? '').toUpperCase()
-  if (c === 'ACEPTADO' || c === 'EXITOSO' || c === 'OK') return 'bg-emerald-50/40'
+  if (c === 'ACEPTADO' || c === 'EXITOSO' || c === 'OK') return 'bg-emerald-50/60'
   return ''
 }
 

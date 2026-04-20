@@ -30,8 +30,8 @@ export interface FiltroIndividualPET {
   apellido?: string
   correo?: string
   telefono?: string
-  fechaInicial?: string
-  fechaFinal?: string
+  fechaInicio?: string
+  fechaFin?: string
 }
 
 export interface RegistroCL {
@@ -154,6 +154,6 @@ export interface FiltroGeneralCL {
 }
 
 export interface FiltroGeneralPET {
-  fechaInicial: string
-  fechaFinal: string
+  fechaInicio: string
+  fechaFin: string
 }

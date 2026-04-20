@@ -31,7 +31,7 @@ export function createEmptyReporteFilterForm(): ReporteFilterFormModel {
       noLote: '', idCliente: '', idAfore: '', idClienteAhorrador: '',
       idPrestamoPensionado: '', idSusceptiblePrestamo: '', idBajaCambio: '',
       idComunicacion: '', idPersona: '', nombre: '', apellido: '',
-      correo: '', telefono: '', fechaInicial: hoy, fechaFinal: hoy
+      correo: '', telefono: '', fechaInicio: hoy, fechaFin: hoy
     }
   }
 }
@@ -78,12 +78,12 @@ export function validateReporteFilterForm(form: ReporteFilterFormModel): Reporte
       errors.petAtLeastOne = 'Ingresa al menos uno de los campos marcados con *'
     }
 
-    if (!pet.fechaInicial) errors.fechaInicial = 'La fecha inicial es requerida'
-    if (!pet.fechaFinal) errors.fechaFinal = 'La fecha final es requerida'
-    if (pet.fechaInicial && pet.fechaInicial > hoy) errors.fechaInicial = 'La fecha inicial no puede ser mayor a hoy'
-    if (pet.fechaFinal && pet.fechaFinal > hoy) errors.fechaFinal = 'La fecha final no puede ser mayor a hoy'
-    if (pet.fechaInicial && pet.fechaFinal && pet.fechaInicial > pet.fechaFinal) {
-      errors.fechaFinal = 'La fecha final debe ser posterior a la fecha inicial'
+    if (!pet.fechaInicio) errors.fechaInicio = 'La fecha de inicio es requerida'
+    if (!pet.fechaFin) errors.fechaFin = 'La fecha de fin es requerida'
+    if (pet.fechaInicio && pet.fechaInicio > hoy) errors.fechaInicio = 'La fecha de inicio no puede ser mayor a hoy'
+    if (pet.fechaFin && pet.fechaFin > hoy) errors.fechaFin = 'La fecha de fin no puede ser mayor a hoy'
+    if (pet.fechaInicio && pet.fechaFin && pet.fechaInicio > pet.fechaFin) {
+      errors.fechaFin = 'La fecha de fin debe ser posterior a la fecha de inicio'
     }
   }
 
@@ -130,8 +130,8 @@ export function buildPETBody(form: ReporteFilterFormModel): Record<string, strin
     idSusceptiblePrestamo: pet.idSusceptiblePrestamo, idBajaCambio: pet.idBajaCambio,
     idComunicacion: pet.idComunicacion, idPersona: pet.idPersona,
     nombre: pet.nombre, apellido: pet.apellido, correo: pet.correo, telefono: pet.telefono,
-    fechaInicial: isoToApiDate(pet.fechaInicial ?? ''),
-    fechaFinal: isoToApiDate(pet.fechaFinal ?? '')
+    fechaInicio: isoToApiDate(pet.fechaInicio ?? ''),
+    fechaFin: isoToApiDate(pet.fechaFin ?? '')
   })
 }
 
@@ -150,7 +150,7 @@ export function createEmptyGeneralFilterForm(): ReporteGeneralFilterFormModel {
     idLineaNegocio: '',
     idCampana: '',
     cl: { fechaInicio: hoy, fechaFin: hoy },
-    pet: { fechaInicial: hoy, fechaFinal: hoy }
+    pet: { fechaInicio: hoy, fechaFin: hoy }
   }
 }
 
@@ -169,12 +169,12 @@ export function validateGeneralFilterForm(form: ReporteGeneralFilterFormModel): 
     }
   } else {
     const pet = form.pet
-    if (!pet.fechaInicial) errors.gFechaInicial = 'La fecha inicial es requerida'
-    if (!pet.fechaFinal) errors.gFechaFinal = 'La fecha final es requerida'
-    if (pet.fechaInicial && pet.fechaInicial > hoy) errors.gFechaInicial = 'La fecha inicial no puede ser mayor a hoy'
-    if (pet.fechaFinal && pet.fechaFinal > hoy) errors.gFechaFinal = 'La fecha final no puede ser mayor a hoy'
-    if (pet.fechaInicial && pet.fechaFinal && pet.fechaInicial > pet.fechaFinal) {
-      errors.gFechaFinal = 'La fecha final debe ser posterior a la fecha inicial'
+    if (!pet.fechaInicio) errors.gFechaInicio = 'La fecha de inicio es requerida'
+    if (!pet.fechaFin) errors.gFechaFin = 'La fecha de fin es requerida'
+    if (pet.fechaInicio && pet.fechaInicio > hoy) errors.gFechaInicio = 'La fecha de inicio no puede ser mayor a hoy'
+    if (pet.fechaFin && pet.fechaFin > hoy) errors.gFechaFin = 'La fecha de fin no puede ser mayor a hoy'
+    if (pet.fechaInicio && pet.fechaFin && pet.fechaInicio > pet.fechaFin) {
+      errors.gFechaFin = 'La fecha de fin debe ser posterior a la fecha de inicio'
     }
   }
 
@@ -193,7 +193,7 @@ export function buildGeneralPETBody(form: ReporteGeneralFilterFormModel): Record
   return compactObj({
     ...(form.idLineaNegocio ? { idLineaNegocio: String(form.idLineaNegocio) } : {}),
     ...(form.idCampana ? { idCampana: String(form.idCampana) } : {}),
-    fechaInicial: isoToApiDate(form.pet.fechaInicial),
-    fechaFinal: isoToApiDate(form.pet.fechaFinal)
+    fechaInicio: isoToApiDate(form.pet.fechaInicio),
+    fechaFin: isoToApiDate(form.pet.fechaFin)
   })
 }

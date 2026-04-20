@@ -187,13 +187,13 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha inicial <span class="text-red-500">*</span></label>
-          <input type="date" :value="pet.fechaInicial" :max="todayISO" @input="emit('update-pet', 'fechaInicial', ($event.target as HTMLInputElement).value)" :class="inputClass" />
-          <p v-if="formErrors.fechaInicial" class="text-xs text-red-500 mt-1">{{ formErrors.fechaInicial }}</p>
+          <input type="date" :value="pet.fechaInicio" :max="todayISO" @input="emit('update-pet', 'fechaInicio', ($event.target as HTMLInputElement).value)" :class="inputClass" />
+          <p v-if="formErrors.fechaInicio" class="text-xs text-red-500 mt-1">{{ formErrors.fechaInicio }}</p>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha final <span class="text-red-500">*</span></label>
-          <input type="date" :value="pet.fechaFinal" :max="todayISO" @input="emit('update-pet', 'fechaFinal', ($event.target as HTMLInputElement).value)" :class="inputClass" />
-          <p v-if="formErrors.fechaFinal" class="text-xs text-red-500 mt-1">{{ formErrors.fechaFinal }}</p>
+          <input type="date" :value="pet.fechaFin" :max="todayISO" @input="emit('update-pet', 'fechaFin', ($event.target as HTMLInputElement).value)" :class="inputClass" />
+          <p v-if="formErrors.fechaFin" class="text-xs text-red-500 mt-1">{{ formErrors.fechaFin }}</p>
         </div>
       </div>
       <p class="text-[11px] text-slate-400"><span class="text-blue-600">*</span> Llenar al menos uno &nbsp; <span class="text-red-500">*</span> Obligatorio</p>

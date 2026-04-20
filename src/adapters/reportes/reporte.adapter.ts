@@ -76,7 +76,7 @@ export function normalizeRegistroPET(raw: any): RegistroPET {
     customerId: safeString(raw?.customerId),
     idAfore: safeString(raw?.idAfore),
     descripcionDeAfore: safeString(raw?.descripcionDeAfore),
-    idClienteAhorrador: safeString(raw?.idClienteAhorrador),
+    idClienteAhorrador: safeString(raw?.idClienteAhorrador ?? raw?.idClienteAhorrrador),
     idPrestamoPensionado: safeString(raw?.idPrestamoPensionado),
     idSusceptiblePrestamo: safeString(raw?.idSusceptiblePrestamo),
     idBajaCambio: safeString(raw?.idBajaCambio),

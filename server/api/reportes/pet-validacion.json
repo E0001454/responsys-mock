@@ -64,6 +64,8 @@
     "estatusExp": "Vigente",
     "sucursal": "SUC-Centro",
     "domSucursal": "Paseo de la Reforma 222",
+    "estatus": "Rechazado",
+    "detalle": "{\"columna\":\"CORREO\",\"atributo\":\"correo\",\"error\":\"[\\\"formato invalido\\\"]\"}",
     "fecha": "16/04/2026"
   },
   {
@@ -131,6 +133,8 @@
     "estatusExp": "Vigente",
     "sucursal": "SUC-Polanco",
     "domSucursal": "Av. Presidente Masaryk 111",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -198,6 +202,8 @@
     "estatusExp": "Vigente",
     "sucursal": "SUC-Monterrey",
     "domSucursal": "Av. Constitución 500",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -265,6 +271,8 @@
     "estatusExp": "Vigente",
     "sucursal": "SUC-Reforma",
     "domSucursal": "Paseo de la Reforma 500",
+    "estatus": "Rechazado",
+    "detalle": "{\"columna\":\"SIEFORE\",\"atributo\":\"siefore\",\"error\":\"[\\\"valor no permitido\\\"]\"}",
     "fecha": "16/04/2026"
   },
   {
@@ -332,6 +340,8 @@
     "estatusExp": "Vigente",
     "sucursal": "SUC-Guadalajara",
     "domSucursal": "Av. Américas 1500",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -399,6 +409,8 @@
     "estatusExp": "Vigente",
     "sucursal": "SUC-Puebla",
     "domSucursal": "Blvd. 5 de Mayo 200",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -466,6 +478,8 @@
     "estatusExp": "Vigente",
     "sucursal": "SUC-Insurgentes",
     "domSucursal": "Av. Insurgentes Sur 1800",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   },
   {
@@ -533,6 +547,8 @@
     "estatusExp": "Vigente",
     "sucursal": "SUC-Hermosillo",
     "domSucursal": "Blvd. Kino 500",
+    "estatus": "Aceptado",
+    "detalle": "",
     "fecha": "16/04/2026"
   }
 ]
