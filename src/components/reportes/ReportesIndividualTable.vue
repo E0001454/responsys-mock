@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, XCircle, Circle } from 'lucide-vue-next'
 import type { RegistroCL, RegistroPET } from '@/types/reportes/reporte'
 import { getEstatusClass } from '@/utils/reportes/reporteFormat.utils'
 
@@ -22,7 +22,7 @@ const emit = defineEmits<{
   (e: 'next-page'): void
 }>()
 
-const showEstatus = computed(() => props.tipo !== 'carga')
+const showEstatus = computed(() => props.tipo === 'validacion')
 const hasRows = computed(() => props.scope === 'linea' ? props.registrosCL.length > 0 : props.registrosPET.length > 0)
 
 interface ColumnDef { key: string; label: string }
@@ -226,10 +226,21 @@ function hasRowErrors(row: any): boolean {
 }
 
 function getRowTintClass(row: any): string {
+  if (props.tipo === 'envio') return 'bg-blue-100/80'
+  if (props.tipo !== 'validacion') return ''
   if (hasRowErrors(row)) return 'bg-red-50/60'
   const c = String((row as any).estatus ?? '').toUpperCase()
-  if (c === 'ACEPTADO' || c === 'EXITOSO' || c === 'OK') return 'bg-emerald-50/60'
+  if (c === 'RECHAZADO' || c === 'ERROR') return 'bg-red-50/60'
+  if (c === 'ACEPTADO' || c === 'APROBADO' || c === 'EXITOSO' || c === 'OK') return 'bg-emerald-50/60'
   return ''
+}
+
+function getEstatusIcon(row: any): 'check' | 'x' | 'circle' {
+  if (hasRowErrors(row)) return 'x'
+  const c = String((row as any).estatus ?? '').toUpperCase()
+  if (c === 'RECHAZADO' || c === 'ERROR') return 'x'
+  if (c === 'ACEPTADO' || c === 'APROBADO' || c === 'EXITOSO' || c === 'OK') return 'check'
+  return 'circle'
 }
 
 const detallePopover = ref<{ x: number; y: number; errors: DetalleError[] } | null>(null)
@@ -285,13 +296,21 @@ onUnmounted(() => document.removeEventListener('click', closeDetalle))
         <table class="w-full text-sm text-left">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200">
-              <th v-for="col in columns" :key="col.key" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">{{ col.label }}</th>
               <th v-if="showEstatus" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Estatus</th>
+              <th v-for="col in columns" :key="col.key" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">{{ col.label }}</th>
             </tr>
           </thead>
           <tbody>
             <template v-for="(row, i) in rows" :key="i">
-              <tr class="border-b border-slate-100 transition-colors" :class="[showEstatus ? getRowTintClass(row) : '']">
+              <tr class="border-b border-slate-100 transition-colors" :class="getRowTintClass(row)">
+                <td v-if="showEstatus" class="px-4 py-3 whitespace-nowrap">
+                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold" :class="getEstatusClass((row as any).estatus)">
+                    <CheckCircle2 v-if="getEstatusIcon(row) === 'check'" class="w-3 h-3 flex-shrink-0" />
+                    <XCircle v-else-if="getEstatusIcon(row) === 'x'" class="w-3 h-3 flex-shrink-0" />
+                    <Circle v-else class="w-3 h-3 flex-shrink-0 opacity-60" />
+                    {{ (row as any).estatus }}
+                  </span>
+                </td>
                 <td
                   v-for="col in columns"
                   :key="col.key"
@@ -309,9 +328,6 @@ onUnmounted(() => document.removeEventListener('click', closeDetalle))
                       <AlertCircle class="w-3.5 h-3.5 text-red-500" />
                     </button>
                   </span>
-                </td>
-                <td v-if="showEstatus" class="px-4 py-3 whitespace-nowrap">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" :class="getEstatusClass((row as any).estatus)">{{ (row as any).estatus }}</span>
                 </td>
               </tr>
             </template>

@@ -95,37 +95,39 @@ const TIPO_LABELS: Record<ReporteTipo, string> = {
 }
 
 function buildHeadAndBody(params: DownloadReportePdfParams): { head: string[][]; body: string[][]; colKeys: string[]; errorMaps: Map<string, string>[] } {
-  const showStatus = params.tipo !== 'carga'
+  const showStatus = params.tipo === 'validacion'
 
   if (params.scope === 'linea') {
     const colKeys = [
+      ...(showStatus ? ['estatus'] : []),
       'lineaNegocio', 'riid', 'nombre', 'apellidoPaterno', 'apellidoMaterno', 'correo',
       'telefono1', 'telefono2', 'noCuenta', 'nss', 'curp', 'rfc', 'poliza',
       'fechaNacimiento', 'cp', 'calle1', 'calle2', 'ciudad', 'estado',
-      'genero', 'prueba', 'suspension', 'fecha',
-      ...(showStatus ? ['estatus'] : [])
+      'genero', 'prueba', 'suspension', 'fecha'
     ]
-    const head = [['Línea de Negocio', 'RIID', 'Nombre', 'Apellido Paterno', 'Apellido Materno', 'Correo',
+    const head = [[
+      ...(showStatus ? ['Estatus'] : []),
+      'Línea de Negocio', 'RIID', 'Nombre', 'Apellido Paterno', 'Apellido Materno', 'Correo',
       'Teléfono 1', 'Teléfono 2', 'Número de Cuenta', 'NSS', 'CURP', 'RFC', 'Póliza',
       'Fecha de Nacimiento', 'Código Postal', 'Calle 1', 'Calle 2', 'Ciudad', 'Estado',
-      'Género', 'Prueba', 'Suspensión', 'Fecha',
-      ...(showStatus ? ['Estatus'] : [])
+      'Género', 'Prueba', 'Suspensión', 'Fecha'
     ]]
     const errorMaps: Map<string, string>[] = []
     const body = params.registrosCL.map(r => {
       errorMaps.push(showStatus ? parseDetalleMap(r.detalle) : new Map())
       return ([
+        ...(showStatus ? [r.estatus ?? ''] : []),
         r.lineaNegocio, r.riid, r.nombre, r.apellidoPaterno, r.apellidoMaterno, r.correo,
         r.telefono1, r.telefono2, r.noCuenta, r.nss, r.curp, r.rfc, r.poliza,
         r.fechaNacimiento, r.cp, r.calle1, r.calle2, r.ciudad, r.estado,
-        r.genero, r.prueba, r.suspension, r.fecha,
-        ...(showStatus ? [r.estatus ?? ''] : [])
+        r.genero, r.prueba, r.suspension, r.fecha
       ].map(v => String(v ?? '')))
     })
     return { head, body, colKeys, errorMaps }
   }
 
   const colKeys = [
+    ...(showStatus ? ['estatus'] : []),
     'lineaDeNegocio', 'idCampana', 'numLote', 'customerId', 'idAfore', 'descripcionDeAfore',
     'idClienteAhorrador', 'idPrestamoPensionado', 'idSusceptiblePrestamo',
     'idBajaCambio', 'idComunicacion', 'idPersona',
@@ -141,10 +143,11 @@ function buildHeadAndBody(params: DownloadReportePdfParams): { head: string[][];
     'cuentaMenor4', 'nombreHijo4', 'ligaHijo4',
     'cuentaMenor5', 'nombreHijo5', 'ligaHijo5',
     'cuentaMenor6', 'nombreHijo6', 'ligaHijo6',
-    'perfil', 'hijos', 'estatusExp', 'sucursal', 'domSucursal', 'fecha',
-    ...(showStatus ? ['estatus'] : [])
+    'perfil', 'hijos', 'estatusExp', 'sucursal', 'domSucursal', 'fecha'
   ]
-  const head = [['Línea de Negocio', 'Campaña', 'Número de Lote', 'ID Cliente', 'ID Afore', 'Descripción de Afore',
+  const head = [[
+    ...(showStatus ? ['Estatus'] : []),
+    'Línea de Negocio', 'Campaña', 'Número de Lote', 'ID Cliente', 'ID Afore', 'Descripción de Afore',
     'ID Cliente Ahorrador', 'ID Préstamo Pensionado', 'ID Susceptible Préstamo', 'ID Baja/Cambio', 'ID Comunicación', 'ID Persona',
     'Nombre', 'Apellido', 'Correo', 'Teléfono',
     'Siefore', 'Segmento', 'Régimen', 'Tipo de Pensión', 'Grupo de Pago',
@@ -158,13 +161,13 @@ function buildHeadAndBody(params: DownloadReportePdfParams): { head: string[][];
     'Cuenta Menor 4', 'Nombre Hijo 4', 'Liga Hijo 4',
     'Cuenta Menor 5', 'Nombre Hijo 5', 'Liga Hijo 5',
     'Cuenta Menor 6', 'Nombre Hijo 6', 'Liga Hijo 6',
-    'Perfil', 'Hijos', 'Estatus Expediente', 'Sucursal', 'Domicilio Sucursal', 'Fecha',
-    ...(showStatus ? ['Estatus'] : [])
+    'Perfil', 'Hijos', 'Estatus Expediente', 'Sucursal', 'Domicilio Sucursal', 'Fecha'
   ]]
   const errorMaps: Map<string, string>[] = []
   const body = params.registrosPET.map(r => {
     errorMaps.push(showStatus ? parseDetalleMap(r.detalle) : new Map())
     return ([
+      ...(showStatus ? [r.estatus ?? ''] : []),
       r.lineaDeNegocio, r.idCampana, r.numLote, r.customerId, r.idAfore, r.descripcionDeAfore,
       r.idClienteAhorrador, r.idPrestamoPensionado, r.idSusceptiblePrestamo,
       r.idBajaCambio, r.idComunicacion, r.idPersona,
@@ -180,8 +183,7 @@ function buildHeadAndBody(params: DownloadReportePdfParams): { head: string[][];
       r.cuentaMenor4, r.nombreHijo4, r.ligaHijo4,
       r.cuentaMenor5, r.nombreHijo5, r.ligaHijo5,
       r.cuentaMenor6, r.nombreHijo6, r.ligaHijo6,
-      r.perfil, r.hijos, r.estatusExp, r.sucursal, r.domSucursal, r.fecha,
-      ...(showStatus ? [r.estatus ?? ''] : [])
+      r.perfil, r.hijos, r.estatusExp, r.sucursal, r.domSucursal, r.fecha
     ].map(v => String(v ?? '')))
   })
   return { head, body, colKeys, errorMaps }
@@ -282,65 +284,117 @@ export async function downloadReportePdfReport(params: DownloadReportePdfParams)
   const headFontSize = isPET ? 4 : 6
   const cellPad = isPET ? 0.5 : 1.2
 
-  autoTable(doc, {
-    startY: 47,
-    head,
-    body,
-    tableWidth: 'auto',
-    margin: { top: 30, left: 10, right: 10, bottom: 14 },
-    rowPageBreak: 'avoid',
-    headStyles: {
-      fillColor: brandBlue,
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: headFontSize,
-      halign: 'left',
-      valign: 'middle'
-    },
-    bodyStyles: {
-      font: 'helvetica',
-      fontSize: bodyFontSize,
-      textColor: [30, 41, 59],
-      valign: 'top'
-    },
-    alternateRowStyles: {
-      fillColor: [248, 250, 252]
-    },
-    styles: {
-      lineColor: [226, 232, 240],
-      lineWidth: 0.15,
-      cellPadding: cellPad,
-      overflow: 'linebreak'
-    },
-    didParseCell: (data: any) => {
-      if (data.section !== 'body') return
-      const rowIdx = data.row.index as number
-      const colIdx = data.column.index as number
-      const errMap = errorMaps[rowIdx]
-      if (!errMap || errMap.size === 0) return
-      const colKey = colKeys[colIdx]
-      if (colKey && errMap.has(colKey.toLowerCase())) {
-        data.cell.styles.fillColor = [254, 226, 226]
-        data.cell.styles.textColor = [153, 27, 27]
-        const errMsg = errMap.get(colKey.toLowerCase())
-        if (errMsg) {
-          const current = Array.isArray(data.cell.text) ? data.cell.text.join('') : String(data.cell.text ?? '')
-          data.cell.text = [current ? `${current} (${errMsg})` : errMsg]
-        }
-      } else {
-        data.cell.styles.fillColor = [254, 242, 242]
-      }
-    },
-    didDrawPage: () => {
-      drawPageFrame()
-      doc.setTextColor(...grayText)
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8)
-      const current = doc.getCurrentPageInfo().pageNumber
-      const total = doc.getNumberOfPages()
-      doc.text(`Página ${current} de ${total}`, pageW - 38, pageH - 6)
+  // Pre-compute row statuses for green highlighting of approved rows in validacion
+  const APPROVED = new Set(['ACEPTADO', 'APROBADO', 'EXITOSO', 'OK'])
+  const rowStatuses: string[] = (params.scope === 'linea'
+    ? params.registrosCL.map(r => String((r as any).estatus ?? ''))
+    : params.registrosPET.map(r => String((r as any).estatus ?? ''))
+  ).map(s => s.toUpperCase())
+
+  // Split columns into chunks that fit the page width, stacked vertically on the same page
+  const usableWidth = pageW - 20
+  const charWidthMm = bodyFontSize * 0.38
+  const colChunks: number[][] = []
+  let currentChunk: number[] = []
+  let currentWidth = 0
+
+  const labels = head[0] ?? []
+  for (let i = 0; i < labels.length; i++) {
+    const colW = Math.max((labels[i] ?? '').length * charWidthMm + 2 * cellPad, 8)
+    if (currentWidth + colW > usableWidth && currentChunk.length > 0) {
+      colChunks.push(currentChunk)
+      currentChunk = [i]
+      currentWidth = colW
+    } else {
+      currentChunk.push(i)
+      currentWidth += colW
     }
-  })
+  }
+  if (currentChunk.length > 0) colChunks.push(currentChunk)
+
+  const sharedHeadStyles = {
+    fillColor: brandBlue,
+    textColor: [255, 255, 255] as [number, number, number],
+    fontStyle: 'bold' as const,
+    fontSize: headFontSize,
+    halign: 'left' as const,
+    valign: 'middle' as const
+  }
+  const sharedBodyStyles = {
+    font: 'helvetica',
+    fontSize: bodyFontSize,
+    textColor: [30, 41, 59] as [number, number, number],
+    valign: 'top' as const
+  }
+  const sharedStyles = {
+    lineColor: [226, 232, 240] as [number, number, number],
+    lineWidth: 0.15,
+    cellPadding: cellPad,
+    overflow: 'ellipsize' as const
+  }
+
+  let startY = 47
+
+  for (const chunk of colChunks) {
+    const chunkHead = [chunk.map(i => labels[i] ?? '')]
+    const chunkBody = body.map(row => chunk.map(i => row[i]))
+    const chunkColKeys = chunk.map(i => colKeys[i])
+
+    autoTable(doc, {
+      startY,
+      head: chunkHead,
+      body: chunkBody,
+      tableWidth: 'auto',
+      margin: { top: 30, left: 10, right: 10, bottom: 14 },
+      rowPageBreak: 'avoid',
+      headStyles: sharedHeadStyles,
+      bodyStyles: sharedBodyStyles,
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      styles: sharedStyles,
+      didParseCell: (data: any) => {
+        if (data.section !== 'body') return
+        const rowIdx = data.row.index as number
+        const colIdx = data.column.index as number
+
+        if (params.tipo === 'envio') {
+          data.cell.styles.fillColor = [219, 234, 254]
+          return
+        }
+
+        if (params.tipo !== 'validacion') return
+
+        const errMap = errorMaps[rowIdx]
+        const colKey = chunkColKeys[colIdx]
+
+        if (errMap && errMap.size > 0) {
+          if (colKey && errMap.has(colKey.toLowerCase())) {
+            data.cell.styles.fillColor = [254, 226, 226]
+            data.cell.styles.textColor = [153, 27, 27]
+            const errMsg = errMap.get(colKey.toLowerCase())
+            if (errMsg) {
+              const current = Array.isArray(data.cell.text) ? data.cell.text.join('') : String(data.cell.text ?? '')
+              data.cell.text = [current ? `${current} (${errMsg})` : errMsg]
+            }
+          } else {
+            data.cell.styles.fillColor = [254, 242, 242]
+          }
+        } else if (APPROVED.has(rowStatuses[rowIdx] ?? '')) {
+          data.cell.styles.fillColor = [209, 250, 229]
+        }
+      },
+      didDrawPage: () => {
+        drawPageFrame()
+        doc.setTextColor(...grayText)
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8)
+        const current = doc.getCurrentPageInfo().pageNumber
+        const total = doc.getNumberOfPages()
+        doc.text(`Página ${current} de ${total}`, pageW - 38, pageH - 6)
+      }
+    })
+
+    startY = (doc as any).lastAutoTable.finalY + 4
+  }
 
   doc.save(`reporte-${params.tipo}-${params.scope}-${new Date().toISOString().split('T')[0]}.pdf`)
 }

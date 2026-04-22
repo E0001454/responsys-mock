@@ -187,11 +187,11 @@ export interface ExcelExportParams {
 }
 
 export function downloadReporteExcel(params: ExcelExportParams) {
-  const showEstatus = params.tipo !== 'carga'
+  const showEstatus = params.tipo === 'validacion'
   const cols = params.scope === 'linea' ? clCols : petCols
   const rows: any[] = params.scope === 'linea' ? params.registrosCL : params.registrosPET
 
-  const allCols = [...cols, ...(showEstatus ? [{ key: 'estatus', label: 'Estatus' }] : [])]
+  const allCols = [...(showEstatus ? [{ key: 'estatus', label: 'Estatus' }] : []), ...cols]
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n`
   xml += `<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n`
@@ -203,6 +203,8 @@ export function downloadReporteExcel(params: ExcelExportParams) {
   xml += `<Style ss:ID="header"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#00357F" ss:Pattern="Solid"/></Style>\n`
   xml += `<Style ss:ID="error"><Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/><Font ss:Color="#991B1B" ss:Size="10"/></Style>\n`
   xml += `<Style ss:ID="errorRow"><Interior ss:Color="#FEF2F2" ss:Pattern="Solid"/></Style>\n`
+  xml += `<Style ss:ID="envioRow"><Interior ss:Color="#DBEAFE" ss:Pattern="Solid"/></Style>\n`
+  xml += `<Style ss:ID="approvedRow"><Interior ss:Color="#D1FAE5" ss:Pattern="Solid"/></Style>\n`
   xml += `</Styles>\n`
   xml += `<Worksheet ss:Name="Reporte"><Table>\n`
 
@@ -215,14 +217,18 @@ export function downloadReporteExcel(params: ExcelExportParams) {
   for (const row of rows) {
     const errorMap = showEstatus ? parseDetalle(row.detalle as string | undefined) : new Map<string, string>()
     const hasErrors = errorMap.size > 0
-    const rowStyle = hasErrors ? ' ss:StyleID="errorRow"' : ''
+    const isEnvio = params.tipo === 'envio'
+    const statusVal = String(row['estatus'] ?? '').toUpperCase()
+    const APPROVED = new Set(['ACEPTADO', 'APROBADO', 'EXITOSO', 'OK'])
+    const isApproved = showEstatus && !hasErrors && APPROVED.has(statusVal)
+    const rowStyle = isEnvio ? ' ss:StyleID="envioRow"' : (hasErrors ? ' ss:StyleID="errorRow"' : (isApproved ? ' ss:StyleID="approvedRow"' : ''))
     xml += `<Row${rowStyle}>\n`
     for (const c of allCols) {
       const val = String(row[c.key] ?? '')
-      const isError = errorMap.has(c.key.toLowerCase())
+      const isError = showEstatus && errorMap.has(c.key.toLowerCase())
       const errMsg = isError ? errorMap.get(c.key.toLowerCase()) : ''
       const cellVal = isError && errMsg ? `${val} (${errMsg})` : val
-      const cellStyle = isError ? ' ss:StyleID="error"' : (hasErrors ? ' ss:StyleID="errorRow"' : '')
+      const cellStyle = isError ? ' ss:StyleID="error"' : (isEnvio ? ' ss:StyleID="envioRow"' : (isApproved ? ' ss:StyleID="approvedRow"' : (hasErrors ? ' ss:StyleID="errorRow"' : '')))
       xml += `<Cell${cellStyle}><Data ss:Type="String">${esc(cellVal)}</Data></Cell>\n`
     }
     xml += `</Row>\n`

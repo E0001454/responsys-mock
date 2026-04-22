@@ -63,18 +63,18 @@ function getEndpointService(endpoint: string): ApiService {
   if (path.includes('/bitacoras')) return 'bitacora'
   if (path.includes('/catalogos')) return 'catalogos'
 
-  if (path.includes('/pet/individual/envio')) return 'reportes_responsys_campana'
-  if (path.includes('/cl/individual/envio')) return 'reportes_responsys_linea'
-  if (path.includes('/pet/individual/validacion')) return 'reportes_abc_campana'
-  if (path.includes('/cl/individual/validacion')) return 'reportes_abc_linea'
-  if (path.includes('/pet/individual')) return 'reportes_campana'
-  if (path.includes('/cl/individual')) return 'reportes_linea'
-  if (path.includes('/pet/general/validacion')) return 'reportes_abc_campana'
-  if (path.includes('/cl/general/validacion')) return 'reportes_abc_linea'
-  if (path.includes('/pet/general/envio')) return 'reportes_responsys_campana'
-  if (path.includes('/cl/general/envio')) return 'reportes_responsys_linea'
-  if (path.includes('/pet/general')) return 'reportes_campana'
-  if (path.includes('/cl/general')) return 'reportes_linea'
+  if (path.includes('/pet/reporte/individual/envio')) return 'reportes_responsys_campana'
+  if (path.includes('/cl/reporte/individual/envio')) return 'reportes_responsys_linea'
+  if (path.includes('/pet/reporte/individual/validacion')) return 'reportes_abc_campana'
+  if (path.includes('/cl/reporte/individual/validacion')) return 'reportes_abc_linea'
+  if (path.includes('/pet/reporte/individual')) return 'reportes_campana'
+  if (path.includes('/cl/reporte/individual')) return 'reportes_linea'
+  if (path.includes('/pet/reporte/general/validacion')) return 'reportes_abc_campana'
+  if (path.includes('/cl/reporte/general/validacion')) return 'reportes_abc_linea'
+  if (path.includes('/pet/reporte/general/envio')) return 'reportes_responsys_campana'
+  if (path.includes('/cl/reporte/general/envio')) return 'reportes_responsys_linea'
+  if (path.includes('/pet/reporte/general')) return 'reportes_campana'
+  if (path.includes('/cl/reporte/general')) return 'reportes_linea'
 
   if (path.includes('/lineas/campanas/tareas')) return 'monitor_campana'
   if (path.includes('/lineas/tareas')) return 'monitor_linea'
@@ -478,52 +478,52 @@ export const api = {
 
   getReporteCLCarga: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/cl/individual/carga?${q}`)
+    return http.get(`/cl/reporte/individual/carga?${q}`)
   },
   getReporteCLValidacion: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/cl/individual/validacion?${q}`)
+    return http.get(`/cl/reporte/individual/validacion?${q}`)
   },
   getReportePETCarga: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/pet/individual/carga?${q}`)
+    return http.get(`/pet/reporte/individual/carga?${q}`)
   },
   getReportePETValidacion: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/pet/individual/validacion?${q}`)
+    return http.get(`/pet/reporte/individual/validacion?${q}`)
   },
   getReporteCLEnvio: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/cl/individual/envio?${q}`)
+    return http.get(`/cl/reporte/individual/envio?${q}`)
   },
   getReportePETEnvio: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/pet/individual/envio?${q}`)
+    return http.get(`/pet/reporte/individual/envio?${q}`)
   },
 
   getReporteGeneralCLCarga: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/cl/general/carga?${q}`)
+    return http.get(`/cl/reporte/general/carga?${q}`)
   },
   getReporteGeneralCLValidacion: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/cl/general/validacion?${q}`)
+    return http.get(`/cl/reporte/general/validacion?${q}`)
   },
   getReporteGeneralPETCarga: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/pet/general/carga?${q}`)
+    return http.get(`/pet/reporte/general/carga?${q}`)
   },
   getReporteGeneralPETValidacion: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/pet/general/validacion?${q}`)
+    return http.get(`/pet/reporte/general/validacion?${q}`)
   },
   getReporteGeneralCLEnvio: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/cl/general/envio?${q}`)
+    return http.get(`/cl/reporte/general/envio?${q}`)
   },
   getReporteGeneralPETEnvio: (filtros: Record<string, string>) => {
     const q = buildQuery(filtros)
-    return http.get(`/pet/general/envio?${q}`)
+    return http.get(`/pet/reporte/general/envio?${q}`)
   }
 
   ,
