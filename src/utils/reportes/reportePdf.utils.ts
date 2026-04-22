@@ -284,14 +284,12 @@ export async function downloadReportePdfReport(params: DownloadReportePdfParams)
   const headFontSize = isPET ? 4 : 6
   const cellPad = isPET ? 0.5 : 1.2
 
-  // Pre-compute row statuses for green highlighting of approved rows in validacion
   const APPROVED = new Set(['ACEPTADO', 'APROBADO', 'EXITOSO', 'OK'])
   const rowStatuses: string[] = (params.scope === 'linea'
     ? params.registrosCL.map(r => String((r as any).estatus ?? ''))
     : params.registrosPET.map(r => String((r as any).estatus ?? ''))
   ).map(s => s.toUpperCase())
 
-  // Split columns into chunks that fit the page width, stacked vertically on the same page
   const usableWidth = pageW - 20
   const charWidthMm = bodyFontSize * 0.38
   const colChunks: number[][] = []
