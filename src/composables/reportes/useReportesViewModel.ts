@@ -23,7 +23,7 @@ import {
   type ReporteGeneralFilterFormModel
 } from '@/models/reportes/reporteFilters.model'
 import { addToast } from '@/stores/toastStore'
-import { downloadReporteExcel, downloadGeneralExcel } from '@/utils/reportes/reporteExcel.utils'
+import { downloadReporteCsv, downloadGeneralCsv } from '@/utils/reportes/reporteCsv.utils'
 import { downloadReportePdfReport, downloadReporteGeneralPdf } from '@/utils/reportes/reportePdf.utils'
 import { api } from '@/services/api'
 
@@ -156,16 +156,16 @@ export function useReportesViewModel(tipo: ReporteTipo) {
     }
     exportLoading.value = true
     try {
-      downloadReporteExcel({
+      downloadReporteCsv({
         scope: form.scope,
         tipo,
         registrosCL: registrosCL.value,
         registrosPET: registrosPET.value
       })
-      addToast('Reporte Excel descargado correctamente', 'success')
-      api.postBitacoraByContext('DOWNLOAD', `/reportes/${form.scope}/${tipo}`, {}, `Descarga Excel reporte ${tipo} ${form.scope}`).catch(() => {})
+      addToast('Reporte CSV descargado correctamente', 'success')
+      api.postBitacoraByContext('DOWNLOAD', `/reportes/${form.scope}/${tipo}`, {}, `Descarga CSV reporte ${tipo} ${form.scope}`).catch(() => {})
     } catch {
-      addToast('Error al generar el archivo Excel', 'error')
+      addToast('Error al generar el archivo CSV', 'error')
     } finally {
       exportLoading.value = false
     }
@@ -315,15 +315,15 @@ export function useReportesViewModel(tipo: ReporteTipo) {
     }
     generalExportLoading.value = true
     try {
-      downloadGeneralExcel({
+      downloadGeneralCsv({
         scope: generalForm.scope,
         tipo: generalTipo,
         rows: generalRows.value
       })
-      addToast('Reporte Excel descargado correctamente', 'success')
-      api.postBitacoraByContext('DOWNLOAD', `/reportes/general/${generalForm.scope}/${generalTipo}`, {}, `Descarga Excel reporte general ${generalTipo} ${generalForm.scope}`).catch(() => {})
+      addToast('Reporte CSV descargado correctamente', 'success')
+      api.postBitacoraByContext('DOWNLOAD', `/reportes/general/${generalForm.scope}/${generalTipo}`, {}, `Descarga CSV reporte general ${generalTipo} ${generalForm.scope}`).catch(() => {})
     } catch {
-      addToast('Error al generar el archivo Excel', 'error')
+      addToast('Error al generar el archivo CSV', 'error')
     } finally {
       generalExportLoading.value = false
     }

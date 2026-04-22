@@ -134,7 +134,7 @@ const includeChart = ref(true)
           class="flex items-center gap-2 px-3 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
         >
           <FileText class="w-4 h-4" />
-          Excel
+          CSV
         </button>
         <button
           @click="emit('export-pdf', { includeChart: includeChart })"

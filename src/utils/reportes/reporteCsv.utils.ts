@@ -83,6 +83,19 @@ function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
+function triggerDownload(content: string, filename: string, type: string): void {
+  const blob = new Blob([content], { type })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  link.setAttribute('href', url)
+  link.setAttribute('download', filename)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
 interface ColDef { key: string; label: string }
 
 const clCols: ColDef[] = [
@@ -179,14 +192,14 @@ const petCols: ColDef[] = [
   { key: 'fecha', label: 'Fecha' }
 ]
 
-export interface ExcelExportParams {
+export interface CsvExportParams {
   scope: 'linea' | 'campana'
   tipo: ReporteTipo
   registrosCL: RegistroCL[]
   registrosPET: RegistroPET[]
 }
 
-export function downloadReporteExcel(params: ExcelExportParams) {
+export function downloadReporteCsv(params: CsvExportParams) {
   const showEstatus = params.tipo === 'validacion'
   const cols = params.scope === 'linea' ? clCols : petCols
   const rows: any[] = params.scope === 'linea' ? params.registrosCL : params.registrosPET
@@ -209,9 +222,7 @@ export function downloadReporteExcel(params: ExcelExportParams) {
   xml += `<Worksheet ss:Name="Reporte"><Table>\n`
 
   xml += `<Row ss:StyleID="header">\n`
-  for (const c of allCols) {
-    xml += `<Cell><Data ss:Type="String">${esc(c.label)}</Data></Cell>\n`
-  }
+  for (const c of allCols) xml += `<Cell><Data ss:Type="String">${esc(c.label)}</Data></Cell>\n`
   xml += `</Row>\n`
 
   for (const row of rows) {
@@ -235,33 +246,21 @@ export function downloadReporteExcel(params: ExcelExportParams) {
   }
 
   xml += `</Table></Worksheet></Workbook>`
-
-  const blob = new Blob([xml], { type: 'application/vnd.ms-excel' })
-  const link = document.createElement('a')
-  const url = URL.createObjectURL(blob)
-  link.setAttribute('href', url)
-  link.setAttribute('download', `reporte-${params.tipo}-${params.scope}-${new Date().toISOString().split('T')[0]}.xls`)
-  link.style.visibility = 'hidden'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  triggerDownload(xml, `reporte-${params.tipo}-${params.scope}-${new Date().toISOString().split('T')[0]}.xls`, 'application/vnd.ms-excel')
 }
 
-export function downloadGeneralExcel(params: { scope: 'linea' | 'campana'; tipo: 'carga' | 'validacion' | 'envio'; rows: RegistroGeneral[] }) {
-  const showAprobados = params.tipo !== 'carga'
+export function downloadGeneralCsv(params: { scope: 'linea' | 'campana'; tipo: 'carga' | 'validacion' | 'envio'; rows: RegistroGeneral[] }) {
   const isPET = params.scope === 'campana'
 
-  const cols = [
+  const showAprobados = params.tipo === 'validacion'
+
+  const cols: ColDef[] = [
     { key: 'lineaNegocio', label: 'Línea de Negocio' },
     ...(isPET ? [{ key: 'campana', label: 'Campaña' }] : []),
     { key: 'mapeo', label: 'Mapeo' },
     { key: 'fecha', label: 'Fecha' },
     { key: 'registros', label: 'Registros' },
-    ...(showAprobados ? [
-      { key: 'aprobados', label: 'Aprobados' },
-      { key: 'rechazados', label: 'Rechazados' }
-    ] : [])
+    ...(showAprobados ? [{ key: 'aprobados', label: 'Aprobados' }, { key: 'rechazados', label: 'Rechazados' }] : [])
   ]
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n`
@@ -287,15 +286,5 @@ export function downloadGeneralExcel(params: { scope: 'linea' | 'campana'; tipo:
   }
 
   xml += `</Table></Worksheet></Workbook>`
-
-  const blob = new Blob([xml], { type: 'application/vnd.ms-excel' })
-  const link = document.createElement('a')
-  const url = URL.createObjectURL(blob)
-  link.setAttribute('href', url)
-  link.setAttribute('download', `reporte-general-${params.tipo}-${params.scope}-${new Date().toISOString().split('T')[0]}.xls`)
-  link.style.visibility = 'hidden'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  triggerDownload(xml, `reporte-general-${params.tipo}-${params.scope}-${new Date().toISOString().split('T')[0]}.xls`, 'application/vnd.ms-excel')
 }

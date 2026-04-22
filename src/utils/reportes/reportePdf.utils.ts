@@ -530,7 +530,8 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
     const s = params.summary
 
     doc.setFillColor(...brandBlueLight)
-    doc.roundedRect(10, cursorY, pageW - 20, 24, 1.8, 1.8, 'F')
+    const showAprobados = params.tipo === 'validacion'
+    doc.roundedRect(10, cursorY, pageW - 20, showAprobados ? 24 : 14, 1.8, 1.8, 'F')
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(9)
     doc.setTextColor(...brandBlue)
@@ -540,7 +541,7 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
     doc.text(`Líneas: ${s.lineaSlices.length}`, 130, cursorY + 8)
     doc.text(`Fechas: ${s.fechaMin} – ${s.fechaMax}`, 175, cursorY + 8)
 
-    if (params.tipo !== 'carga') {
+    if (showAprobados) {
       doc.setTextColor(16, 185, 129)
       doc.text(`Aprobados: ${s.aprobados.toLocaleString()}`, 14, cursorY + 18)
       doc.setTextColor(239, 68, 68)
@@ -548,9 +549,9 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
       doc.setTextColor(...brandBlue)
     }
 
-    cursorY += 28
+    cursorY += showAprobados ? 28 : 18
 
-    const chartSlices = params.tipo !== 'carga' && (s.aprobados || s.rechazados)
+    const chartSlices = showAprobados && (s.aprobados || s.rechazados)
       ? [
           { label: 'Aprobados', count: s.aprobados, color: '#10B981' },
           { label: 'Rechazados', count: s.rechazados, color: '#EF4444' },
@@ -583,7 +584,7 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
   }
 
   const isPET = params.scope === 'campana'
-  const showAprobados = params.tipo !== 'carga'
+  const showAprobados = params.tipo === 'validacion'
 
   const head = [['Línea de Negocio', ...(isPET ? ['Campaña'] : []), 'Mapeo', 'Fecha', 'Registros',
     ...(showAprobados ? ['Aprobados', 'Rechazados'] : [])
