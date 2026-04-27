@@ -24,6 +24,7 @@ const emit = defineEmits<{
 const showAprobados = computed(() => props.tipo === 'validacion')
 const hasRows = computed(() => props.rows.length > 0)
 const isPET = computed(() => props.scope === 'campana')
+const hideMapeo = computed(() => isPET.value && props.tipo === 'carga')
 </script>
 
 <template>
@@ -53,7 +54,7 @@ const isPET = computed(() => props.scope === 'campana')
             <tr class="bg-slate-50 border-b border-slate-200">
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Línea de Negocio</th>
               <th v-if="isPET" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Campaña</th>
-              <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Mapeo</th>
+              <th v-if="!hideMapeo" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Mapeo</th>
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap">Fecha</th>
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap text-right">Registros</th>
               <th v-if="showAprobados" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap text-right">Aprobados</th>
@@ -64,7 +65,7 @@ const isPET = computed(() => props.scope === 'campana')
             <tr v-for="(row, i) in rows" :key="i" class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.lineaNegocio }}</td>
               <td v-if="isPET" class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.campana }}</td>
-              <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.mapeo }}</td>
+              <td v-if="!hideMapeo" class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.mapeo }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-500 text-xs">{{ row.fecha }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700 text-right font-medium tabular-nums">{{ row.registros.toLocaleString() }}</td>
               <td v-if="showAprobados" class="px-4 py-3 whitespace-nowrap text-right font-medium tabular-nums">

@@ -585,15 +585,16 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
 
   const isPET = params.scope === 'campana'
   const showAprobados = params.tipo === 'validacion'
+  const hideMapeo = isPET && params.tipo === 'carga'
 
-  const head = [['Línea de Negocio', ...(isPET ? ['Campaña'] : []), 'Mapeo', 'Fecha', 'Registros',
+  const head = [['Línea de Negocio', ...(isPET ? ['Campaña'] : []), ...(hideMapeo ? [] : ['Mapeo']), 'Fecha', 'Registros',
     ...(showAprobados ? ['Aprobados', 'Rechazados'] : [])
   ]]
 
   const body = params.rows.map(r => [
     r.lineaNegocio,
     ...(isPET ? [r.campana ?? ''] : []),
-    r.mapeo,
+    ...(hideMapeo ? [] : [r.mapeo]),
     r.fecha,
     r.registros.toLocaleString(),
     ...(showAprobados ? [(r.aprobados ?? 0).toLocaleString(), (r.rechazados ?? 0).toLocaleString()] : [])

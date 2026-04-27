@@ -93,6 +93,7 @@ function updatePET(field: string, value: string) {
       <div v-if="consultaMode === 'individual'" class="space-y-2">
         <ReportesFilters
           :scope="form.scope"
+          :tipo="tipo"
           :id-linea-negocio="form.idLineaNegocio"
           :id-campana="form.idCampana"
           :cl="form.cl"

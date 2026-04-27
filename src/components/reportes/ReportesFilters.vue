@@ -10,6 +10,7 @@ interface Option {
 
 const props = defineProps<{
   scope: string
+  tipo?: string
   idLineaNegocio: number | ''
   idCampana: number | ''
   cl: FiltroIndividualCL
@@ -75,7 +76,7 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
       <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Filtros CL</p>
       <p v-if="formErrors.clAtLeastOne" class="text-xs text-blue-500">{{ formErrors.clAtLeastOne }}</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div>
+        <div v-if="tipo === 'envio'">
           <label class="block text-xs font-semibold text-slate-600 mb-1">RIID <span class="text-blue-600">*</span></label>
           <input :value="cl.riid" @input="emit('update-cl', 'riid', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="RIID" />
         </div>

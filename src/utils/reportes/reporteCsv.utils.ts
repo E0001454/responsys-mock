@@ -251,13 +251,14 @@ export function downloadReporteCsv(params: CsvExportParams) {
 
 export function downloadGeneralCsv(params: { scope: 'linea' | 'campana'; tipo: 'carga' | 'validacion' | 'envio'; rows: RegistroGeneral[] }) {
   const isPET = params.scope === 'campana'
+  const hideMapeo = isPET && params.tipo === 'carga'
 
   const showAprobados = params.tipo === 'validacion'
 
   const cols: ColDef[] = [
     { key: 'lineaNegocio', label: 'Línea de Negocio' },
     ...(isPET ? [{ key: 'campana', label: 'Campaña' }] : []),
-    { key: 'mapeo', label: 'Mapeo' },
+    ...(hideMapeo ? [] : [{ key: 'mapeo', label: 'Mapeo' }]),
     { key: 'fecha', label: 'Fecha' },
     { key: 'registros', label: 'Registros' },
     ...(showAprobados ? [{ key: 'aprobados', label: 'Aprobados' }, { key: 'rechazados', label: 'Rechazados' }] : [])
