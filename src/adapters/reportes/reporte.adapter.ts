@@ -71,7 +71,7 @@ export function normalizeRegistroCL(raw: any): RegistroCL {
 export function normalizeRegistroPET(raw: any): RegistroPET {
   return {
     lineaDeNegocio: safeString(raw?.lineaDeNegocio),
-    idCampana: safeString(raw?.idCampana),
+    campana: safeString(raw?.campana ?? raw?.idCampana),
     numLote: safeString(raw?.numLote),
     customerId: safeString(raw?.customerId),
     idAfore: safeString(raw?.idAfore),

@@ -71,7 +71,7 @@ function updatePET(field: string, value: string) {
       <ReportesHeader
         :tabs="scopeTabs"
         :active-tab="form.scope"
-        title="Reportes Responsys"
+        title="Reportes Envío (Responsys)"
         subtitle="Consulta y exportación de reportes de envío."
         @tab-change="handleScopeChange"
       />

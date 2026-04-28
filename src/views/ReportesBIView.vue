@@ -71,7 +71,7 @@ function updatePET(field: string, value: string) {
       <ReportesHeader
         :tabs="scopeTabs"
         :active-tab="form.scope"
-        title="Reportes BI"
+        title="Reportes Carga (BI)"
         subtitle="Consulta y exportación de reportes de carga."
         @tab-change="handleScopeChange"
       />

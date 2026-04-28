@@ -55,7 +55,7 @@ const clColumns: ColumnDef[] = [
 
 const petColumns: ColumnDef[] = [
   { key: 'lineaDeNegocio', label: 'Línea de Negocio' },
-  { key: 'idCampana', label: 'Campaña' },
+  { key: 'campana', label: 'Campaña' },
   { key: 'numLote', label: 'Número de Lote' },
   { key: 'customerId', label: 'ID Cliente' },
   { key: 'idAfore', label: 'ID Afore' },
@@ -138,7 +138,7 @@ function repairDetalleJson(text: string): string {
 
 const ATRIBUTO_TO_KEY: Record<string, string> = {
   afore: 'descripciondeafore', idcliente: 'customerid', nolote: 'numlote',
-  campana: 'idcampana', nombre: 'firstname', apellido: 'lastname',
+  campana: 'campana', idcampana: 'campana', nombre: 'firstname', apellido: 'lastname',
   lineanegocio: 'lineadenegocio', regimenimss: 'regimenimss'
 }
 const COLUMNA_TO_KEY: Record<string, string> = {
@@ -152,7 +152,7 @@ const COLUMNA_TO_KEY: Record<string, string> = {
   id_cliente_ahorrador: 'idclienteahorrador', id_prestamo_pensionado: 'idprestamopensionado',
   id_susceptible_prestamo: 'idsusceptibleprestamo', tipo_pension: 'tipopension',
   grupo_pago: 'grupopago', customer_id_: 'customerid', num_lote: 'numlote',
-  nombre_campana: 'idcampana', id_campana: 'idcampana', id_baja_cambio: 'idbajacambio',
+  nombre_campana: 'campana', id_campana: 'campana', idcampana: 'campana', id_baja_cambio: 'idbajacambio',
   fecha_baja_cambio: 'fechabajacambio', regimen_imss: 'regimenimss',
   segmento_afo: 'segmentoafo', liga_rsaldos: 'ligarsaldos', segmento_pre: 'segmentopre',
   first_name: 'firstname', last_name: 'lastname', id_comunicacion: 'idcomunicacion',

@@ -127,7 +127,7 @@ const logout = async () => {
               @click="emit('close-mobile')"
             >
               <Database class="w-4 h-4" />
-              <span>BI</span>
+              <span>Carga (BI)</span>
             </RouterLink>
           </li>
           <li>
@@ -138,7 +138,7 @@ const logout = async () => {
               @click="emit('close-mobile')"
             >
               <ArrowRightLeft class="w-4 h-4" />
-              <span>ABC</span>
+              <span>Validación (ABC)</span>
             </RouterLink>
           </li>
           <li>
@@ -149,7 +149,7 @@ const logout = async () => {
               @click="emit('close-mobile')"
             >
               <Mail class="w-4 h-4" />
-              <span>Responsys</span>
+              <span>Envío (Responsys)</span>
             </RouterLink>
           </li>
         </ul>

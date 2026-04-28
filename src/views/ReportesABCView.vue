@@ -71,7 +71,7 @@ function updatePET(field: string, value: string) {
       <ReportesHeader
         :tabs="scopeTabs"
         :active-tab="form.scope"
-        title="Reportes ABC"
+        title="Reportes Validación (ABC)"
         subtitle="Consulta y exportación de reportes de validación."
         @tab-change="handleScopeChange"
       />

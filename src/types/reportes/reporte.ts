@@ -65,7 +65,7 @@ export interface RegistroCL {
 
 export interface RegistroPET {
   lineaDeNegocio: string
-  idCampana: string
+  campana: string
   numLote: string
   customerId: string
   idAfore: string
