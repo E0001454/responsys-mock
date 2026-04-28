@@ -23,7 +23,7 @@ export function createEmptyReporteFilterForm(): ReporteFilterFormModel {
     idLineaNegocio: '',
     idCampana: '',
     cl: {
-      riid: '', nombre: '', apellidoPaterno: '', correo: '', telefono: '',
+      riid: '', customerId: '', nombre: '', apellidoPaterno: '', correo: '', telefono: '',
       noCuenta: '', nss: '', curp: '', rfc: '', poliza: '',
       fechaInicio: hoy, fechaFin: hoy
     },
@@ -49,7 +49,7 @@ export function validateReporteFilterForm(form: ReporteFilterFormModel): Reporte
     const cl = form.cl
 
     const hasAtLeastOne = [
-      cl.riid, cl.correo, cl.telefono, cl.noCuenta,
+      cl.riid, cl.customerId, cl.correo, cl.telefono, cl.noCuenta,
       cl.nss, cl.curp, cl.rfc, cl.poliza
     ].some(v => !!v)
     if (!hasAtLeastOne) {
@@ -112,7 +112,7 @@ export function buildCLBody(form: ReporteFilterFormModel): Record<string, string
   const cl = form.cl
   return compactObj({
     ...(form.idLineaNegocio ? { idLineaNegocio: String(form.idLineaNegocio) } : {}),
-    riid: cl.riid, nombre: cl.nombre, apellidoPaterno: cl.apellidoPaterno,
+    riid: cl.riid, customerId: cl.customerId, nombre: cl.nombre, apellidoPaterno: cl.apellidoPaterno,
     correo: cl.correo, telefono: cl.telefono, noCuenta: cl.noCuenta,
     nss: cl.nss, curp: cl.curp, rfc: cl.rfc, poliza: cl.poliza,
     fechaInicio: isoToApiDate(cl.fechaInicio ?? ''),

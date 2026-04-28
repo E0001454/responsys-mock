@@ -3,6 +3,7 @@ export type ReporteScope = 'linea' | 'campana'
 
 export interface FiltroIndividualCL {
   riid?: string
+  customerId?: string
   nombre?: string
   apellidoPaterno?: string
   correo?: string

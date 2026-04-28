@@ -81,6 +81,10 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
           <input :value="cl.riid" @input="emit('update-cl', 'riid', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="RIID" />
         </div>
         <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">ID Cliente <span class="text-blue-600">*</span></label>
+          <input :value="cl.customerId" @input="emit('update-cl', 'customerId', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="ID Cliente" />
+        </div>
+        <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre</label>
           <input :value="cl.nombre" @input="emit('update-cl', 'nombre', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Nombre" />
         </div>
