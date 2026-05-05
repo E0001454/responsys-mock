@@ -89,19 +89,19 @@ function getDictaminarVisual(configured: boolean) {
               <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Estatus</span>
               <span
                 class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200"
-                :class="item.bolActivo
+                :class="item.activo
                   ? 'bg-blue-50 border-blue-200'
                   : 'bg-slate-50 border-slate-200'"
               >
                 <span
                   class="h-2 w-2 rounded-full"
-                  :class="item.bolActivo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
+                  :class="item.activo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
                 ></span>
                 <span
                   class="text-xs font-semibold"
-                  :class="item.bolActivo ? 'text-[#00357F]' : 'text-slate-500'"
+                  :class="item.activo ? 'text-[#00357F]' : 'text-slate-500'"
                 >
-                  {{ item.bolActivo ? 'Activo' : 'Inactivo' }}
+                  {{ item.activo ? 'Activo' : 'Inactivo' }}
                 </span>
               </span>
             </div>

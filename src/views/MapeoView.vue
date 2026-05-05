@@ -108,7 +108,7 @@ const filteredMapeosLinea = computed(() => {
       ? selectedFiltersLinea.lineas.includes(lineaId)
       : true
     const matchStatus = selectedFiltersLinea.status.length
-      ? selectedFiltersLinea.status.includes(item.bolActivo)
+      ? selectedFiltersLinea.status.includes(item.activo)
       : true
     return matchSearch && matchLinea && matchStatus
   }).sort(newestFirstCompare)
@@ -123,7 +123,7 @@ const filteredMapeosCampana = computed(() => {
       ? selectedFiltersCampana.lineas.includes(lineaId)
       : true
     const matchStatus = selectedFiltersCampana.status.length
-      ? selectedFiltersCampana.status.includes(item.bolActivo)
+      ? selectedFiltersCampana.status.includes(item.activo)
       : true
     const matchCampana = selectedFiltersCampana.campanas.length
       ? selectedFiltersCampana.campanas.includes(campanaId)
@@ -211,14 +211,14 @@ const statusConfirmLoading = computed(() => {
 
 const statusConfirmTitle = computed(() => {
   if (!pendingStatusItem.value) return 'Confirmar cambio de estatus'
-  return pendingStatusItem.value.bolActivo
+  return pendingStatusItem.value.activo
     ? 'Confirmar desactivación'
     : 'Confirmar activación'
 })
 
 const statusConfirmMessage = computed(() => {
   if (!pendingStatusItem.value) return '¿Deseas continuar con este cambio de estatus?'
-  const actionText = pendingStatusItem.value.bolActivo ? 'desactivar' : 'activar'
+  const actionText = pendingStatusItem.value.activo ? 'desactivar' : 'activar'
   return `¿Deseas ${actionText} este mapeo?`
 })
 
@@ -294,7 +294,7 @@ async function handleSave(formData: MapeoLineaFormModel | MapeoCampanaFormModel)
 
 async function toggleStatus(item: MapeoLineaData | MapeoCampanaData) {
   try {
-    const wasActive = item.bolActivo
+    const wasActive = item.activo
     const targetIds = resolveMapeoToggleCandidates(item)
 
     if (isCampanaRow(item)) {

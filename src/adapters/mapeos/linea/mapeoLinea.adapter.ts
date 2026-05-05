@@ -1,7 +1,7 @@
 import type { MapeoLineaData } from '@/types/mapeos/linea'
 
 export function normalizeMapeoLinea(item: any): MapeoLineaData {
-  const rawActivo = item?.bolActivo ?? item?.status ?? false
+  const rawActivo = item?.activo ?? item?.bolActivo ?? item?.status ?? false
   const rawDictaminacion = item?.dictaminar ?? item?.bolDictaminacion ?? item?.dictaminacion
   const rawValidar = item?.validar ?? item?.bolValidacion ?? item?.validar_flag
   const rawEnviar = item?.enviar ?? item?.envio ?? item?.bolEnvio ?? item?.envio_flag
@@ -28,7 +28,7 @@ export function normalizeMapeoLinea(item: any): MapeoLineaData {
     idABCUsuario: Number(item?.idABCUsuario ?? item?.id_usuario ?? 1),
     nombre: item?.nombre ?? '',
     descripcion: item?.descripcion ?? '',
-    bolActivo: typeof rawActivo === 'boolean' ? rawActivo : Number(rawActivo) === 1,
+    activo: typeof rawActivo === 'boolean' ? rawActivo : Number(rawActivo) === 1,
     bolDictaminacion:
       rawDictaminacion === null || rawDictaminacion === undefined
         ? null

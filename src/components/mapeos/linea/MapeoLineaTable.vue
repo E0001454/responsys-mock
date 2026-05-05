@@ -280,27 +280,27 @@ function formatPorcentajeError(value?: number | null) {
               <td class="px-4 py-2.5" @dblclick="emit('viewDetails', m)">
                 <label
                   class="inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200 cursor-pointer group select-none"
-                  :class="m.bolActivo
+                  :class="m.activo
                     ? 'bg-blue-50 border-blue-200 hover:border-blue-300'
                     : 'bg-slate-50 border-slate-200 hover:border-slate-300'"
                 >
                   <input
                     type="checkbox"
-                    :checked="m.bolActivo"
+                    :checked="m.activo"
                     @change="emit('toggleStatus', m)"
                     class="sr-only peer"
                   >
 
                   <span
                     class="h-2 w-2 rounded-full transition-colors duration-200 shadow-sm"
-                    :class="m.bolActivo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
+                    :class="m.activo ? 'bg-[#00357F]' : 'bg-[#AD0A0A]'"
                   ></span>
 
                   <span
                     class="text-xs font-semibold transition-colors duration-200"
-                    :class="m.bolActivo ? 'text-[#00357F]' : 'text-slate-500'"
+                    :class="m.activo ? 'text-[#00357F]' : 'text-slate-500'"
                   >
-                    {{ m.bolActivo ? 'Activo' : 'Inactivo' }}
+                    {{ m.activo ? 'Activo' : 'Inactivo' }}
                   </span>
                 </label>
               </td>

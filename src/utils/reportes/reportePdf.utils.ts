@@ -1,6 +1,7 @@
 ﻿import logoProfuturo from '@/assets/img/logo_blue.webp'
 import { getImageWatermarkDataUrl } from '@/utils/reports/pdfWatermark'
 import type { RegistroCL, RegistroPET, RegistroGeneral, ReporteScope, ReporteTipo, ReporteGeneralTipo } from '@/types/reportes/reporte'
+import { formatTimestamp } from '@/utils/reportes/reporteFormat.utils'
 
 interface DetalleError { columna?: string; atributo?: string; error?: string | string[]; err?: string | string[] }
 
@@ -332,66 +333,90 @@ export async function downloadReportePdfReport(params: DownloadReportePdfParams)
   }
 
   let startY = 47
+  const totalRecords = body.length
 
-  for (const chunk of colChunks) {
-    const chunkHead = [chunk.map(i => labels[i] ?? '')]
-    const chunkBody = body.map(row => chunk.map(i => row[i]))
-    const chunkColKeys = chunk.map(i => colKeys[i])
-
-    autoTable(doc, {
-      startY,
-      head: chunkHead,
-      body: chunkBody,
-      tableWidth: 'auto',
-      margin: { top: 30, left: 10, right: 10, bottom: 14 },
-      rowPageBreak: 'avoid',
-      headStyles: sharedHeadStyles,
-      bodyStyles: sharedBodyStyles,
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      styles: sharedStyles,
-      didParseCell: (data: any) => {
-        if (data.section !== 'body') return
-        const rowIdx = data.row.index as number
-        const colIdx = data.column.index as number
-
-        if (params.tipo === 'envio') {
-          data.cell.styles.fillColor = [219, 234, 254]
-          return
-        }
-
-        if (params.tipo !== 'validacion') return
-
-        const errMap = errorMaps[rowIdx]
-        const colKey = chunkColKeys[colIdx]
-
-        if (errMap && errMap.size > 0) {
-          if (colKey && errMap.has(colKey.toLowerCase())) {
-            data.cell.styles.fillColor = [254, 226, 226]
-            data.cell.styles.textColor = [153, 27, 27]
-            const errMsg = errMap.get(colKey.toLowerCase())
-            if (errMsg) {
-              const current = Array.isArray(data.cell.text) ? data.cell.text.join('') : String(data.cell.text ?? '')
-              data.cell.text = [current ? `${current} (${errMsg})` : errMsg]
-            }
-          } else {
-            data.cell.styles.fillColor = [254, 242, 242]
-          }
-        } else if (APPROVED.has(rowStatuses[rowIdx] ?? '')) {
-          data.cell.styles.fillColor = [209, 250, 229]
-        }
-      },
-      didDrawPage: () => {
+  for (let recordIdx = 0; recordIdx < totalRecords; recordIdx++) {
+    // Add a clear separator before every record after the first
+    if (recordIdx > 0) {
+      const remainingSpace = pageH - startY - 14
+      if (remainingSpace < 30) {
+        doc.addPage()
         drawPageFrame()
-        doc.setTextColor(...grayText)
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8)
-        const current = doc.getCurrentPageInfo().pageNumber
-        const total = doc.getNumberOfPages()
-        doc.text(`Página ${current} de ${total}`, pageW - 38, pageH - 6)
+        startY = 34
+      } else {
+        startY += 8
       }
-    })
+      doc.setDrawColor(...lineGray)
+      doc.setLineWidth(0.4)
+      doc.line(10, startY, pageW - 10, startY)
+      doc.setFillColor(...brandBlueLight)
+      doc.roundedRect(10, startY + 3, pageW - 20, 8, 1, 1, 'F')
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8)
+      doc.setTextColor(...brandBlue)
+      doc.text(`Registro ${recordIdx + 1} de ${totalRecords}`, 14, startY + 8)
+      startY += 14
+    }
 
-    startY = (doc as any).lastAutoTable.finalY + 4
+    for (const chunk of colChunks) {
+      const chunkHead = [chunk.map(i => labels[i] ?? '')]
+      const chunkBody = [chunk.map(i => (body[recordIdx] ?? [])[i] ?? '')]
+      const chunkColKeys = chunk.map(i => colKeys[i])
+
+      autoTable(doc, {
+        startY,
+        head: chunkHead,
+        body: chunkBody,
+        tableWidth: 'auto',
+        margin: { top: 30, left: 10, right: 10, bottom: 14 },
+        rowPageBreak: 'avoid',
+        headStyles: sharedHeadStyles,
+        bodyStyles: sharedBodyStyles,
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        styles: sharedStyles,
+        didParseCell: (data: any) => {
+          if (data.section !== 'body') return
+          const colIdx = data.column.index as number
+
+          if (params.tipo === 'envio') {
+            data.cell.styles.fillColor = [219, 234, 254]
+            return
+          }
+
+          if (params.tipo !== 'validacion') return
+
+          const errMap = errorMaps[recordIdx]
+          const colKey = chunkColKeys[colIdx]
+
+          if (errMap && errMap.size > 0) {
+            if (colKey && errMap.has(colKey.toLowerCase())) {
+              data.cell.styles.fillColor = [254, 226, 226]
+              data.cell.styles.textColor = [153, 27, 27]
+              const errMsg = errMap.get(colKey.toLowerCase())
+              if (errMsg) {
+                const current = Array.isArray(data.cell.text) ? data.cell.text.join('') : String(data.cell.text ?? '')
+                data.cell.text = [current ? `${current} (${errMsg})` : errMsg]
+              }
+            } else {
+              data.cell.styles.fillColor = [254, 242, 242]
+            }
+          } else if (APPROVED.has(rowStatuses[recordIdx] ?? '')) {
+            data.cell.styles.fillColor = [209, 250, 229]
+          }
+        },
+        didDrawPage: () => {
+          drawPageFrame()
+          doc.setTextColor(...grayText)
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(8)
+          const current = doc.getCurrentPageInfo().pageNumber
+          const total = doc.getNumberOfPages()
+          doc.text(`Página ${current} de ${total}`, pageW - 38, pageH - 6)
+        }
+      })
+
+      startY = (doc as any).lastAutoTable.finalY + 3
+    }
   }
 
   doc.save(`reporte-${params.tipo}-${params.scope}-${new Date().toISOString().split('T')[0]}.pdf`)
@@ -595,7 +620,7 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
     r.lineaNegocio,
     ...(isPET ? [r.campana ?? ''] : []),
     ...(hideMapeo ? [] : [r.mapeo]),
-    r.fecha,
+    formatTimestamp(r.fecha),
     r.registros.toLocaleString(),
     ...(showAprobados ? [(r.aprobados ?? 0).toLocaleString(), (r.rechazados ?? 0).toLocaleString()] : [])
   ])
@@ -606,44 +631,77 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
     doc.setFontSize(11)
     doc.text('No hay datos para exportar.', 14, cursorY + 10)
   } else {
-    autoTable(doc, {
-      startY: cursorY + 2,
-      head,
-      body,
-      tableWidth: 'auto',
-      margin: { top: 30, left: 10, right: 10, bottom: 14 },
-      rowPageBreak: 'avoid',
-      headStyles: {
-        fillColor: brandBlue,
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        fontSize: 8,
-        halign: 'left',
-        valign: 'middle'
-      },
-      bodyStyles: {
-        font: 'helvetica',
-        fontSize: 8,
-        textColor: [30, 41, 59],
-        valign: 'top'
-      },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      styles: {
-        lineColor: [226, 232, 240],
-        lineWidth: 0.15,
-        cellPadding: 1.5,
-        overflow: 'linebreak'
-      },
-      didDrawPage: () => {
-        drawPageFrame()
-        doc.setTextColor(...grayText)
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8)
-        const current = doc.getCurrentPageInfo().pageNumber
-        const total = doc.getNumberOfPages()
-        doc.text(`Página ${current} de ${total}`, pageW - 38, pageH - 6)
+    const headStyles = {
+      fillColor: brandBlue,
+      textColor: [255, 255, 255] as [number, number, number],
+      fontStyle: 'bold' as const,
+      fontSize: 8,
+      halign: 'left' as const,
+      valign: 'middle' as const
+    }
+    const bodyStyles = {
+      font: 'helvetica',
+      fontSize: 8,
+      textColor: [30, 41, 59] as [number, number, number],
+      valign: 'top' as const
+    }
+    const tableStyles = {
+      lineColor: [226, 232, 240] as [number, number, number],
+      lineWidth: 0.15,
+      cellPadding: 1.5,
+      overflow: 'linebreak' as const
+    }
+    const didDrawPageCb = () => {
+      drawPageFrame()
+      doc.setTextColor(...grayText)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      const current = doc.getCurrentPageInfo().pageNumber
+      const total = doc.getNumberOfPages()
+      doc.text(`Página ${current} de ${total}`, pageW - 38, pageH - 6)
+    }
+
+    let tableY = cursorY + 2
+    const totalRecords = body.length
+
+    for (let i = 0; i < totalRecords; i++) {
+      if (i > 0) {
+        const remaining = pageH - tableY - 14
+        if (remaining < 28) {
+          doc.addPage()
+          drawPageFrame()
+          tableY = 34
+        } else {
+          tableY += 8
+        }
+        doc.setDrawColor(...lineGray)
+        doc.setLineWidth(0.3)
+        doc.line(10, tableY, pageW - 10, tableY)
+        doc.setFillColor(...brandBlueLight)
+        doc.roundedRect(10, tableY + 2, pageW - 20, 7, 1, 1, 'F')
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(7.5)
+        doc.setTextColor(...brandBlue)
+        doc.text(`Registro ${i + 1} de ${totalRecords}`, 14, tableY + 7)
+        tableY += 12
       }
-    })
+
+      autoTable(doc, {
+        startY: tableY,
+        head,
+        body: [body[i]],
+        tableWidth: 'auto',
+        margin: { top: 30, left: 10, right: 10, bottom: 14 },
+        rowPageBreak: 'avoid',
+        headStyles,
+        bodyStyles,
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        styles: tableStyles,
+        didDrawPage: didDrawPageCb
+      })
+
+      tableY = (doc as any).lastAutoTable.finalY + 2
+    }
   }
 
   doc.save(`reporte-general-${params.tipo}-${params.scope}-${new Date().toISOString().split('T')[0]}.pdf`)

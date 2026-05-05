@@ -5,7 +5,7 @@ import type { MapeoCampanaData } from '@/types/mapeos/campana'
 interface Option {
   label: string
   value: string
-  bolActivo?: boolean
+  activo?: boolean
 }
 
 export function useMapeosCampana() {
@@ -24,7 +24,7 @@ export function useMapeosCampana() {
       mapeos.value = list.map(m => ({
         label: m.nombre || m.descripcion || `Mapeo ${m.idABCConfigMapeoLinea}`,
         value: String(m.idABCConfigMapeoLinea),
-        bolActivo: Boolean(m.bolActivo)
+        activo: Boolean(m.activo)
       }))
     } catch (e: any) {
       error.value = e.message

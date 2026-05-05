@@ -70,20 +70,20 @@ export function normalizeRegistroCL(raw: any): RegistroCL {
 
 export function normalizeRegistroPET(raw: any): RegistroPET {
   return {
-    lineaDeNegocio: safeString(raw?.lineaDeNegocio),
+    lineaDeNegocio: safeString(raw?.lineaDeNegocio ?? raw?.lineaNegocio),
     campana: safeString(raw?.campana ?? raw?.idCampana),
-    numLote: safeString(raw?.numLote),
-    customerId: safeString(raw?.customerId),
+    numLote: safeString(raw?.numLote ?? raw?.noLote),
+    customerId: safeString(raw?.customerId ?? raw?.idCliente),
     idAfore: safeString(raw?.idAfore),
-    descripcionDeAfore: safeString(raw?.descripcionDeAfore),
+    descripcionDeAfore: safeString(raw?.descripcionDeAfore ?? raw?.afore),
     idClienteAhorrador: safeString(raw?.idClienteAhorrador ?? raw?.idClienteAhorrrador),
     idPrestamoPensionado: safeString(raw?.idPrestamoPensionado),
     idSusceptiblePrestamo: safeString(raw?.idSusceptiblePrestamo),
     idBajaCambio: safeString(raw?.idBajaCambio),
     idComunicacion: safeString(raw?.idComunicacion),
     idPersona: safeString(raw?.idPersona),
-    firstName: safeString(raw?.firstName),
-    lastName: safeString(raw?.lastName),
+    firstName: safeString(raw?.firstName ?? raw?.nombre),
+    lastName: safeString(raw?.lastName ?? raw?.apellido),
     correo: safeString(raw?.correo),
     telefono: safeString(raw?.telefono),
     siefore: safeString(raw?.siefore),
@@ -92,7 +92,7 @@ export function normalizeRegistroPET(raw: any): RegistroPET {
     tipoPension: safeString(raw?.tipoPension),
     grupoPago: safeString(raw?.grupoPago),
     fechaBajaCambio: safeString(raw?.fechaBajaCambio),
-    regimenImss: safeString(raw?.regimenImss),
+    regimenImss: safeString(raw?.regimenImss ?? raw?.regimenIMSS),
     segmentoAfo: safeString(raw?.segmentoAfo),
     edad: safeString(raw?.edad),
     genero: safeString(raw?.genero),
@@ -152,6 +152,7 @@ export function normalizeRegistroGeneral(raw: any): RegistroGeneral {
     }
   }
   return {
+    ...(raw?.idTarea != null && !isNaN(Number(raw.idTarea)) ? { idTarea: Number(raw.idTarea) } : {}),
     lineaNegocio: safeString(raw?.lineaNegocio),
     ...(raw?.campana != null ? { campana: safeString(raw.campana) } : {}),
     mapeo: safeString(raw?.mapeo),

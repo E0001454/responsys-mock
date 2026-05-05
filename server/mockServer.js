@@ -998,6 +998,15 @@ function buildHorarioRecord(baseHorario, idKey, parentIdKey, parentId, nextHorar
   const horaId = Number(baseHorario?.dia?.hora?.id ?? baseHorario?.hora?.id ?? 0)
   const typeId = Number(baseHorario?.tipoHorario?.id ?? baseHorario?.tipo?.id ?? fallbackTypeId)
   const activeFlag = baseHorario?.activo ?? baseHorario?.bolActivo ?? true
+  const rawDictaminar = baseHorario?.dictaminar
+  const dictaminar = typeof rawDictaminar === 'boolean' ? rawDictaminar
+    : rawDictaminar === 'true' ? true
+    : rawDictaminar === 'false' ? false
+    : false
+  const rawPorcentajeError = baseHorario?.porcentajeError
+  const porcentajeError = rawPorcentajeError !== undefined && rawPorcentajeError !== null && !Number.isNaN(Number(rawPorcentajeError))
+    ? Number(rawPorcentajeError)
+    : null
   return {
     [idKey]: nextHorarioId,
     [parentIdKey]: Number(parentId),
@@ -1016,9 +1025,21 @@ function buildHorarioRecord(baseHorario, idKey, parentIdKey, parentId, nextHorar
     },
     activo: activeFlag,
     bolActivo: activeFlag,
+    dictaminar,
+    porcentajeError,
     fechaCreacion: baseHorario?.fechaCreacion ?? now(),
     fechaUltimaModificacion: now()
   }
+}
+
+function withEmbeddedHorarios(tareas, horarioStore, parentIdKey) {
+  return tareas.map(tarea => {
+    const tareaId = Number(tarea?.[parentIdKey] ?? tarea?.id ?? 0)
+    const embedded = horarioStore.filter(h =>
+      Number(h?.tarea?.id ?? h?.[parentIdKey] ?? 0) === tareaId
+    )
+    return embedded.length ? { ...tarea, tareas: embedded } : tarea
+  })
 }
 
 function horarioSignature(horario, fallbackTypeId = 0) {
@@ -1156,11 +1177,11 @@ function filterCLIndividualRecords(records, params) {
 function filterPETIndividualRecords(records, params) {
   return records.filter(r => {
     
-    if (params.noLote && !String(r.numLote || '').includes(String(params.noLote || ''))) {
+    if ((params.numLote || params.noLote) && !String(r.numLote || '').includes(String(params.numLote || params.noLote || ''))) {
       return false
     }
     
-    if (params.idCliente && String(r.customerId || '') !== String(params.idCliente || '')) {
+    if ((params.customerId || params.idCliente) && String(r.customerId || '') !== String(params.customerId || params.idCliente || '')) {
       return false
     }
     
@@ -1192,11 +1213,11 @@ function filterPETIndividualRecords(records, params) {
       return false
     }
     
-    if (params.nombre && !String(r.firstName || '').toLowerCase().includes(String(params.nombre || '').toLowerCase())) {
+    if ((params.nombre || params.firstName) && !String(r.firstName || '').toLowerCase().includes(String(params.nombre || params.firstName || '').toLowerCase())) {
       return false
     }
     
-    if (params.apellido && !String(r.lastName || '').toLowerCase().includes(String(params.apellido || '').toLowerCase())) {
+    if ((params.apellido || params.lastName) && !String(r.lastName || '').toLowerCase().includes(String(params.apellido || params.lastName || '').toLowerCase())) {
       return false
     }
     
@@ -1313,11 +1334,11 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathOnly === '/lineas/tareas') {
-        return send(res, 200, store.tareasLinea)
+        return send(res, 200, withEmbeddedHorarios(store.tareasLinea, store.horariosTareaLinea, 'idABCConfigTareaLinea'))
       }
 
       if (pathOnly === '/lineas/campanas/tareas') {
-        return send(res, 200, store.tareasCampana)
+        return send(res, 200, withEmbeddedHorarios(store.tareasCampana, store.horariosTareaCampana, 'idABCConfigTareaCampana'))
       }
 
       if (pathOnly === '/monitor/tareas/linea') {
@@ -1411,7 +1432,7 @@ const server = http.createServer(async (req, res) => {
       if (lineasTareaParams) {
         const lineaId = Number(lineasTareaParams.lineaId)
         const list = store.tareasLinea.filter(t => Number(t?.linea?.id ?? t?.idABCCatLineaNegocio) === lineaId)
-        return send(res, 200, list)
+        return send(res, 200, withEmbeddedHorarios(list, store.horariosTareaLinea, 'idABCConfigTareaLinea'))
       }
 
       const campanaTareaParams = matchPath(pathOnly, '/lineas/:lineaId/campanas/:campanaId/tareas')
@@ -1422,7 +1443,7 @@ const server = http.createServer(async (req, res) => {
           Number(t?.linea?.id ?? t?.idABCCatLineaNegocio) === lineaId &&
           Number(t?.linea?.catCampana?.id ?? t?.linea?.campana?.id ?? t?.idABCCatCampana) === campanaId
         )
-        return send(res, 200, list)
+        return send(res, 200, withEmbeddedHorarios(list, store.horariosTareaCampana, 'idABCConfigTareaCampana'))
       }
 
       const horariosLineaParams = matchPath(pathOnly, '/lineas/tareas/:tareaId/horarios')

@@ -18,8 +18,8 @@ export interface FiltroIndividualCL {
 }
 
 export interface FiltroIndividualPET {
-  noLote?: string
-  idCliente?: string
+  numLote?: string
+  customerId?: string
   idAfore?: string
   idClienteAhorrador?: string
   idPrestamoPensionado?: string
@@ -27,8 +27,8 @@ export interface FiltroIndividualPET {
   idBajaCambio?: string
   idComunicacion?: string
   idPersona?: string
-  nombre?: string
-  apellido?: string
+  firstName?: string
+  lastName?: string
   correo?: string
   telefono?: string
   fechaInicio?: string
@@ -140,6 +140,7 @@ export interface ReporteApiResponseItem<T> {
 export type ReporteGeneralTipo = 'carga' | 'validacion' | 'envio'
 
 export interface RegistroGeneral {
+  idTarea?: number
   lineaNegocio: string
   campana?: string
   mapeo: string

@@ -114,10 +114,30 @@ function normalizeHorarios(item: any) {
       ? item.actividad.horarios
     : Array.isArray(item?.tarea?.horarios)
       ? item.tarea.horarios
+    : Array.isArray(item?.tareas)
+      ? item.tareas
+    : Array.isArray(item?.tarea)
+      ? item.tarea
       : []
 
   if (rawHorarios.length) {
-    return rawHorarios
+    return rawHorarios.map((h: any) => {
+      const rawDictaminar = h?.dictaminar
+      const dictaminar = typeof rawDictaminar === 'boolean'
+        ? rawDictaminar
+        : rawDictaminar === 'true' ? true
+        : rawDictaminar === 'false' ? false
+        : undefined
+      const rawPorcentajeError = h?.porcentajeError
+      const porcentajeError = rawPorcentajeError !== undefined && rawPorcentajeError !== null && !Number.isNaN(Number(rawPorcentajeError))
+        ? Number(rawPorcentajeError)
+        : undefined
+      return {
+        ...h,
+        ...(dictaminar !== undefined ? { dictaminar } : {}),
+        ...(porcentajeError !== undefined ? { porcentajeError } : {}),
+      }
+    })
   }
 
   const legacyHorarios: any[] = []

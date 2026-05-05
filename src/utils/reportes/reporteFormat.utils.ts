@@ -86,6 +86,21 @@ function appendDetalle(val: unknown, key: string, errorMap: Map<string, string>)
   return s ? `${s} (${errMsg})` : errMsg
 }
 
+export function formatTimestamp(value: string | number | undefined | null): string {
+  if (value === undefined || value === null || value === '') return ''
+  const num = typeof value === 'number' ? value : Number(value)
+  const d = isNaN(num) ? new Date(String(value)) : new Date(num)
+  if (isNaN(d.getTime())) return String(value)
+  return d.toLocaleString('es-MX', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  })
+}
+
 export function getEstatusClass(estatus?: string): string {
   const c = String(estatus ?? '').toUpperCase()
   if (c === 'ACEPTADO' || c === 'APROBADO' || c === 'EXITOSO' || c === 'OK') return 'bg-emerald-100 text-emerald-800'

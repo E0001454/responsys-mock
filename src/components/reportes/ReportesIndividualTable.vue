@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, XCircle, Circle } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, XCircle, Circle, Search } from 'lucide-vue-next'
 import type { RegistroCL, RegistroPET } from '@/types/reportes/reporte'
 import { getEstatusClass } from '@/utils/reportes/reporteFormat.utils'
 
@@ -24,6 +24,12 @@ const emit = defineEmits<{
 
 const showEstatus = computed(() => props.tipo === 'validacion')
 const hasRows = computed(() => props.scope === 'linea' ? props.registrosCL.length > 0 : props.registrosPET.length > 0)
+
+const emptyMessage = computed(() => {
+  if (props.tipo === 'carga') return 'No hay información disponible actualmente con los filtros proporcionados.'
+  if (props.tipo === 'validacion') return 'No hay información disponible actualmente con los filtros proporcionados. Favor de revisar el proceso de Carga (BI).'
+  return 'No hay información disponible actualmente con los filtros proporcionados. Favor de revisar el motivo en el proceso de Validación (ABC).'
+})
 
 interface ColumnDef { key: string; label: string }
 
@@ -286,8 +292,9 @@ onUnmounted(() => document.removeEventListener('click', closeDetalle))
 
     <div v-else-if="!hasRows" class="flex items-center justify-center py-16">
       <div class="text-center">
+        <Search class="w-8 h-8 mx-auto mb-2 text-slate-300" />
         <p class="text-sm font-semibold text-slate-500">Sin resultados</p>
-        <p class="text-xs text-slate-400 mt-1">No se encontraron datos con los filtros seleccionados.</p>
+        <p class="text-xs text-slate-400 mt-1 max-w-xs">{{ emptyMessage }}</p>
       </div>
     </div>
 

@@ -63,11 +63,13 @@ export interface TareaCampanaConfig {
   bolActivo: boolean
   fechaCreacion: string
   fechaUltimaModificacion: string
+  dictaminar?: boolean
+  porcentajeError?: number
 }
 
 export interface TareaCampanaHorario {
-  idABCConfigHorarioTareaCampana: number
-  idABCConfigTareaCampana: number
+  idABCConfigHorarioTareaCampana?: number
+  idABCConfigTareaCampana?: number
   tarea?: { id: number }
   tipoHorario?: TareaRefTipo
   dia: {
@@ -78,8 +80,11 @@ export interface TareaCampanaHorario {
       nombre?: string
     }
   }
+  hora?: { id?: number; nombre?: string }
   activo?: boolean
   bolActivo?: boolean
+  dictaminar?: boolean
+  porcentajeError?: number
   fechaCreacion?: string
   fechaUltimaModificacion?: string
 }

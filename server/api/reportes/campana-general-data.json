@@ -1,9 +1,9 @@
 [
-  { "lineaNegocio": "AFORE", "campana": "Retiro Plus", "mapeo": "Mapeo Campaña Retiro Plus", "fecha": "20/04/2026", "registros": 3500, "aprobados": 3450, "rechazados": 50 },
-  { "lineaNegocio": "AFORE", "campana": "Ahorro Voluntario", "mapeo": "Mapeo Ahorro Voluntario", "fecha": "19/04/2026", "registros": 2100, "aprobados": 2050, "rechazados": 50 },
-  { "lineaNegocio": "SOFOM", "campana": "Préstamo Pensionado", "mapeo": "Mapeo Préstamo Pensionado", "fecha": "18/04/2026", "registros": 980, "aprobados": 960, "rechazados": 20 },
-  { "lineaNegocio": "AFORE", "campana": "Seguro Colectivo", "mapeo": "Mapeo Seguro Colectivo", "fecha": "17/04/2026", "registros": 1750, "aprobados": 1700, "rechazados": 50 },
-  { "lineaNegocio": "SOFOM", "campana": "Crédito Hipotecario", "mapeo": "Mapeo Crédito Hipotecario", "fecha": "16/04/2026", "registros": 640, "aprobados": 620, "rechazados": 20 },
-  { "lineaNegocio": "AFORE", "campana": "Retiro Plus", "mapeo": "Mapeo Campaña Retiro Plus", "fecha": "15/04/2026", "registros": 4200, "aprobados": 4100, "rechazados": 100 },
-  { "lineaNegocio": "SOFOM", "campana": "Préstamo Susceptible", "mapeo": "Mapeo Préstamo Susceptible", "fecha": "14/04/2026", "registros": 820, "aprobados": 800, "rechazados": 20 }
+  { "idTarea": 201, "lineaNegocio": "AFORE", "campana": "Retiro Plus", "mapeo": "Mapeo Campaña Retiro Plus", "fecha": "20/04/2026", "registros": 3500, "aprobados": 3450, "rechazados": 50 },
+  { "idTarea": 202, "lineaNegocio": "AFORE", "campana": "Ahorro Voluntario", "mapeo": "Mapeo Ahorro Voluntario", "fecha": "19/04/2026", "registros": 2100, "aprobados": 2050, "rechazados": 50 },
+  { "idTarea": 203, "lineaNegocio": "SOFOM", "campana": "Préstamo Pensionado", "mapeo": "Mapeo Préstamo Pensionado", "fecha": "18/04/2026", "registros": 980, "aprobados": 960, "rechazados": 20 },
+  { "idTarea": 204, "lineaNegocio": "AFORE", "campana": "Seguro Colectivo", "mapeo": "Mapeo Seguro Colectivo", "fecha": "17/04/2026", "registros": 1750, "aprobados": 1700, "rechazados": 50 },
+  { "idTarea": 205, "lineaNegocio": "SOFOM", "campana": "Crédito Hipotecario", "mapeo": "Mapeo Crédito Hipotecario", "fecha": "16/04/2026", "registros": 640, "aprobados": 620, "rechazados": 20 },
+  { "idTarea": 206, "lineaNegocio": "AFORE", "campana": "Retiro Plus", "mapeo": "Mapeo Campaña Retiro Plus", "fecha": "15/04/2026", "registros": 4200, "aprobados": 4100, "rechazados": 100 },
+  { "idTarea": 207, "lineaNegocio": "SOFOM", "campana": "Préstamo Susceptible", "mapeo": "Mapeo Préstamo Susceptible", "fecha": "14/04/2026", "registros": 820, "aprobados": 800, "rechazados": 20 }
 ]

@@ -140,11 +140,11 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Número de Lote</label>
-          <input :value="pet.noLote" @input="emit('update-pet', 'noLote', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Número de Lote" />
+          <input :value="pet.numLote" @input="emit('update-pet', 'numLote', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Número de Lote" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">ID Cliente <span class="text-blue-600">*</span></label>
-          <input :value="pet.idCliente" @input="emit('update-pet', 'idCliente', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="ID Cliente" />
+          <input :value="pet.customerId" @input="emit('update-pet', 'customerId', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="ID Cliente" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">ID Afore <span class="text-blue-600">*</span></label>
@@ -176,11 +176,11 @@ const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre</label>
-          <input :value="pet.nombre" @input="emit('update-pet', 'nombre', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Nombre" />
+          <input :value="pet.firstName" @input="emit('update-pet', 'firstName', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Nombre" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Apellido</label>
-          <input :value="pet.apellido" @input="emit('update-pet', 'apellido', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Apellido" />
+          <input :value="pet.lastName" @input="emit('update-pet', 'lastName', ($event.target as HTMLInputElement).value)" :class="inputClass" placeholder="Apellido" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Correo <span class="text-blue-600">*</span></label>

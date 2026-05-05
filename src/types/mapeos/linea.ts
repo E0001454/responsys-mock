@@ -7,7 +7,7 @@ export interface MapeoLineaData {
   idABCUsuario: number
   nombre: string
   descripcion: string
-  bolActivo: boolean
+  activo: boolean
   bolDictaminacion?: boolean | null
   dictaminar?: boolean | null
   porcentajeError?: number | null

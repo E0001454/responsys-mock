@@ -237,8 +237,15 @@ export function useReportesViewModel(tipo: ReporteTipo) {
     const cargas = rows.length
 
     const dates = rows.map(r => r.fecha).filter(Boolean)
-    const fechaMin = dates.length ? dates.reduce((a, b) => a < b ? a : b) : ''
-    const fechaMax = dates.length ? dates.reduce((a, b) => a > b ? a : b) : ''
+    const rawMin = dates.length ? dates.reduce((a, b) => a < b ? a : b) : ''
+    const rawMax = dates.length ? dates.reduce((a, b) => a > b ? a : b) : ''
+    const formatDateOnly = (val: string) => {
+      const d = new Date(val)
+      if (isNaN(d.getTime())) return val
+      return d.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    }
+    const fechaMin = rawMin ? formatDateOnly(rawMin) : ''
+    const fechaMax = rawMax ? formatDateOnly(rawMax) : ''
 
     const byLinea: Record<string, number> = {}
     for (const r of rows) {
@@ -285,12 +292,15 @@ export function useReportesViewModel(tipo: ReporteTipo) {
     generalCurrentPage.value = 1
 
     try {
+      const sortDesc = (rows: RegistroGeneral[]) =>
+        [...rows].sort((a, b) => new Date(b.fecha ?? 0).getTime() - new Date(a.fecha ?? 0).getTime())
+
       if (generalForm.scope === 'linea') {
         const filtros = buildGeneralCLBody(generalForm)
-        generalRows.value = await reporteService.getGeneralCL(generalTipo, filtros)
+        generalRows.value = sortDesc(await reporteService.getGeneralCL(generalTipo, filtros))
       } else {
         const filtros = buildGeneralPETBody(generalForm)
-        generalRows.value = await reporteService.getGeneralPET(generalTipo, filtros)
+        generalRows.value = sortDesc(await reporteService.getGeneralPET(generalTipo, filtros))
       }
     } catch (e: any) {
       generalError.value = e.message ?? 'Error al consultar el reporte general'

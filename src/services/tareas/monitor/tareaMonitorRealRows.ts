@@ -126,7 +126,9 @@ export function normalizeRealRows(scope: MonitorScope, raw: unknown): TareaMonit
   }
 
   const drafts: DraftRow[] = list.flatMap((item: MonitorRawRecord) => {
-    const tareaEntries = Array.isArray(item?.tarea) ? item.tarea.filter(Boolean) : []
+    const tareaEntries = Array.isArray(item?.tareas) ? item.tareas.filter(Boolean)
+      : Array.isArray(item?.tarea) ? item.tarea.filter(Boolean)
+      : []
     const taskEntries = (tareaEntries.length ? tareaEntries : [null]) as Array<MonitorRawTarea | null>
 
     return taskEntries.map((tareaEntry) => {
@@ -328,6 +330,8 @@ export function pickCurrentRowsByMapeo(rows: TareaMonitorData[]): TareaMonitorDa
     byMapeo.set(key, arr)
   })
 
+  const stageActivityRank: Record<string, number> = { CARGA: 1, VALIDACION: 2, ENVIO: 3 }
+
   const selected: TareaMonitorData[] = []
   byMapeo.forEach(items => {
     const chosen = items.slice().sort((a, b) => {
@@ -338,6 +342,10 @@ export function pickCurrentRowsByMapeo(rows: TareaMonitorData[]): TareaMonitorDa
       const pa = currentPriority[String(a.estatus.codigo).toUpperCase()] ?? 99
       const pb = currentPriority[String(b.estatus.codigo).toUpperCase()] ?? 99
       if (pa !== pb) return pa - pb
+
+      const actA = stageActivityRank[String(a.actividad.codigo).toUpperCase()] ?? 0
+      const actB = stageActivityRank[String(b.actividad.codigo).toUpperCase()] ?? 0
+      if (actA !== actB) return actB - actA
 
       const aProcessed = Number(a.numeroRegistrosProcesados ?? 0)
       const bProcessed = Number(b.numeroRegistrosProcesados ?? 0)

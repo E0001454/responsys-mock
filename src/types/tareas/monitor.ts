@@ -112,6 +112,7 @@ export interface MonitorRawRecord {
     nombre?: string
   }
   tarea?: MonitorRawTarea[]
+  tareas?: MonitorRawTarea[]
   dia?: MonitorRawRef
   hora?: MonitorRawRef
   diaId?: number

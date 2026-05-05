@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { Search } from 'lucide-vue-next'
 import type { RegistroGeneral, ReporteGeneralTipo } from '@/types/reportes/reporte'
+import { formatTimestamp } from '@/utils/reportes/reporteFormat.utils'
 
 const props = defineProps<{
   rows: RegistroGeneral[]
@@ -25,6 +26,12 @@ const showAprobados = computed(() => props.tipo === 'validacion')
 const hasRows = computed(() => props.rows.length > 0)
 const isPET = computed(() => props.scope === 'campana')
 const hideMapeo = computed(() => isPET.value && props.tipo === 'carga')
+
+const emptyMessage = computed(() => {
+  if (props.tipo === 'carga') return 'No hay información disponible actualmente con los filtros proporcionados.'
+  if (props.tipo === 'validacion') return 'No hay información disponible actualmente con los filtros proporcionados. Favor de revisar el proceso de Carga (BI).'
+  return 'No hay información disponible actualmente con los filtros proporcionados. Favor de revisar el proceso de Validación (ABC).'
+})
 </script>
 
 <template>
@@ -43,7 +50,7 @@ const hideMapeo = computed(() => isPET.value && props.tipo === 'carga')
       <div class="text-center">
         <Search class="w-8 h-8 mx-auto mb-2 text-slate-300" />
         <p class="text-sm font-semibold text-slate-500">Sin resultados</p>
-        <p class="text-xs text-slate-400 mt-1">No se encontraron datos con los filtros seleccionados.</p>
+        <p class="text-xs text-slate-400 mt-1 max-w-xs">{{ emptyMessage }}</p>
       </div>
     </div>
 
@@ -66,7 +73,7 @@ const hideMapeo = computed(() => isPET.value && props.tipo === 'carga')
               <td class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.lineaNegocio }}</td>
               <td v-if="isPET" class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.campana }}</td>
               <td v-if="!hideMapeo" class="px-4 py-3 whitespace-nowrap text-slate-700">{{ row.mapeo }}</td>
-              <td class="px-4 py-3 whitespace-nowrap text-slate-500 text-xs">{{ row.fecha }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-slate-500 text-xs">{{ formatTimestamp(row.fecha) }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-slate-700 text-right font-medium tabular-nums">{{ row.registros.toLocaleString() }}</td>
               <td v-if="showAprobados" class="px-4 py-3 whitespace-nowrap text-right font-medium tabular-nums">
                 <span class="text-emerald-700 font-bold">{{ (row.aprobados ?? 0).toLocaleString() }}</span>

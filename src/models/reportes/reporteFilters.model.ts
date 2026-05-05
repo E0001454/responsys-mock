@@ -28,9 +28,9 @@ export function createEmptyReporteFilterForm(): ReporteFilterFormModel {
       fechaInicio: hoy, fechaFin: hoy
     },
     pet: {
-      noLote: '', idCliente: '', idAfore: '', idClienteAhorrador: '',
+      numLote: '', customerId: '', idAfore: '', idClienteAhorrador: '',
       idPrestamoPensionado: '', idSusceptiblePrestamo: '', idBajaCambio: '',
-      idComunicacion: '', idPersona: '', nombre: '', apellido: '',
+      idComunicacion: '', idPersona: '', firstName: '', lastName: '',
       correo: '', telefono: '', fechaInicio: hoy, fechaFin: hoy
     }
   }
@@ -69,7 +69,7 @@ export function validateReporteFilterForm(form: ReporteFilterFormModel): Reporte
     if (!form.idCampana) errors.idCampana = 'La campaña es requerida'
 
     const hasAtLeastOne = [
-      pet.idCliente, pet.idAfore, pet.idClienteAhorrador,
+      pet.customerId, pet.idAfore, pet.idClienteAhorrador,
       pet.idPrestamoPensionado, pet.idSusceptiblePrestamo,
       pet.idBajaCambio, pet.idComunicacion, pet.idPersona,
       pet.correo, pet.telefono
@@ -112,7 +112,7 @@ export function buildCLBody(form: ReporteFilterFormModel): Record<string, string
   const cl = form.cl
   return compactObj({
     ...(form.idLineaNegocio ? { idLineaNegocio: String(form.idLineaNegocio) } : {}),
-    riid: cl.riid, customerId: cl.customerId, nombre: cl.nombre, apellidoPaterno: cl.apellidoPaterno,
+    riid: cl.riid, idCliente: cl.customerId, nombre: cl.nombre, apellidoPaterno: cl.apellidoPaterno,
     correo: cl.correo, telefono: cl.telefono, noCuenta: cl.noCuenta,
     nss: cl.nss, curp: cl.curp, rfc: cl.rfc, poliza: cl.poliza,
     fechaInicio: isoToApiDate(cl.fechaInicio ?? ''),
@@ -125,11 +125,11 @@ export function buildPETBody(form: ReporteFilterFormModel): Record<string, strin
   return compactObj({
     ...(form.idLineaNegocio ? { idLineaNegocio: String(form.idLineaNegocio) } : {}),
     ...(form.idCampana ? { idCampana: String(form.idCampana) } : {}),
-    noLote: pet.noLote, idCliente: pet.idCliente, idAfore: pet.idAfore,
+    noLote: pet.numLote, idCliente: pet.customerId, idAfore: pet.idAfore,
     idClienteAhorrador: pet.idClienteAhorrador, idPrestamoPensionado: pet.idPrestamoPensionado,
     idSusceptiblePrestamo: pet.idSusceptiblePrestamo, idBajaCambio: pet.idBajaCambio,
     idComunicacion: pet.idComunicacion, idPersona: pet.idPersona,
-    nombre: pet.nombre, apellido: pet.apellido, correo: pet.correo, telefono: pet.telefono,
+    nombre: pet.firstName, apellido: pet.lastName, correo: pet.correo, telefono: pet.telefono,
     fechaInicio: isoToApiDate(pet.fechaInicio ?? ''),
     fechaFin: isoToApiDate(pet.fechaFin ?? '')
   })

@@ -58,11 +58,13 @@ export interface TareaLineaConfig {
   bolActivo: boolean
   fechaCreacion: string
   fechaUltimaModificacion: string
+  dictaminar?: boolean
+  porcentajeError?: number
 }
 
 export interface TareaLineaHorario {
-  idABCConfigHorarioTareaLinea: number
-  idABCConfigTareaLinea: number
+  idABCConfigHorarioTareaLinea?: number
+  idABCConfigTareaLinea?: number
   tarea?: { id: number }
   tipoHorario?: TareaRefTipo
   dia: {
@@ -73,8 +75,11 @@ export interface TareaLineaHorario {
       nombre?: string
     }
   }
+  hora?: { id?: number; nombre?: string }
   activo?: boolean
   bolActivo?: boolean
+  dictaminar?: boolean
+  porcentajeError?: number
   fechaCreacion?: string
   fechaUltimaModificacion?: string
 }

@@ -1,9 +1,9 @@
 [
-  { "lineaNegocio": "SEGUROS", "mapeo": "Mapeo Vida Individual", "fecha": "14/04/2026", "registros": 1520 },
-  { "lineaNegocio": "SEGUROS", "mapeo": "Mapeo Vida Grupo", "fecha": "14/04/2026", "registros": 830 },
-  { "lineaNegocio": "AFORE", "mapeo": "Mapeo Ahorro Voluntario", "fecha": "13/04/2026", "registros": 2100 },
-  { "lineaNegocio": "AFORE", "mapeo": "Mapeo Retiro", "fecha": "13/04/2026", "registros": 950 },
-  { "lineaNegocio": "SEGUROS", "mapeo": "Mapeo Daños", "fecha": "12/04/2026", "registros": 670 },
-  { "lineaNegocio": "AFORE", "mapeo": "Mapeo Seguro Colectivo", "fecha": "11/04/2026", "registros": 500 },
-  { "lineaNegocio": "SEGUROS", "mapeo": "Mapeo Salud", "fecha": "10/04/2026", "registros": 1200 }
+  { "idTarea": 201, "lineaNegocio": "SEGUROS", "mapeo": "Mapeo Vida Individual", "fecha": "14/04/2026", "registros": 1520 },
+  { "idTarea": 202, "lineaNegocio": "SEGUROS", "mapeo": "Mapeo Vida Grupo", "fecha": "14/04/2026", "registros": 830 },
+  { "idTarea": 203, "lineaNegocio": "AFORE", "mapeo": "Mapeo Ahorro Voluntario", "fecha": "13/04/2026", "registros": 2100 },
+  { "idTarea": 204, "lineaNegocio": "AFORE", "mapeo": "Mapeo Retiro", "fecha": "13/04/2026", "registros": 950 },
+  { "idTarea": 205, "lineaNegocio": "SEGUROS", "mapeo": "Mapeo Daños", "fecha": "12/04/2026", "registros": 670 },
+  { "idTarea": 206, "lineaNegocio": "AFORE", "mapeo": "Mapeo Seguro Colectivo", "fecha": "11/04/2026", "registros": 500 },
+  { "idTarea": 207, "lineaNegocio": "SEGUROS", "mapeo": "Mapeo Salud", "fecha": "10/04/2026", "registros": 1200 }
 ]

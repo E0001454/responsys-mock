@@ -20,7 +20,7 @@ export function useMapeosLinea() {
       const list: MapeoLineaData[] = await mapeoLineaService.getAllMapeos()
       rawMapeos.value = list
       mapeos.value = list
-        .filter(m => m.bolActivo)
+        .filter(m => m.activo)
         .map(m => ({
           label: m.nombre || m.descripcion || `Mapeo ${m.idABCConfigMapeoLinea}`,
           value: String(m.idABCConfigMapeoLinea)
