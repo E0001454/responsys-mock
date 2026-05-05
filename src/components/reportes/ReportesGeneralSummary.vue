@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { BarChart3, Calendar, CheckCircle2, XCircle, Users, Upload } from 'lucide-vue-next'
+import { BarChart3, Calendar, CheckCircle2, XCircle, Users, Upload, Clock, RefreshCw } from 'lucide-vue-next'
 
 interface SummarySlice {
   label: string
@@ -16,6 +16,8 @@ interface SummaryData {
   lineaSlices: SummarySlice[]
   aprobados: number
   rechazados: number
+  pendientes?: number
+  actualizaciones?: number
 }
 
 const props = defineProps<{
@@ -33,11 +35,16 @@ const cargaLabel = computed(() => {
 const pieGradient = computed(() => {
   if (!props.summary) return ''
   const slices = props.tipo === 'validacion' && (props.summary.aprobados || props.summary.rechazados)
-    ? [
-        { label: 'Aprobados', count: props.summary.aprobados, color: '#10B981' },
-        { label: 'Rechazados', count: props.summary.rechazados, color: '#EF4444' },
-        { label: 'Otros', count: props.summary.total - props.summary.aprobados - props.summary.rechazados, color: '#CBD5E1' }
-      ].filter(s => s.count > 0)
+    ? (() => {
+        const pend = props.summary!.pendientes ?? 0
+        const otros = props.summary!.total - props.summary!.aprobados - props.summary!.rechazados - pend
+        return [
+          { label: 'Aprobados', count: props.summary!.aprobados, color: '#10B981' },
+          { label: 'Rechazados', count: props.summary!.rechazados, color: '#EF4444' },
+          ...(pend > 0 ? [{ label: 'Pendientes', count: pend, color: '#F59E0B' }] : []),
+          ...(otros > 0 ? [{ label: 'Otros', count: otros, color: '#CBD5E1' }] : [])
+        ].filter(s => s.count > 0)
+      })()
     : props.summary.lineaSlices
 
   const total = slices.reduce((s, sl) => s + sl.count, 0)
@@ -56,12 +63,13 @@ const pieGradient = computed(() => {
 const legendItems = computed(() => {
   if (!props.summary) return []
   if (props.tipo === 'validacion' && (props.summary.aprobados || props.summary.rechazados)) {
+    const pend = props.summary.pendientes ?? 0
+    const otros = props.summary.total - props.summary.aprobados - props.summary.rechazados - pend
     return [
       { label: 'Aprobados', count: props.summary.aprobados, color: '#10B981' },
       { label: 'Rechazados', count: props.summary.rechazados, color: '#EF4444' },
-      ...(props.summary.total - props.summary.aprobados - props.summary.rechazados > 0
-        ? [{ label: 'Sin estatus', count: props.summary.total - props.summary.aprobados - props.summary.rechazados, color: '#CBD5E1' }]
-        : [])
+      ...(pend > 0 ? [{ label: 'Pendientes', count: pend, color: '#F59E0B' }] : []),
+      ...(otros > 0 ? [{ label: 'Sin estatus', count: otros, color: '#CBD5E1' }] : [])
     ]
   }
   return props.summary.lineaSlices
@@ -132,7 +140,27 @@ const legendItems = computed(() => {
               <p class="text-lg font-bold text-red-700 tabular-nums">{{ summary.rechazados.toLocaleString() }}</p>
             </div>
           </div>
+
+          <div v-if="summary.pendientes !== undefined" class="bg-amber-50 rounded-lg p-3 flex items-center gap-3">
+            <div class="flex-shrink-0 h-9 w-9 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+              <Clock class="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <p class="text-[11px] text-amber-600 font-medium uppercase tracking-wide">Pendientes</p>
+              <p class="text-lg font-bold text-amber-700 tabular-nums">{{ summary.pendientes.toLocaleString() }}</p>
+            </div>
+          </div>
         </template>
+
+        <div v-if="tipo === 'carga' && summary.actualizaciones !== undefined" class="bg-sky-50 rounded-lg p-3 flex items-center gap-3">
+          <div class="flex-shrink-0 h-9 w-9 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center">
+            <RefreshCw class="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <p class="text-[11px] text-sky-600 font-medium uppercase tracking-wide">Actualizaciones</p>
+            <p class="text-lg font-bold text-sky-700 tabular-nums">{{ summary.actualizaciones.toLocaleString() }}</p>
+          </div>
+        </div>
       </div>
 
       <div class="flex-shrink-0 flex flex-col items-center gap-3 lg:w-56">

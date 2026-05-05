@@ -159,6 +159,8 @@ export function normalizeRegistroGeneral(raw: any): RegistroGeneral {
     fecha,
     registros: Number(raw?.registros) || 0,
     ...(raw?.aprobados != null ? { aprobados: Number(raw.aprobados) || 0 } : {}),
-    ...(raw?.rechazados != null ? { rechazados: Number(raw.rechazados) || 0 } : {})
+    ...(raw?.rechazados != null ? { rechazados: Number(raw.rechazados) || 0 } : {}),
+    ...(raw?.pendientes != null ? { pendientes: Number(raw.pendientes) || 0 } : {}),
+    ...(raw?.actualizaciones != null ? { actualizaciones: Number(raw.actualizaciones) || 0 } : {})
   }
 }

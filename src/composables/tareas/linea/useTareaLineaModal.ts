@@ -98,7 +98,9 @@ export function useTareaLineaModal(
   })
 
   const canSave = computed(() =>
-    isScheduleReady.value && Number(formData.value.idMapeo ?? 0) > 0
+    isEditing.value
+      ? Number(formData.value.idMapeo ?? 0) > 0
+      : (isScheduleReady.value && Number(formData.value.idMapeo ?? 0) > 0)
   )
   const isDirty = computed(() => serializeFormState(formData.value) !== initialFormSnapshot.value)
   const confirmTitle = computed(() => (pendingAction.value === 'save' ? 'Confirmar guardado' : 'Descartar cambios'))

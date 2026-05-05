@@ -261,7 +261,9 @@ export function downloadGeneralCsv(params: { scope: 'linea' | 'campana'; tipo: '
     ...(hideMapeo ? [] : [{ key: 'mapeo', label: 'Mapeo' }]),
     { key: 'fecha', label: 'Fecha' },
     { key: 'registros', label: 'Registros' },
-    ...(showAprobados ? [{ key: 'aprobados', label: 'Aprobados' }, { key: 'rechazados', label: 'Rechazados' }] : [])
+    ...(showAprobados ? [{ key: 'aprobados', label: 'Aprobados' }, { key: 'rechazados', label: 'Rechazados' }] : []),
+    ...(showAprobados && isPET ? [{ key: 'pendientes', label: 'Pendientes' }] : []),
+    ...(!isPET && params.tipo === 'carga' ? [{ key: 'actualizaciones', label: 'Actualizaciones' }] : [])
   ]
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n`

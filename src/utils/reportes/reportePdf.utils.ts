@@ -435,6 +435,8 @@ export interface DownloadGeneralPdfParams {
     lineaSlices: { label: string; count: number; color: string }[]
     aprobados: number
     rechazados: number
+    pendientes?: number
+    actualizaciones?: number
   } | null
 }
 
@@ -556,7 +558,10 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
 
     doc.setFillColor(...brandBlueLight)
     const showAprobados = params.tipo === 'validacion'
-    doc.roundedRect(10, cursorY, pageW - 20, showAprobados ? 24 : 14, 1.8, 1.8, 'F')
+    const showPendientesSummary = showAprobados && params.scope === 'campana'
+    const showActualizacionesSummary = params.tipo === 'carga' && params.scope === 'linea' && s.actualizaciones !== undefined
+    const hasSecondRow = showAprobados || showActualizacionesSummary
+    doc.roundedRect(10, cursorY, pageW - 20, hasSecondRow ? 24 : 14, 1.8, 1.8, 'F')
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(9)
     doc.setTextColor(...brandBlue)
@@ -571,19 +576,32 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
       doc.text(`Aprobados: ${s.aprobados.toLocaleString()}`, 14, cursorY + 18)
       doc.setTextColor(239, 68, 68)
       doc.text(`Rechazados: ${s.rechazados.toLocaleString()}`, 70, cursorY + 18)
+      if (showPendientesSummary && s.pendientes !== undefined) {
+        doc.setTextColor(245, 158, 11)
+        doc.text(`Pendientes: ${s.pendientes.toLocaleString()}`, 130, cursorY + 18)
+      }
       doc.setTextColor(...brandBlue)
     }
 
-    cursorY += showAprobados ? 28 : 18
+    if (showActualizacionesSummary) {
+      doc.setTextColor(14, 165, 233)
+      doc.text(`Actualizaciones: ${(s.actualizaciones ?? 0).toLocaleString()}`, 14, cursorY + 18)
+      doc.setTextColor(...brandBlue)
+    }
+
+    cursorY += hasSecondRow ? 28 : 18
 
     const chartSlices = showAprobados && (s.aprobados || s.rechazados)
-      ? [
-          { label: 'Aprobados', count: s.aprobados, color: '#10B981' },
-          { label: 'Rechazados', count: s.rechazados, color: '#EF4444' },
-          ...(s.total - s.aprobados - s.rechazados > 0
-            ? [{ label: 'Otros', count: s.total - s.aprobados - s.rechazados, color: '#CBD5E1' }]
-            : [])
-        ]
+      ? (() => {
+          const pend = s.pendientes ?? 0
+          const otros = s.total - s.aprobados - s.rechazados - pend
+          return [
+            { label: 'Aprobados', count: s.aprobados, color: '#10B981' },
+            { label: 'Rechazados', count: s.rechazados, color: '#EF4444' },
+            ...(pend > 0 ? [{ label: 'Pendientes', count: pend, color: '#F59E0B' }] : []),
+            ...(otros > 0 ? [{ label: 'Otros', count: otros, color: '#CBD5E1' }] : [])
+          ]
+        })()
       : s.lineaSlices
 
     const chartTotal = chartSlices.reduce((a, c) => a + c.count, 0)
@@ -610,10 +628,14 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
 
   const isPET = params.scope === 'campana'
   const showAprobados = params.tipo === 'validacion'
+  const showPendientes = showAprobados && isPET
+  const showActualizaciones = params.tipo === 'carga' && !isPET
   const hideMapeo = isPET && params.tipo === 'carga'
 
   const head = [['Línea de Negocio', ...(isPET ? ['Campaña'] : []), ...(hideMapeo ? [] : ['Mapeo']), 'Fecha', 'Registros',
-    ...(showAprobados ? ['Aprobados', 'Rechazados'] : [])
+    ...(showAprobados ? ['Aprobados', 'Rechazados'] : []),
+    ...(showPendientes ? ['Pendientes'] : []),
+    ...(showActualizaciones ? ['Actualizaciones'] : [])
   ]]
 
   const body = params.rows.map(r => [
@@ -622,7 +644,9 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
     ...(hideMapeo ? [] : [r.mapeo]),
     formatTimestamp(r.fecha),
     r.registros.toLocaleString(),
-    ...(showAprobados ? [(r.aprobados ?? 0).toLocaleString(), (r.rechazados ?? 0).toLocaleString()] : [])
+    ...(showAprobados ? [(r.aprobados ?? 0).toLocaleString(), (r.rechazados ?? 0).toLocaleString()] : []),
+    ...(showPendientes ? [(r.pendientes ?? 0).toLocaleString()] : []),
+    ...(showActualizaciones ? [(r.actualizaciones ?? 0).toLocaleString()] : [])
   ])
 
   if (!body.length) {

@@ -237,10 +237,6 @@ export function toUpdateTareaLineaOperations(
 
     const existingTaskId = Number(taskIds[stage.stage] ?? 0)
     if (existingTaskId > 0) {
-      if (!stage.slots.length && !stageHorariosDesactivarIds.length && !stageHorariosActivarIds.length) {
-        continue
-      }
-
       update.push({
         stage: stage.stage,
         payload: {

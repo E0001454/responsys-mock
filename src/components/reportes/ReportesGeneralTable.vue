@@ -26,6 +26,8 @@ const showAprobados = computed(() => props.tipo === 'validacion')
 const hasRows = computed(() => props.rows.length > 0)
 const isPET = computed(() => props.scope === 'campana')
 const hideMapeo = computed(() => isPET.value && props.tipo === 'carga')
+const showPendientes = computed(() => props.tipo === 'validacion' && props.scope === 'campana')
+const showActualizaciones = computed(() => props.tipo === 'carga' && props.scope === 'linea')
 
 const emptyMessage = computed(() => {
   if (props.tipo === 'carga') return 'No hay información disponible actualmente con los filtros proporcionados.'
@@ -66,6 +68,8 @@ const emptyMessage = computed(() => {
               <th class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap text-right">Registros</th>
               <th v-if="showAprobados" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap text-right">Aprobados</th>
               <th v-if="showAprobados" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap text-right">Rechazados</th>
+              <th v-if="showPendientes" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap text-right">Pendientes</th>
+              <th v-if="showActualizaciones" class="px-4 py-3 font-semibold text-slate-600 whitespace-nowrap text-right">Actualizaciones</th>
             </tr>
           </thead>
           <tbody>
@@ -80,6 +84,12 @@ const emptyMessage = computed(() => {
               </td>
               <td v-if="showAprobados" class="px-4 py-3 whitespace-nowrap text-right font-medium tabular-nums">
                 <span class="text-red-700 font-bold">{{ (row.rechazados ?? 0).toLocaleString() }}</span>
+              </td>
+              <td v-if="showPendientes" class="px-4 py-3 whitespace-nowrap text-right font-medium tabular-nums">
+                <span class="text-amber-600 font-bold">{{ (row.pendientes ?? 0).toLocaleString() }}</span>
+              </td>
+              <td v-if="showActualizaciones" class="px-4 py-3 whitespace-nowrap text-right font-medium tabular-nums">
+                <span class="text-sky-700 font-bold">{{ (row.actualizaciones ?? 0).toLocaleString() }}</span>
               </td>
             </tr>
           </tbody>

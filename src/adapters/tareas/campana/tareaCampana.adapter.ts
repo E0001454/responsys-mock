@@ -295,7 +295,7 @@ export function normalizeTareasCampana(data: any): TareaCampanaData[] {
       }
     }
 
-    base.bolActivo = base.bolActivo || toBool(tarea?.bolActivo ?? item?.bolActivo ?? item?.status ?? false)
+    base.bolActivo = base.bolActivo || toBool(tarea?.activo ?? item?.activo ?? tarea?.bolActivo ?? item?.bolActivo ?? item?.status ?? false)
 
     const createdAt = String(tarea?.fechaCreacion ?? item?.fechaCreacion ?? item?.fec_creacion ?? '')
     const updatedAt = String(tarea?.fechaUltimaModificacion ?? item?.fechaUltimaModificacion ?? item?.fec_ult_modificacion ?? '')

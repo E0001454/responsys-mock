@@ -148,6 +148,8 @@ export interface RegistroGeneral {
   registros: number
   aprobados?: number
   rechazados?: number
+  pendientes?: number
+  actualizaciones?: number
 }
 
 export interface FiltroGeneralCL {

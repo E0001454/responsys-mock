@@ -82,24 +82,14 @@ function hasHorarioChanges(payload: HorarioPayload) {
   )
 }
 
-function resolveCurrentExecutionIdByStage(item: StageAwareItem, stage: StageKey) {
-  const stageTask = item?.tareasPorTipo?.[stage] as any
-  const stageSummary = item?.[stage] as any
-  return Number(
-    stageTask?.ejecucion?.id
-    ?? stageSummary?.ejecucionId
-    ?? 0
-  )
-}
-
-function shouldUpdateStageTask(item: StageAwareItem, stage: StageKey, nextExecutionId: number) {
-  const currentExecutionId = resolveCurrentExecutionIdByStage(item, stage)
-  return currentExecutionId !== nextExecutionId
-}
-
 function toTaskOnlyUpdatePayload(payloadByStage: any) {
+  const actividad = payloadByStage?.actividad ?? payloadByStage?.tarea ?? {}
   return {
-    actividad: payloadByStage?.actividad ?? payloadByStage?.tarea ?? {},
+    actividad: {
+      id: actividad.id,
+      tipo: actividad.tipo,
+      ejecucion: actividad.ejecucion
+    },
     idUsuario: Number(payloadByStage?.idUsuario ?? payloadByStage?.idABCUsuario ?? 1)
   }
 }
@@ -209,13 +199,7 @@ export function buildCampanaSaveActions(params: {
         ?? 0
       )
 
-      const requiresTaskPut = shouldUpdateStageTask(
-        selectedItem,
-        entry.stage,
-        Number(payloadByStage?.actividad?.ejecucion?.id ?? payloadByStage?.tarea?.ejecucion?.id ?? 0)
-      )
-
-      if (requiresTaskPut) {
+      if (stageTaskId > 0) {
         actions.push({
           label: `Actualizando ${stageActionLabel(entry.stage)}`,
           run: async () => {
@@ -310,13 +294,7 @@ export function buildLineaSaveActions(params: {
         ?? 0
       )
 
-      const requiresTaskPut = shouldUpdateStageTask(
-        selectedItem,
-        entry.stage,
-        Number(payloadByStage?.actividad?.ejecucion?.id ?? payloadByStage?.tarea?.ejecucion?.id ?? 0)
-      )
-
-      if (requiresTaskPut) {
+      if (stageTaskId > 0) {
         actions.push({
           label: `Actualizando ${stageActionLabel(entry.stage)}`,
           run: async () => {

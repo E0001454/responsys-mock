@@ -264,7 +264,15 @@ export function useReportesViewModel(tipo: ReporteTipo) {
       rechazados += r.rechazados ?? 0
     }
 
-    return { total, cargas, fechaMin, fechaMax, lineaSlices, aprobados, rechazados }
+    const pendientes = (tipo === 'validacion' && form.scope === 'campana')
+      ? rows.reduce((s, r) => s + (r.pendientes ?? 0), 0)
+      : undefined
+
+    const actualizaciones = (tipo === 'carga' && form.scope === 'linea')
+      ? rows.reduce((s, r) => s + (r.actualizaciones ?? 0), 0)
+      : undefined
+
+    return { total, cargas, fechaMin, fechaMax, lineaSlices, aprobados, rechazados, pendientes, actualizaciones }
   })
 
   function resetGeneralResults() {
