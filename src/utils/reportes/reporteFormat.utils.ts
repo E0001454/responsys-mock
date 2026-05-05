@@ -88,24 +88,59 @@ function appendDetalle(val: unknown, key: string, errorMap: Map<string, string>)
 
 export function formatTimestamp(value: string | number | undefined | null): string {
   if (value === undefined || value === null || value === '') return ''
-  const num = typeof value === 'number' ? value : Number(value)
-  const d = isNaN(num) ? new Date(String(value)) : new Date(num)
-  if (isNaN(d.getTime())) return String(value)
-  return d.toLocaleString('es-MX', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  })
+  const s = String(value).trim()
+  if (!s) return ''
+  // Large numeric timestamp
+  const num = Number(s)
+  if (!isNaN(num) && num > 1e10) {
+    const d = new Date(num)
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+    }
+  }
+  // dd/mm/yyyy
+  const dmy = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (dmy) {
+    const d = new Date(`${dmy[3]}-${dmy[2]}-${dmy[1]}T00:00:00`)
+    if (!isNaN(d.getTime())) return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+  const d = new Date(s)
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+  }
+  return s
+}
+
+export function formatDateOnly(value: string | number | undefined | null): string {
+  if (value === undefined || value === null || value === '') return ''
+  const s = String(value).trim()
+  if (!s) return ''
+  // Large numeric timestamp
+  const num = Number(s)
+  if (!isNaN(num) && num > 1e10) {
+    const d = new Date(num)
+    if (!isNaN(d.getTime())) return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+  // dd/mm/yyyy
+  const dmy = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (dmy) {
+    const d = new Date(`${dmy[3]}-${dmy[2]}-${dmy[1]}T00:00:00`)
+    if (!isNaN(d.getTime())) return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+  // ISO yyyy-mm-dd
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (iso) {
+    const d = new Date(`${iso[1]}-${iso[2]}-${iso[3]}T00:00:00`)
+    if (!isNaN(d.getTime())) return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+  return s
 }
 
 export function getEstatusClass(estatus?: string): string {
   const c = String(estatus ?? '').toUpperCase()
   if (c === 'ACEPTADO' || c === 'APROBADO' || c === 'EXITOSO' || c === 'OK') return 'bg-emerald-100 text-emerald-800'
   if (c === 'RECHAZADO' || c === 'ERROR') return 'bg-red-100 text-red-800'
-  if (c === 'PENDIENTE' || c === 'EN_PROCESO') return 'bg-blue-100 text-blue-700'
+  if (c === 'PENDIENTE' || c === 'EN_PROCESO') return 'bg-amber-100 text-amber-700'
   return 'bg-slate-100 text-slate-600'
 }
 

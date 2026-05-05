@@ -572,7 +572,7 @@ async function save() {
 <template>
 	<BaseModalShell
 		:show="show"
-		title="Agregar columna"
+		:title="isEditing ? 'Modificar columna' : 'Agregar columna'"
 		:mobile-bottom-sheet="true"
 		max-width-class="max-w-2xl max-[640px]:max-w-none"
 		panel-class="rounded-2xl max-[640px]:rounded-t-2xl max-[640px]:rounded-b-none"
@@ -623,7 +623,7 @@ async function save() {
 						
 						<div class="flex items-center gap-3">
 							<label class="inline-flex items-center gap-2">
-								<span class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Obligatorio</span>
+							<span class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Requerido</span>
 								<input type="checkbox" v-model="form.esRequerido" class="h-4 w-4 accent-[#00357F]" />
 							</label>
 						</div>

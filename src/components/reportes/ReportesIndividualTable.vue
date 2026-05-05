@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, XCircle, Circle, Search } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, XCircle, Circle, Clock, Search } from 'lucide-vue-next'
 import type { RegistroCL, RegistroPET } from '@/types/reportes/reporte'
-import { getEstatusClass } from '@/utils/reportes/reporteFormat.utils'
+import { getEstatusClass, formatTimestamp, formatDateOnly } from '@/utils/reportes/reporteFormat.utils'
 
 const props = defineProps<{
   registrosCL: RegistroCL[]
@@ -231,6 +231,15 @@ function hasRowErrors(row: any): boolean {
   return !!row.detalle && parseDetalle(row.detalle as string) !== null
 }
 
+const DATE_ONLY_KEYS = new Set(['fechaNacimiento', 'fechaBajaCambio'])
+const TIMESTAMP_KEYS = new Set(['fecha'])
+
+function formatCellValue(key: string, val: unknown): string {
+  if (DATE_ONLY_KEYS.has(key)) return formatDateOnly(val as string)
+  if (TIMESTAMP_KEYS.has(key)) return formatTimestamp(val as string)
+  return String(val ?? '')
+}
+
 function getRowTintClass(row: any): string {
   if (props.tipo === 'envio') return 'bg-blue-100/80'
   if (props.tipo !== 'validacion') return ''
@@ -238,14 +247,16 @@ function getRowTintClass(row: any): string {
   const c = String((row as any).estatus ?? '').toUpperCase()
   if (c === 'RECHAZADO' || c === 'ERROR') return 'bg-red-50/60'
   if (c === 'ACEPTADO' || c === 'APROBADO' || c === 'EXITOSO' || c === 'OK') return 'bg-emerald-50/60'
+  if (c === 'PENDIENTE' || c === 'EN_PROCESO') return 'bg-amber-50'
   return ''
 }
 
-function getEstatusIcon(row: any): 'check' | 'x' | 'circle' {
+function getEstatusIcon(row: any): 'check' | 'x' | 'clock' | 'circle' {
   if (hasRowErrors(row)) return 'x'
   const c = String((row as any).estatus ?? '').toUpperCase()
   if (c === 'RECHAZADO' || c === 'ERROR') return 'x'
   if (c === 'ACEPTADO' || c === 'APROBADO' || c === 'EXITOSO' || c === 'OK') return 'check'
+  if (c === 'PENDIENTE' || c === 'EN_PROCESO') return 'clock'
   return 'circle'
 }
 
@@ -314,6 +325,7 @@ onUnmounted(() => document.removeEventListener('click', closeDetalle))
                   <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold" :class="getEstatusClass((row as any).estatus)">
                     <CheckCircle2 v-if="getEstatusIcon(row) === 'check'" class="w-3 h-3 flex-shrink-0" />
                     <XCircle v-else-if="getEstatusIcon(row) === 'x'" class="w-3 h-3 flex-shrink-0" />
+                    <Clock v-else-if="getEstatusIcon(row) === 'clock'" class="w-3 h-3 flex-shrink-0" />
                     <Circle v-else class="w-3 h-3 flex-shrink-0 opacity-60" />
                     {{ (row as any).estatus }}
                   </span>
@@ -325,7 +337,7 @@ onUnmounted(() => document.removeEventListener('click', closeDetalle))
                   :class="{ 'bg-red-100/80': showEstatus && getErrorMap(row).has(col.key.toLowerCase()) }"
                 >
                   <span class="inline-flex items-center gap-1">
-                    {{ (row as any)[col.key] ?? '' }}
+                    {{ formatCellValue(col.key, (row as any)[col.key]) }}
                     <button
                       v-if="showEstatus && getErrorMap(row).has(col.key.toLowerCase())"
                       @click.stop="openCellDetalle(row, col.key, $event)"

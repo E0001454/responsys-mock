@@ -227,13 +227,15 @@ function getRequiredVisual(required: boolean) {
 									<div class="inline-flex items-center justify-end gap-2">
 										<button
 											@click="emit('details', c)"
-											class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors group"
-										>
-											<Eye class="w-4 h-4" />
-										</button>
+										title="Ver detalle"
+										class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors group"
+									>
+										<Eye class="w-4 h-4" />
+									</button>
 
-										<button
-											@click.stop.prevent="emit('edit', c)"
+									<button
+										@click.stop.prevent="emit('edit', c)"
+										title="Modificar"
 											class="relative p-1.5 text-slate-400 hover:text-[#00357F] hover:bg-blue-50 rounded-md transition-colors group"
 										>
 											<Edit3 class="w-4 h-4" />

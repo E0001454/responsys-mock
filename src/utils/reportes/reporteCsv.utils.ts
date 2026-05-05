@@ -218,6 +218,8 @@ export function downloadReporteCsv(params: CsvExportParams) {
   xml += `<Style ss:ID="errorRow"><Interior ss:Color="#FEF2F2" ss:Pattern="Solid"/></Style>\n`
   xml += `<Style ss:ID="envioRow"><Interior ss:Color="#DBEAFE" ss:Pattern="Solid"/></Style>\n`
   xml += `<Style ss:ID="approvedRow"><Interior ss:Color="#D1FAE5" ss:Pattern="Solid"/></Style>\n`
+  xml += `<Style ss:ID="pendienteRow"><Interior ss:Color="#FEF3C7" ss:Pattern="Solid"/></Style>\n`
+  xml += `<Style ss:ID="pendienteCell"><Interior ss:Color="#FEF3C7" ss:Pattern="Solid"/><Font ss:Color="#92400E" ss:Size="10"/></Style>\n`
   xml += `</Styles>\n`
   xml += `<Worksheet ss:Name="Reporte"><Table>\n`
 
@@ -231,15 +233,17 @@ export function downloadReporteCsv(params: CsvExportParams) {
     const isEnvio = params.tipo === 'envio'
     const statusVal = String(row['estatus'] ?? '').toUpperCase()
     const APPROVED = new Set(['ACEPTADO', 'APROBADO', 'EXITOSO', 'OK'])
+    const PENDING = new Set(['PENDIENTE', 'EN_PROCESO'])
     const isApproved = showEstatus && !hasErrors && APPROVED.has(statusVal)
-    const rowStyle = isEnvio ? ' ss:StyleID="envioRow"' : (hasErrors ? ' ss:StyleID="errorRow"' : (isApproved ? ' ss:StyleID="approvedRow"' : ''))
+    const isPending = showEstatus && !hasErrors && PENDING.has(statusVal)
+    const rowStyle = isEnvio ? ' ss:StyleID="envioRow"' : (hasErrors ? ' ss:StyleID="errorRow"' : (isApproved ? ' ss:StyleID="approvedRow"' : (isPending ? ' ss:StyleID="pendienteRow"' : '')))
     xml += `<Row${rowStyle}>\n`
     for (const c of allCols) {
       const val = String(row[c.key] ?? '')
       const isError = showEstatus && errorMap.has(c.key.toLowerCase())
       const errMsg = isError ? errorMap.get(c.key.toLowerCase()) : ''
       const cellVal = isError && errMsg ? `${val} (${errMsg})` : val
-      const cellStyle = isError ? ' ss:StyleID="error"' : (isEnvio ? ' ss:StyleID="envioRow"' : (isApproved ? ' ss:StyleID="approvedRow"' : (hasErrors ? ' ss:StyleID="errorRow"' : '')))
+      const cellStyle = isError ? ' ss:StyleID="error"' : (isEnvio ? ' ss:StyleID="envioRow"' : (isApproved ? ' ss:StyleID="approvedRow"' : (isPending ? ' ss:StyleID="pendienteCell"' : (hasErrors ? ' ss:StyleID="errorRow"' : ''))))
       xml += `<Cell${cellStyle}><Data ss:Type="String">${esc(cellVal)}</Data></Cell>\n`
     }
     xml += `</Row>\n`

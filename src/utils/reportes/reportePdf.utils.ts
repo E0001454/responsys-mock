@@ -213,7 +213,7 @@ export async function downloadReportePdfReport(params: DownloadReportePdfParams)
 
   const tipoLabel = TIPO_LABELS[params.tipo]
   const scopeLabel = params.scope === 'linea'
-    ? 'Líneas de contacto (CL)'
+    ? 'Listas de contacto (CL)'
     : 'Extensión de perfil (PET)'
   const totalRows = params.scope === 'linea' ? params.registrosCL.length : params.registrosPET.length
 
@@ -286,6 +286,7 @@ export async function downloadReportePdfReport(params: DownloadReportePdfParams)
   const cellPad = isPET ? 0.5 : 1.2
 
   const APPROVED = new Set(['ACEPTADO', 'APROBADO', 'EXITOSO', 'OK'])
+  const PENDING = new Set(['PENDIENTE', 'EN_PROCESO'])
   const rowStatuses: string[] = (params.scope === 'linea'
     ? params.registrosCL.map(r => String((r as any).estatus ?? ''))
     : params.registrosPET.map(r => String((r as any).estatus ?? ''))
@@ -402,6 +403,8 @@ export async function downloadReportePdfReport(params: DownloadReportePdfParams)
             }
           } else if (APPROVED.has(rowStatuses[recordIdx] ?? '')) {
             data.cell.styles.fillColor = [209, 250, 229]
+          } else if (PENDING.has(rowStatuses[recordIdx] ?? '')) {
+            data.cell.styles.fillColor = [254, 243, 199]
           }
         },
         didDrawPage: () => {
@@ -504,7 +507,7 @@ export async function downloadReporteGeneralPdf(params: DownloadGeneralPdfParams
 
   const tipoLabel = params.tipo === 'carga' ? 'Carga' : params.tipo === 'envio' ? 'Envío' : 'Validación'
   const scopeLabel = params.scope === 'linea'
-    ? 'Líneas de contacto (CL)'
+    ? 'Listas de contacto (CL)'
     : 'Extensión de perfil (PET)'
 
   const drawWatermark = () => {

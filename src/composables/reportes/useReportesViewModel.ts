@@ -33,7 +33,7 @@ interface Option {
 }
 
 export const scopeTabs = [
-  { key: 'linea' as const, label: 'Líneas de contacto (CL)' },
+  { key: 'linea' as const, label: 'Listas de contacto (CL)' },
   { key: 'campana' as const, label: 'Extensión de perfil (PET)' }
 ]
 
